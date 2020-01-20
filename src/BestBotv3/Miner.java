@@ -35,7 +35,7 @@ public class Miner extends Unit {
         //Update Stuff
         updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
-        comms.updateAmazonLocations(amazonLocations);
+//        comms.updateAmazonLocations(amazonLocations);
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
         }
@@ -66,17 +66,24 @@ public class Miner extends Unit {
         }
 
         // Build 1 amazon, then build school.
-        System.out.println(turnCount);
-        if(!comms.updateAmazonLocations(amazonLocations) && rc.getTeamSoup()>=155){
-            if(myLoc.distanceSquaredTo(hqLoc) > 0){
+//        System.out.println(turnCount);
+//        if(!comms.updateAmazonLocations(amazonLocations) && rc.getTeamSoup()>=155){
+//            if(myLoc.distanceSquaredTo(hqLoc) > 0){
+//                System.out.println("Trybuild amazon");
+//                if (tryBuild(RobotType.FULFILLMENT_CENTER, rc.getLocation().directionTo(hqLoc).opposite())){
+//                    comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER,rc.getLocation().add(rc.getLocation().directionTo(hqLoc).opposite()));
+//                }
+//            }
+        if (amazonLocations.size() == 0 && rc.getTeamSoup() >= 155) {
+            if (myLoc.distanceSquaredTo(hqLoc) > 0) {
                 System.out.println("Trybuild amazon");
-                if (tryBuild(RobotType.FULFILLMENT_CENTER, rc.getLocation().directionTo(hqLoc).opposite())){
-                    comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER,rc.getLocation().add(rc.getLocation().directionTo(hqLoc).opposite()));
+                if (tryBuild(RobotType.FULFILLMENT_CENTER, myLoc.directionTo(hqLoc).opposite())) {
+                    comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(rc.getLocation().directionTo(hqLoc).opposite()));
                 }
             }
-        } else if(designSchoolLocations.size() == 0){
-            if(myLoc.directionTo(hqLoc) == Direction.NORTHEAST && myLoc.distanceSquaredTo(hqLoc) == 2){
-                if (tryBuild(RobotType.DESIGN_SCHOOL,Direction.NORTH)) {
+        } else if (designSchoolLocations.size() == 0) {
+            if (myLoc.directionTo(hqLoc) == Direction.NORTHEAST && myLoc.distanceSquaredTo(hqLoc) == 2) {
+                if (tryBuild(RobotType.DESIGN_SCHOOL, Direction.NORTH)) {
                     System.out.println("built school");
                     comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(Direction.NORTH));
                 }
@@ -174,10 +181,9 @@ public class Miner extends Unit {
 
     // builds a refinery if there are none or if we are far enough away from the closest one (which includes hq)
     public void buildRefineryIfAppropriate() throws GameActionException {
-        System.out.println("building refinery");
-
         if (refineryLocations.size() == 0) {
             for (Direction dir : Util.directions) {
+                System.out.println("trybuild refinery");
                 if (tryBuild(RobotType.REFINERY, dir)) {
                     comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                     break;
@@ -188,6 +194,7 @@ public class Miner extends Unit {
             // if further than 10, tries to build in all directions. breaks loop when it can.
             if (myLoc.distanceSquaredTo(closestRefinery) > 13) {
                 for (Direction dir : Util.directions) {
+                    System.out.println("trybuild refinery");
                     if (tryBuild(RobotType.REFINERY, dir)) {
                         comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                         break;

@@ -112,10 +112,10 @@ public class Communications {
             System.out.println("turncount 1 in updatesouploc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
                 crawlBlockchainForSoupLocations(soupLocations, i);
-                return;
             }
+        } else {
+            crawlBlockchainForSoupLocations(soupLocations, rc.getRoundNum() - 1);
         }
-        crawlBlockchainForSoupLocations(soupLocations, rc.getRoundNum() - 1);
     }
     public void crawlBlockchainForSoupLocations(ArrayList<MapLocation> soupLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
