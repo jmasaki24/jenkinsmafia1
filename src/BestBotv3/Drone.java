@@ -2,10 +2,14 @@ package BestBotv3;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
+
 // so our defensive drone has a few states
 // 1. not doing anything. go near standbyLocation
 // 2. sees a target (i.e. has a targetBot). go to targetBot's location
 // 3. is carrying a bot. go to water?
+
+
 
 public class Drone extends Unit{
 
@@ -13,59 +17,82 @@ public class Drone extends Unit{
     boolean shouldMove = true;
     int hqToCheck = 0;
     MapLocation[] potentialHQ;
+    public ArrayList<Direction> enemyDir = new ArrayList<>();
+
 
     public Drone(RobotController r) {
         super(r);
     }
 
+    MapLocation standbyLocation;
     boolean onMission = false;
     RobotInfo targetBot = null;
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
+        comms.updateAttackerDir(enemyDir);
 
         // goToEHQ works, but first we need a defensive drone.
         // gotoEHQ();
 
-//        MapLocation standbyLocation;
-//
-//        if (turnCount == 1) {
-//            if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
-//                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-//            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
-//
-//                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-//            } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
-//
-//                standbyLocation= new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-//            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
-//
-//                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-//            } else {
-//                standbyLocation = myLoc;
-//            }
-//        }
-//        if (!onMission && myLoc.distanceSquaredTo(standbyLocation) < 4 ) {
-//            nav.goTo(standbyLocation);
-//        }
-//
-//        if (targetBot != null && onMission) {
-//            if (rc.canPickUpUnit(targetBot.ID)) {
-//                rc.pickUpUnit(targetBot.ID);
-//            }
-//        }
-//
-//        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-//        for (RobotInfo robot : nearbyRobots) {
-//            if (robot.type.equals(RobotType.MINER)) {
-//                onMission = true;
-//                targetBot = robot;
-//                nav.goTo(robot.location);
-//            }
-//        }
+        // Enemy Detection
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+        for (RobotInfo robot : nearbyRobots) {
+            if (robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) {
+                onMission = true;
+                targetBot = robot;
+                nav.goTo(robot.location);
+            }
+        }
+
+        // Setting Standby Location
+        if (turnCount == 1) {
+            if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
+                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
+                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+            } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
+
+                standbyLocation= new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
+
+                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+            } else {
+                standbyLocation = myLoc;
+            }
+        }
+
+
+        // If its holding a unit, sense if its near flooding and drop. If not, move randomly.
+        if (rc.isCurrentlyHoldingUnit()){
+            for (Direction dir: Util.directions){
+                if (rc.senseFlooding(myLoc.add(dir))){
+                    rc.dropUnit(dir);
+                } else{
+                    rc.move(Util.randomDirection());
+                }
+            }
+        }
+        // I see a bot
+        else if (targetBot != null){
+            // I am there
+            if (rc.canPickUpUnit(targetBot.ID)) {
+                rc.pickUpUnit(targetBot.ID);
+            }
+            // I'm not there yet
+            else{
+                nav.goTo(targetBot.location);
+            }
+        }
+        // HQ has seen a bot
+        else if (enemyDir.size() != 0){
+            nav.goTo(hqLoc.add(enemyDir.get(enemyDir.size()-1)));
+        } else if (myLoc.distanceSquaredTo(standbyLocation) > 2){
+            nav.goTo(standbyLocation);
+        }
     }
 
-    void goToEHQ() throws GameActionException {
+    public void goToEHQ() throws GameActionException {
         shouldMove = true;
 
         findEHQ();

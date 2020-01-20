@@ -37,7 +37,7 @@ public class Miner extends Unit {
         //Update Stuff
         updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
-//        comms.updateAmazonLocations(amazonLocations);
+//      comms.updateAmazonLocations(amazonLocations);
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
         }

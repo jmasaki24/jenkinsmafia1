@@ -14,6 +14,7 @@ public class Communications {
     final int EHQID = 232455;
     final int BUILDINGID = 554;
     final int SOUPID = 312;
+    final int ATTACKER = 505;
 
     int[] lastSpoofedMessage;
 
@@ -71,6 +72,72 @@ public class Communications {
         }
         return null;
     }
+
+
+    public void broadcastAttackerInfo(int AttackerID, Direction dir) throws GameActionException {
+        int[] message = new int[7];
+        message[0] = teamSecret;
+        message[1] = ATTACKER;
+        message[2] = AttackerID; // ID of attacking bot
+        message[3] = directionToNumber(dir); // direction number
+        if (rc.canSubmitTransaction(message, 3)) {
+            rc.submitTransaction(message, 3);
+        }
+    }
+
+    public void updateAttackerDir(ArrayList<Direction> enemyDir) throws GameActionException {
+        // if its just been created, go through all of the blocks and transactions to find attackers directions
+        if (RobotPlayer.turnCount == 1) {
+            System.out.println("turncount 1 in updateAttackerDirection");
+            for (int i = 1; i < rc.getRoundNum(); i++) {
+                crawlBlockchainForAttackers(enemyDir, 1);
+            }
+        } else {
+            crawlBlockchainForAttackers(enemyDir, rc.getRoundNum() - 1);
+        }
+    }
+    public void crawlBlockchainForAttackers(ArrayList<Direction> enemyDir, int roundNum) throws GameActionException {
+        for(Transaction tx : rc.getBlock(roundNum)) {
+            int[] mess = tx.getMessage();
+            if(mess[0] == teamSecret && mess[1] == ATTACKER){
+                System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
+                enemyDir.add(numberToDirection(mess[3]));
+            }
+        }
+    }
+
+    public Direction numberToDirection (int d){
+        Direction dir;
+        switch(d){
+            case 1:             dir = Direction.NORTH;          break;
+            case 2:             dir = Direction.NORTHEAST;      break;
+            case 3:             dir = Direction.EAST;           break;
+            case 4:             dir = Direction.SOUTHEAST;      break;
+            case 5:             dir = Direction.SOUTH;          break;
+            case 6:             dir = Direction.SOUTHWEST;      break;
+            case 7:             dir = Direction.WEST;           break;
+            case 8:             dir = Direction.NORTHWEST;      break;
+            default:            dir = Direction.EAST;           break;
+        }
+        return dir;
+    }
+    public int directionToNumber(Direction d){
+        int type = 0;
+        switch(d){
+            case NORTH:                 type = 1;       break;
+            case NORTHEAST:             type = 2;       break;
+            case EAST:                  type = 3;       break;
+            case SOUTHEAST:             type = 4;       break;
+            case SOUTH:                 type = 5;       break;
+            case SOUTHWEST:             type = 6;       break;
+            case WEST:                  type = 7;       break;
+            case NORTHWEST:             type = 8;       break;
+            default:                    type = 3;       break; // No reason its east, I just figured that if it breaks, then hopefully the enemy is east
+        }
+        return type;
+    }
+
+
 
 
     boolean complete = false;

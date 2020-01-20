@@ -77,6 +77,9 @@ public class HQ extends Shooter {
         for (RobotInfo robot : robots) {
             if (robot.type == RobotType.DESIGN_SCHOOL) {
                 seeDesignSchool = true;
+            } else if ((robot.type == RobotType.MINER || robot.type == RobotType.LANDSCAPER) /*&& robot.getTeam() == rc.getTeam().opponent()*/){
+                // I am intentionally leaving out the team part of it just to test if the drones will pick up our own miners or not
+                comms.broadcastAttackerInfo(robot.ID, myLoc.directionTo(robot.location));
             }
         }
 
