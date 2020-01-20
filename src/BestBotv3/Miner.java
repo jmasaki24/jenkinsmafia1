@@ -2,12 +2,13 @@ package BestBotv3;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /*
  * WHAT DOES THE MINER DO (in order)
  * update stuff
  * build 1 school when summoned by HQ
- * IF SCHOOL IN RADIUS
+ * IF SCHOOL IN RADIUS THEN RUN AWAY!!!!!!!!!!!
  * try deposit soup
  * try mine soup
  * move
@@ -25,7 +26,7 @@ public class Miner extends Unit {
         super.takeTurn();
 
         //Update Stuff
-        updateUnitLocations();
+        updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
         checkIfSoupGone();
 
@@ -34,10 +35,17 @@ public class Miner extends Unit {
         if(turnCount <= 11){
             System.out.println(hqLoc.distanceSquaredTo(myLoc));
             if(myLoc.directionTo(hqLoc) == Direction.NORTHEAST && myLoc.distanceSquaredTo(hqLoc) == 2){
-                System.out.println("Trybuild school");
-                tryBuild(RobotType.DESIGN_SCHOOL,Direction.NORTH);
+                if (tryBuild(RobotType.DESIGN_SCHOOL,Direction.NORTH)) {
+                    System.out.println("built school");
+                    comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(Direction.NORTH));
+                }
             }
         }
+
+        // run away from hq if you see a design school
+        boolean schoolExists = false;
+
+
 
         // Better to deposit soup while you can
         for (Direction dir : Util.directions) {
@@ -54,7 +62,7 @@ public class Miner extends Unit {
                 MapLocation soupLoc = rc.getLocation().add(dir);
                 if (hqLoc.distanceSquaredTo(soupLoc) > 10) {
                     if (tryBuild(RobotType.REFINERY, Util.randomDirection())) {
-                        comms.broadcastUnitCreation(RobotType.REFINERY, rc.adjacentLocation(dir.opposite()));
+                        comms.broadcastBuildingCreation(RobotType.REFINERY, rc.adjacentLocation(dir.opposite()));
                     }
                 }
                 if(soupLocations.size() == 0) {
@@ -73,7 +81,8 @@ public class Miner extends Unit {
         // if at soup limit, go to nearest refinery or hq.
         //      if there is a design school, hq is no longer part of the nearest refineries.
         // if hq or refinery is far away, build a refinery.
-        // if there are less than MINER LIMIT miners, tell hq to pause building miners????
+        // if there are soupLocations, go to soup
+        // finally, move away from other miners
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             System.out.println("I'm full of soup");
 
@@ -108,7 +117,23 @@ public class Miner extends Unit {
 
         else {
             if (soupLocations.size() > 0) {
-                System.out.println("I'm moving to soupLocation[0]");
+                System.out.println("I'm moving to soupLocation");
+
+                MapLocation nearestSoupLoc = soupLocations.get(0);
+
+                for (MapLocation loc : soupLocations) {
+                    if (myLoc.distanceSquaredTo(loc) < myLoc.distanceSquaredTo(nearestSoupLoc)) {
+                        nearestSoupLoc = loc;
+                    }
+                }
+
+                // if you can see all tiles adjacent to soupLoc
+                if (myLoc.distanceSquaredTo(nearestSoupLoc) < 20) {
+                    if (isSoupAccessible(nearestSoupLoc)) {
+
+                    }
+                }
+
                 nav.goTo(soupLocations.get(0));
             } else {
                 System.out.println("I'm searching for soup, moving away from other miners");
@@ -130,6 +155,22 @@ public class Miner extends Unit {
                 }
             }
         }
+    }
+
+    // this method could be done MUCH MUCH better, I think. sorry in advance.
+    public boolean isSoupAccessible(MapLocation soupLoc) throws GameActionException {
+        MapLocation[] surroundingLocs = {
+            soupLoc.add(Util.directions[0]), soupLoc.add(Util.directions[1]),
+            soupLoc.add(Util.directions[2]), soupLoc.add(Util.directions[3]),
+            soupLoc.add(Util.directions[4]), soupLoc.add(Util.directions[5]),
+            soupLoc.add(Util.directions[6]), soupLoc.add(Util.directions[7]),
+        };
+
+        boolean isAccessible = false;
+        for (MapLocation loc : surroundingLocs) {
+            isAccessible = isAccessible || !rc.senseFlooding(loc);
+        }
+        return isAccessible;
     }
 
     /**
@@ -165,6 +206,7 @@ public class Miner extends Unit {
             MapLocation targetSoupLoc = soupLocations.get(0);
             if (rc.canSenseLocation(targetSoupLoc)
                     && rc.senseSoup(targetSoupLoc) == 0) {
+                System.out.println("soup is gone");
                 soupLocations.remove(0);
             }
         }

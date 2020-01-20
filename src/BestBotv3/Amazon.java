@@ -19,8 +19,7 @@ public class Amazon extends Building {
         super.takeTurn();
 
         // will only actually happen if we haven't already broadcasted the creation
-        //comms.broadcastDesignSchoolCreation(rc.getLocation());
-
+        // use broadcastBuildingCreation
 
         if (rc.getTeamSoup()>=(6*RobotType.DELIVERY_DRONE.cost)){
             shouldMakeBuilders = true;

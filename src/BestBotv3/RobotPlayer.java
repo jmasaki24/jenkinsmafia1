@@ -31,10 +31,12 @@ public strictfp class RobotPlayer {
             case LANDSCAPER:         me = new Landscaper(rc);   break;
             case DELIVERY_DRONE:     me = new Unit(rc);         break;
             case NET_GUN:            me = new Shooter(rc);      break;
+            default: me = new Robot(rc); break;
         }
 
         while(true) {
             try {
+                turnCount++;
                 me.takeTurn();
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again

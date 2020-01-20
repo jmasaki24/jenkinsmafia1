@@ -62,11 +62,11 @@ public class Unit extends Robot {
         }
     }
 
-    public void updateUnitLocations() throws GameActionException {
+    public void updateBuildingLocations() throws GameActionException {
         for(Transaction tx : rc.getBlock(rc.getRoundNum() - 1)) {
             int[] mess = tx.getMessage();
-            if(mess[0] == comms.teamSecret && mess[1] == 4){
-                System.out.println("heard about a new unit");
+            if(mess[0] == comms.teamSecret && mess[1] == comms.BUILDINGID){
+                System.out.println("heard about a new building");
                 switch (mess[4]) {
                     case 3:     designSchoolLocations.add(new MapLocation(mess[2], mess[3]));   break;
                     case 4:     amazonLocations.add(new MapLocation(mess[2], mess[3]));         break;
