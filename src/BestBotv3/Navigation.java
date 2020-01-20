@@ -30,12 +30,18 @@ public class Navigation {
 
     // tries to move in the general direction of dir
     boolean goTo(Direction dir) throws GameActionException {
-        Direction[] toTry = {dir, dir.rotateLeft(), dir.rotateRight(), dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight()};
 
+        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                dir.opposite(),
+        };
+
+        Direction moveToward = fuzzyNavDirectionsInOrder[0];
         for (int i = 0; i < 8; i ++) {
-            if (!tryMove(dir)) {
-                dir = dir.rotateLeft();
-            } else {
+            moveToward = fuzzyNavDirectionsInOrder[i];
+            if (tryMove(moveToward)) {
                 return true;
             }
         }

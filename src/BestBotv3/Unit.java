@@ -65,7 +65,7 @@ public class Unit extends Robot {
             System.out.println("turncount 1 in updateBuildingLoc");
             System.out.println("current rounNum = " + rc.getRoundNum());
             for (int i = 1; i < rc.getRoundNum(); i++) {
-                System.out.println("crawl chain round " + i);
+//                System.out.println("crawl chain round " + i);
                 crawlBlockchainForBuildingLocations(i);
             }
         } else {
@@ -77,26 +77,42 @@ public class Unit extends Robot {
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if (mess[0] == comms.teamSecret && mess[1] == comms.BUILDINGID) {
-                System.out.print("heard about a new ");
+                System.out.print("new building? ");
+                MapLocation buildingLoc = new MapLocation(mess[2], mess[3]);
                 switch (mess[4]) {
                     case 3:
-                        designSchoolLocations.add(new MapLocation(mess[2], mess[3]));
-                        System.out.println(" school");
+                        if (!designSchoolLocations.contains(buildingLoc)) {
+                            designSchoolLocations.add(buildingLoc);
+                            System.out.println("yes, new school");
+                        } else {
+                            System.out.println("no, school");
+                        }
                         break;
                     case 4:
-                        amazonLocations.add(new MapLocation(mess[2], mess[3]));
-                        System.out.println(" amazon");
+                        if (!amazonLocations.contains(buildingLoc)) {
+                            amazonLocations.add(buildingLoc);
+                            System.out.println("yes, new amazon");
+                        } else {
+                            System.out.println("no, amazon");
+                        }
                         break;
                     case 9:
-                        refineryLocations.add(new MapLocation(mess[2], mess[3]));
-                        System.out.println(" refinery");
+                        if (!refineryLocations.contains(buildingLoc)) {
+                            refineryLocations.add(buildingLoc);
+                            System.out.println("yes, new refinery");
+                        } else {
+                            System.out.println("no, refinery");
+                        }
                         break;
                     case 10:
-                        vaporatorLocations.add(new MapLocation(mess[2], mess[3]));
-                        System.out.println(" vaporator");
+                        if (!vaporatorLocations.contains(buildingLoc)) {
+                            vaporatorLocations.add(buildingLoc);
+                            System.out.println("yes, new vaporator");
+                        }
+                        System.out.println("no, vaporator");
                         break;
                     default:
-                        System.out.println(" something???");
+                        System.out.println("idk?!?");
                         break;
                 }
 

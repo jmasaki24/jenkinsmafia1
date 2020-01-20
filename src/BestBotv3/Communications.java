@@ -153,7 +153,7 @@ public class Communications {
         message[4] = typeNumber;
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
-            System.out.println("new robot!" + loc);
+            System.out.println("new building!" + loc);
         }
     }
 

@@ -2,6 +2,11 @@ package BestBotv3;
 
 import battlecode.common.*;
 
+// so our defensive drone has a few states
+// 1. not doing anything. go near standbyLocation
+// 2. sees a target (i.e. has a targetBot). go to targetBot's location
+// 3. is carrying a bot. go to water?
+
 public class Drone extends Unit{
 
     //Vars
@@ -13,9 +18,54 @@ public class Drone extends Unit{
         super(r);
     }
 
+    boolean onMission = false;
+    RobotInfo targetBot = null;
+
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
+        // goToEHQ works, but first we need a defensive drone.
+        // gotoEHQ();
+
+//        MapLocation standbyLocation;
+//
+//        if (turnCount == 1) {
+//            if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
+//                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+//            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
+//
+//                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+//            } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
+//
+//                standbyLocation= new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+//            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
+//
+//                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+//            } else {
+//                standbyLocation = myLoc;
+//            }
+//        }
+//        if (!onMission && myLoc.distanceSquaredTo(standbyLocation) < 4 ) {
+//            nav.goTo(standbyLocation);
+//        }
+//
+//        if (targetBot != null && onMission) {
+//            if (rc.canPickUpUnit(targetBot.ID)) {
+//                rc.pickUpUnit(targetBot.ID);
+//            }
+//        }
+//
+//        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+//        for (RobotInfo robot : nearbyRobots) {
+//            if (robot.type.equals(RobotType.MINER)) {
+//                onMission = true;
+//                targetBot = robot;
+//                nav.goTo(robot.location);
+//            }
+//        }
+    }
+
+    void goToEHQ() throws GameActionException {
         shouldMove = true;
 
         findEHQ();
@@ -53,6 +103,7 @@ public class Drone extends Unit{
                 hqToCheck += 1;
             }
         }
+
     }
 
 }

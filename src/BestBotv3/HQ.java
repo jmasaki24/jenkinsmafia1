@@ -2,6 +2,7 @@ package BestBotv3;
 
 import battlecode.common.*;
 
+import java.rmi.MarshalledObject;
 import java.util.Map;
 /*
  * FIRST FEW ROUNDS STRATEGY
@@ -26,20 +27,30 @@ public class HQ extends Shooter {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         int numSoupNearby = 0;
+        // on first turn, sendHqLoc, send nearbySoupLocations,
         if (turnCount == 1) {
             comms.sendHqLoc(rc.getLocation());
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
             if (nearbySoupLocations.length > 0) {
                 for (MapLocation nearbySoup : nearbySoupLocations) {
+                    System.out.println("hq sees soup " + nearbySoup);
                     // TODO: 1/19/2020 if the soup is surrounded by water, miner will be fucked
                     if (numSoupNearby < 20) { // don't want to spend all the soup broadcasting locs
                         if (myLoc.distanceSquaredTo(nearbySoup) < 32 && isSoupAccessible(nearbySoup)) {
+                            comms.broadcastSoupLocation(nearbySoup);
+                            numSoupNearby++;
+                        } else {
                             comms.broadcastSoupLocation(nearbySoup);
                             numSoupNearby++;
                         }
                     }
                 }
             }
+        }
+
+        // wait until 30th turn to send nearby water locations cuz who knows how much soup we'll have
+        if (turnCount == 30) {
+            broadcastNearbyWaterLocations();
         }
 
         //Every 3 turns repeat messages. why >3? see method
@@ -81,4 +92,18 @@ public class HQ extends Shooter {
 //            }
 //        }
     }
+
+    // go from top row to bottom row, left to right
+    void broadcastNearbyWaterLocations() throws GameActionException {
+        int checkThisX = myLoc.x;
+        int checkThisY = myLoc.y;
+        MapLocation checkThisLoc = myLoc;
+
+
+        // FIRST ROW
+        checkThisX = myLoc.x - 3;
+        checkThisY = myLoc.y + 6;
+
+    }
+
 }
