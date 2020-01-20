@@ -3,11 +3,6 @@ import battlecode.common.*;
 import java.lang.Math;
 import java.util.ArrayList;
 
-// basically I'm writing this file from scratch since I'm getting frustrated and I think it's because I don't know
-// what's going on. rip me.
-
-// focused on pathfinding at the moment
-
 public strictfp class RobotPlayer {
     static RobotController rc;
 
@@ -49,19 +44,19 @@ public strictfp class RobotPlayer {
     static final int NOTHINGID = 404;
     static final MapLocation closestRefineryLoc = null;
     static MapLocation lastSeenWater = new MapLocation(-5,-5);
-    static MapLocation m1, m2, m3;
-    static int mapHeight;
-    static int mapWidth;
-    static MapLocation myLoc;
-    static MapLocation ourHQ;
-    static MapLocation enemyHQ;
+    static MapLocation m1, m2, m3; //3 possible locations for enemy HQ
+    static int mapHeight; //height of the map
+    static int mapWidth; //width of the map
+    static MapLocation myLoc; //robot's location atm
+    static MapLocation ourHQ; //the location for our HQ
+    static MapLocation enemyHQ; //final enemy location
     static ArrayList<MapLocation> soupLocations = new ArrayList<>();
     static ArrayList<MapLocation> refineryLocations = new ArrayList<>();
     static ArrayList<MapLocation> designSchoolLocations = new ArrayList<>();
     static ArrayList<MapLocation> vaporatorLocations = new ArrayList<>();
     static ArrayList<MapLocation> amazonLocations = new ArrayList<>();
-    static boolean foundEHQ = false;
-    static int EHQID = 3867;
+    static int EHQID = 3867; //code for block chain
+    static boolean findEQ = false; //checks if final enemy hq has been found
 
     // used in blockchain transactions
     static final int teamSecret = 1211212211;
@@ -70,7 +65,7 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) throws GameActionException {
         rebecca.RobotPlayer.rc = rc;
 
-        mapHeight = rc.getMapHeight();
+        mapHeight = rc.getMapHeight(); //set the map's width and height
         mapWidth = rc.getMapWidth();
 
         turnCount = 0;
@@ -121,47 +116,42 @@ public strictfp class RobotPlayer {
 
 
     static void runFulfillmentCenter() throws GameActionException {
-        for (Direction dir : directions) {
+        for (Direction dir : directions) { //build drones
             tryBuild(RobotType.DELIVERY_DRONE, dir);
         }
     }
 
     static void runDeliveryDrone() throws GameActionException {
-        m1 = getEHqLocFromBlockchain();
-        boolean findEQ = false;
+        m1 = getEHqLocFromBlockchain(); //gets the enemy's hq location from block chain
 
+        //gotten from the block chain
         if(m1 != null){
-            System.out.println("DRONE: " + m1.x + ", " + m1.y);
+            System.out.println("DRONE: " + m1.x + ", " + m1.y); //prints the location the drone is flying to
 
+            //checks if drone can sense the hq
             if(rc.canSenseLocation(m1)){
                 RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
                 for(RobotInfo r: robots){
-                    if(r.type == RobotType.HQ){
+                    if(r.type == RobotType.HQ){ //check if HQ is actual at the location
                         System.out.println("ENEMYHQ FOUND");
                         System.out.println("EHQ: " + m1.x + ", " + m1.y);
-                        sendEHqLoc(m1);
+                        sendEHqLoc(m1); //send it to block chain
+                        //make the drone move away so that it doesn't get shot down by net gun
                         Direction awayEHQ = rc.getLocation().directionTo(m1).opposite();
                         tryMove(awayEHQ);
-                        findEQ = true;
+                        findEQ = true; //so that it doesn't fly back
                     }
                 }
             }
-            else if(findEQ == false){
+            else if(findEQ == false){ //hasn't found hq yet so keep flying to enemy hq
                 Direction toEHQ = rc.getLocation().directionTo(m1);
                 tryMove(toEHQ);
             }
-            else{
+            else{ //fly away
                 Direction awayEHQ = rc.getLocation().directionTo(m1).opposite();
                 tryMove(awayEHQ);
             }
         }
-        //System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
-
-    	/*while(findHQ == false) {
-    		System.out.println(1);
-        	senseHQ();
-    		tryMove(randomDirection());
-    	}*/
 
         boolean moved = false;
         if(rc.senseFlooding(rc.getLocation())){
