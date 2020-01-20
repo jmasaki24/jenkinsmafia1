@@ -110,10 +110,7 @@ public strictfp class RobotPlayer {
                 tryBuild(RobotType.LANDSCAPER,dir);
             }
         }
-
-
     }
-
 
     static void runFulfillmentCenter() throws GameActionException {
         for (Direction dir : directions) { //build drones
@@ -849,7 +846,6 @@ public strictfp class RobotPlayer {
                     case 10:    vaporatorLocations.add(new MapLocation(mess[2], mess[3]));      break;
                     default: break;
                 }
-
             }
         }
     }
