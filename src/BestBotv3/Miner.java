@@ -28,6 +28,7 @@ public class Miner extends Unit {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         if (turnCount == 1) {
+            System.out.println("adding hq to refineries");
             refineryLocations.add(hqLoc);   // since hq is technically a refinery
         }
 
@@ -43,7 +44,21 @@ public class Miner extends Unit {
         }
 
         if (designSchoolLocations.size() > 0) {
+            System.out.println("remove hq from refineries");
             refineryLocations.remove(hqLoc);
+
+            // need to build refinery ASAP
+            if (myLoc.distanceSquaredTo(hqLoc) > 2) {
+                for (Direction dir: Util.directions) {
+                    if (!dir.equals(myLoc.directionTo(hqLoc))
+                            && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
+                            && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
+                        tryBuild(RobotType.REFINERY, dir);
+                        comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
+                    }
+                }
+            }
+
             // TODO: 1/20/2020 gotta try and make it move away from HQ
             if (myLoc.distanceSquaredTo(hqLoc) < 5) {
                 runAwayyyyyy();
