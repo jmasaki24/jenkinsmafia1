@@ -110,8 +110,7 @@ public class Communications {
         }
     }
 
-    public void updateSoupLocations(ArrayList<MapLocation> soupLocations) throws GameActionException {
-
+    public ArrayList<MapLocation> updateSoupLocations(ArrayList<MapLocation> soupLocations) throws GameActionException {
         for(Transaction tx : rc.getBlock(rc.getRoundNum() - 1)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == 2){
@@ -120,6 +119,7 @@ public class Communications {
                 soupLocations.add(new MapLocation(mess[2], mess[3]));
             }
         }
+        return soupLocations;
     }
 
     public void broadcastUnitCreation(RobotType type, MapLocation loc) throws GameActionException {
