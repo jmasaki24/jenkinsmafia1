@@ -82,7 +82,6 @@ public class Communications {
             broadcastedCreation = true;
         }
     }
-
     // check the latest block for unit creation messages
     public int getNewDesignSchoolCount() throws GameActionException {
         int count = 0;
@@ -94,6 +93,26 @@ public class Communications {
             }
         }
         return count;
+    }
+
+    boolean complete = false;
+    public boolean updateAmazonLocations(ArrayList<MapLocation> amazonLocations) throws GameActionException {
+        for(Transaction tx : rc.getBlock(rc.getRoundNum() - 1)) {
+            int[] mess = tx.getMessage();
+            if(mess[0] == teamSecret && mess[4] == 4){
+                // TODO: don't add duplicate locations
+                System.out.println("heard about a tasty new amazon location");
+                amazonLocations.add(new MapLocation(mess[2], mess[3]));
+                if (amazonLocations.size() > 0){
+                    complete = true;
+                }
+            }
+        }
+        return complete;
+    }
+
+    public boolean amazonMade() throws GameActionException{
+        return complete;
     }
 
     public void broadcastSoupLocation(MapLocation loc ) throws GameActionException {

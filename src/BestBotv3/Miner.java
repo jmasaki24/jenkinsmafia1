@@ -7,6 +7,9 @@ public class Miner extends Unit {
 
     int numDesignSchools = 0;
     ArrayList<MapLocation> soupLocations = new ArrayList<MapLocation>();
+    ArrayList<MapLocation> amazonLocations = new ArrayList<MapLocation>();
+
+
 
     public Miner(RobotController r) {
         super(r);
@@ -17,16 +20,25 @@ public class Miner extends Unit {
 
         //Update Stuff
         updateUnitLocations();
+        comms.updateAmazonLocations(amazonLocations);
         comms.updateSoupLocations(soupLocations);
         checkIfSoupGone();
 
-        //Build 1 school when summoned into a specific position by HQ and after move away
+        //Build 1 amazon
         System.out.println(turnCount);
-        if(turnCount <= 11){
-            System.out.println(hqLoc.distanceSquaredTo(myLoc));
+        if(!comms.updateAmazonLocations(amazonLocations) && rc.getTeamSoup()>=155){
+            if(myLoc.distanceSquaredTo(hqLoc) > 0){
+                System.out.println("Trybuild amazon");
+                if (tryBuild(RobotType.FULFILLMENT_CENTER, rc.getLocation().directionTo(hqLoc).opposite())){
+                    comms.broadcastUnitCreation(RobotType.FULFILLMENT_CENTER,rc.getLocation().add(rc.getLocation().directionTo(hqLoc).opposite()));
+                }
+            }
+        } else if(comms.getNewDesignSchoolCount() == 0){
             if(myLoc.directionTo(hqLoc) == Direction.NORTHEAST && myLoc.distanceSquaredTo(hqLoc) == 2){
                 System.out.println("Trybuild school");
-                tryBuild(RobotType.DESIGN_SCHOOL,Direction.NORTH);
+                if (tryBuild(RobotType.DESIGN_SCHOOL,Direction.NORTH)){
+                    comms.broadcastDesignSchoolCreation(rc.getLocation().add(Direction.NORTH));
+                }
             }
         }
 

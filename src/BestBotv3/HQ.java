@@ -16,7 +16,12 @@ public class HQ extends Shooter {
         if(turnCount == 1) {
             comms.sendHqLoc(rc.getLocation());
         }
-        if(numMiners < 6) {
+        if(numMiners < 3) {
+            for (Direction dir : Util.directions)
+                if(tryBuild(RobotType.MINER, dir)){
+                    numMiners++;
+                }
+        } else if (comms.amazonMade()){
             for (Direction dir : Util.directions)
                 if(tryBuild(RobotType.MINER, dir)){
                     numMiners++;
@@ -31,15 +36,17 @@ public class HQ extends Shooter {
                 seeDesignSchool = true;
             }
         }
+
+
         if(!seeDesignSchool){
             if(rc.getTeamSoup() > RobotType.DESIGN_SCHOOL.cost + RobotType.MINER.cost){
                 tryBuild(RobotType.MINER,Direction.SOUTHWEST);
             }
         }
-        if (seeDesignSchool && rc.getRoundNum() > 300){
+        /*if (seeDesignSchool && rc.getRoundNum() > 300){
             for (Direction dir: Util.directions){
                 tryBuild(RobotType.MINER,Util.randomDirection());
             }
-        }
+        }*/
     }
 }
