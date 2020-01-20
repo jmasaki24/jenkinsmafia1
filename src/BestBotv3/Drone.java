@@ -39,9 +39,11 @@ public class Drone extends Unit{
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots) {
             if (robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) {
+                // If its on opponent team
                 onMission = true;
                 targetBot = robot;
                 nav.goTo(robot.location);
+                break;
             }
         }
 
@@ -76,8 +78,14 @@ public class Drone extends Unit{
         // I see a bot
         else if (targetBot != null){
             // I am there
-            if (rc.canPickUpUnit(targetBot.ID)) {
-                rc.pickUpUnit(targetBot.ID);
+            if (myLoc.distanceSquaredTo(targetBot.location) <=2){
+                if (rc.canPickUpUnit(targetBot.ID)){
+                    rc.pickUpUnit(targetBot.ID);
+                    System.out.println("I should have picked this unit up" + targetBot.ID);
+                } else {
+                    System.out.println("Wtf dude");
+                }
+
             }
             // I'm not there yet
             else{
