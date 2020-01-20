@@ -15,7 +15,18 @@ public class HQ extends Shooter {
 
         if(turnCount == 1) {
             comms.sendHqLoc(rc.getLocation());
+            MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
+            if (nearbySoupLocations.length > 0) {
+                for (MapLocation nearbySoup : nearbySoupLocations) {
+                    comms.broadcastSoupLocation(nearbySoup);
+                }
+            }
         }
+        //Every 3 turns repeat messages
+        if(turnCount % 3 == 0){
+            comms.jamEnemyComms();
+        }
+
         if(numMiners < 3) {
             for (Direction dir : Util.directions)
                 if(tryBuild(RobotType.MINER, dir)){

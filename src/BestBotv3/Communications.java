@@ -13,6 +13,8 @@ public class Communications {
     final int EHQID = 232455;
     final int DESIGNSCHOOL = 123;
 
+    int[] lastSpoofedMessage;
+
     static final String[] messageType = {
         "HQ loc",
         "design school created",
@@ -127,8 +129,7 @@ public class Communications {
         }
     }
 
-    public void updateSoupLocations(ArrayList<MapLocation> soupLocations) throws GameActionException {
-
+    public ArrayList<MapLocation> updateSoupLocations(ArrayList<MapLocation> soupLocations) throws GameActionException {
         for(Transaction tx : rc.getBlock(rc.getRoundNum() - 1)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == 2){
@@ -137,6 +138,7 @@ public class Communications {
                 soupLocations.add(new MapLocation(mess[2], mess[3]));
             }
         }
+        return soupLocations;
     }
 
     public void broadcastUnitCreation(RobotType type, MapLocation loc) throws GameActionException {
@@ -165,5 +167,32 @@ public class Communications {
             rc.submitTransaction(message, 1);
             System.out.println("new refinery!" + loc);
         }
+    }
+
+    public void jamEnemyComms() throws GameActionException {
+        boolean sentMessage = false;
+        //for the last 3 turns
+        for (int i = 1; i <= 3; i++){
+            for (Transaction tx : rc.getBlock(RobotPlayer.turnCount - i)){
+                int[] message = tx.getMessage();
+                if (((message[0] != teamSecret) && !sentMessage) && lastSpoofedMessage != message){
+                    if (rc.canSubmitTransaction(message,1)){
+                        rc.submitTransaction(message,1);
+                        lastSpoofedMessage = message;
+                        sentMessage = true;
+                    }
+                }
+            }
+        }
+
+        if (lastSpoofedMessage != null){
+            if (!sentMessage){
+                if (rc.canSubmitTransaction(lastSpoofedMessage,1)){
+                    rc.submitTransaction(lastSpoofedMessage,1);
+                }
+            }
+        }
+
+        System.out.println(RobotPlayer.turnCount);
     }
 }
