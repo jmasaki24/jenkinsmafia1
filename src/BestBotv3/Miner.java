@@ -3,6 +3,15 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 
+/*
+ * WHAT DOES THE MINER DO (in order)
+ * update stuff
+ * build 1 school when summoned by HQ
+ * IF SCHOOL IN RADIUS
+ * try deposit soup
+ * try mine soup
+ * move
+ */
 public class Miner extends Unit {
 
     int numDesignSchools = 0;
@@ -62,6 +71,7 @@ public class Miner extends Unit {
         //lastly, move
 
         // if at soup limit, go to nearest refinery or hq.
+        //      if there is a design school, hq is no longer part of the nearest refineries.
         // if hq or refinery is far away, build a refinery.
         // if there are less than MINER LIMIT miners, tell hq to pause building miners????
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
