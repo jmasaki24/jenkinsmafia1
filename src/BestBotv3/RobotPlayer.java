@@ -1,7 +1,7 @@
 package BestBotv3;
 
 import battlecode.common.*;
-import lectureplayer.*;
+import BestBotv3.*;
 
 import java.util.ArrayList;
 
