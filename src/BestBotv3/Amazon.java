@@ -15,19 +15,25 @@ public class Amazon extends Building {
         super(r);
     }
 
+    int numDrones = 0;
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        // will only actually happen if we haven't already broadcasted the creation
-        // use broadcastBuildingCreation
-
-        if (rc.getTeamSoup()>=(6*RobotType.DELIVERY_DRONE.cost)){
-            shouldMakeBuilders = true;
-        }
-        if (shouldMakeBuilders){
-            for (Direction dir: Util.directions){
-                tryBuild(RobotType.DELIVERY_DRONE,dir);
+        if (numDrones < 1) {
+            for (Direction dir : Util.directions) {
+                if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
+                    numDrones++;
+                }
             }
         }
+
+//        if (rc.getTeamSoup()>=(6*RobotType.DELIVERY_DRONE.cost)){
+//            shouldMakeBuilders = true;
+//        }
+//        if (shouldMakeBuilders){
+//            for (Direction dir: Util.directions){
+//                tryBuild(RobotType.DELIVERY_DRONE,dir);
+//            }
+//        }
     }
 }

@@ -11,10 +11,6 @@ public class Drone extends Unit{
 
     public Drone(RobotController r) {
         super(r);
-
-        MapLocation[] potentialHQ = new MapLocation[] {new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (hqLoc.y) - 1),
-                new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (rc.getMapHeight() - hqLoc.y) - 1),
-                new MapLocation((hqLoc.x) - 1                   , (rc.getMapHeight() - hqLoc.y) - 1)};
     }
 
     public void takeTurn() throws GameActionException {

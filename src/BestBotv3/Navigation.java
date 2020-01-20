@@ -31,10 +31,19 @@ public class Navigation {
     // tries to move in the general direction of dir
     boolean goTo(Direction dir) throws GameActionException {
         Direction[] toTry = {dir, dir.rotateLeft(), dir.rotateRight(), dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight()};
-        for (Direction d : toTry){
-            if(tryMove(d))
+
+        for (int i = 0; i < 8; i ++) {
+            if (!tryMove(dir)) {
+                dir = dir.rotateLeft();
+            } else {
                 return true;
+            }
         }
+//
+//        for (Direction d : toTry){
+//            if(tryMove(d))
+//                return true;
+//        }
         return false;
     }
 

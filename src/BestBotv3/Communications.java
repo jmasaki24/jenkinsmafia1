@@ -2,6 +2,7 @@ package BestBotv3;
 
 import battlecode.common.*;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Communications {
@@ -11,8 +12,10 @@ public class Communications {
 
     final int HQID = 0;
     final int EHQID = 232455;
-    final int BUILDINGID = 123;
+    final int BUILDINGID = 554;
     final int SOUPID = 312;
+
+    int[] lastSpoofedMessage;
 
     static final String[] messageType = {
         "HQ loc",
@@ -70,6 +73,26 @@ public class Communications {
     }
 
 
+    boolean complete = false;
+    public boolean updateAmazonLocations(ArrayList<MapLocation> amazonLocations) throws GameActionException {
+        for(Transaction tx : rc.getBlock(rc.getRoundNum() - 1)) {
+            int[] mess = tx.getMessage();
+            if(mess[0] == teamSecret && mess[4] == 4){
+                // TODO: don't add duplicate locations
+                System.out.println("heard about a tasty new amazon location");
+                amazonLocations.add(new MapLocation(mess[2], mess[3]));
+                if (amazonLocations.size() > 0){
+                    complete = true;
+                }
+            }
+        }
+        return complete;
+    }
+
+    public boolean amazonMade() throws GameActionException{
+        return complete;
+    }
+
     public void broadcastSoupLocation(MapLocation loc ) throws GameActionException {
         int[] message = new int[7];
         message[0] = teamSecret;
@@ -89,16 +112,17 @@ public class Communications {
             System.out.println("turncount 1 in updatesouploc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
                 crawlBlockchainForSoupLocations(soupLocations, i);
+                return;
             }
         }
         crawlBlockchainForSoupLocations(soupLocations, rc.getRoundNum() - 1);
     }
     public void crawlBlockchainForSoupLocations(ArrayList<MapLocation> soupLocations, int roundNum) throws GameActionException {
-        for(Transaction tx : rc.getBlock(rc.getRoundNum() - 1)) {
+        for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == SOUPID){
                 // TODO: don't add duplicate locations
-                System.out.println("heard about a tasty new soup location");
+                System.out.println("heard soup at [" + mess[2] + ", " + mess[3] + "]");
                 soupLocations.add(new MapLocation(mess[2], mess[3]));
             }
         }
@@ -131,5 +155,32 @@ public class Communications {
             rc.submitTransaction(message, 1);
             System.out.println("new robot!" + loc);
         }
+    }
+
+    public void jamEnemyComms() throws GameActionException {
+        boolean sentMessage = false;
+        //for the last 3 turns
+        for (int i = 1; i <= 3; i++){
+            for (Transaction tx : rc.getBlock(RobotPlayer.turnCount - i)){
+                int[] message = tx.getMessage();
+                if (((message[0] != teamSecret) && !sentMessage) && lastSpoofedMessage != message){
+                    if (rc.canSubmitTransaction(message,1)){
+                        rc.submitTransaction(message,1);
+                        lastSpoofedMessage = message;
+                        sentMessage = true;
+                    }
+                }
+            }
+        }
+
+        if (lastSpoofedMessage != null){
+            if (!sentMessage){
+                if (rc.canSubmitTransaction(lastSpoofedMessage,1)){
+                    rc.submitTransaction(lastSpoofedMessage,1);
+                }
+            }
+        }
+
+        System.out.println(RobotPlayer.turnCount);
     }
 }

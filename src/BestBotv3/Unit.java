@@ -7,7 +7,6 @@ public class Unit extends Robot {
 
     Navigation nav;
 
-    MapLocation myLoc;
     MapLocation hqLoc;
     MapLocation EHqLoc = new MapLocation(-3,-3);
     ArrayList<MapLocation> soupLocations = new ArrayList<>();
@@ -19,14 +18,13 @@ public class Unit extends Robot {
     public Unit(RobotController r) {
         super(r);
         nav = new Navigation(rc);
-        myLoc = rc.getLocation();
     }
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
-        myLoc = rc.getLocation();
         findHQ();
     }
+
 
     public void findHQ() throws GameActionException {
         if (hqLoc == null) {

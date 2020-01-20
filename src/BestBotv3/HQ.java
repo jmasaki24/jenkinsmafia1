@@ -26,44 +26,59 @@ public class HQ extends Shooter {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         int numSoupNearby = 0;
-        if(turnCount == 1) {
+        if (turnCount == 1) {
             comms.sendHqLoc(rc.getLocation());
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
             if (nearbySoupLocations.length > 0) {
                 for (MapLocation nearbySoup : nearbySoupLocations) {
                     // TODO: 1/19/2020 if the soup is surrounded by water, miner will be fucked
                     if (numSoupNearby < 20) { // don't want to spend all the soup broadcasting locs
-                        comms.broadcastSoupLocation(nearbySoup);
-                        numSoupNearby++;
+                        if (myLoc.distanceSquaredTo(nearbySoup) < 32 && isSoupAccessible(nearbySoup)) {
+                            comms.broadcastSoupLocation(nearbySoup);
+                            numSoupNearby++;
+                        }
                     }
                 }
             }
         }
 
-        if(numMiners < MINER_LIMIT) {
+        //Every 3 turns repeat messages. why >3? see method
+        if (turnCount > 3 && turnCount % 3 == 2) {
+            comms.jamEnemyComms();
+        }
+
+        if (numMiners < MINER_LIMIT) {
             for (Direction dir : Util.directions)
-                if(tryBuild(RobotType.MINER, dir)){
+                if (tryBuild(RobotType.MINER, dir)) {
                     numMiners++;
                 }
+        } else if (comms.amazonMade()) { // WHAT IS GOING ON HERE??? 1.19.2020 -jm
+//          for (Direction dir : Util.directions) {
+//              if (tryBuild(RobotType.MINER, dir)) {
+//                  numMiners++;
+//              }
+//          }
         }
 
         //Request a school next to base
         boolean seeDesignSchool = false;
-        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.HQ.sensorRadiusSquared,rc.getTeam());
-        for (RobotInfo robot:robots){
-            if(robot.type == RobotType.DESIGN_SCHOOL){
+        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.HQ.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : robots) {
+            if (robot.type == RobotType.DESIGN_SCHOOL) {
                 seeDesignSchool = true;
             }
         }
-        if(!seeDesignSchool){
-            if(rc.getTeamSoup() > RobotType.DESIGN_SCHOOL.cost + RobotType.MINER.cost){
-                tryBuild(RobotType.MINER,Direction.SOUTHWEST);
+
+
+        if (!seeDesignSchool) {
+            if (rc.getTeamSoup() > RobotType.DESIGN_SCHOOL.cost + RobotType.MINER.cost) {
+                tryBuild(RobotType.MINER, Direction.SOUTHWEST);
             }
         }
-        if (seeDesignSchool && rc.getRoundNum() > 300){
-            for (Direction dir: Util.directions){
-                tryBuild(RobotType.MINER,Util.randomDirection());
-            }
-        }
+//        if (seeDesignSchool && rc.getRoundNum() > 300){
+//            for (Direction dir: Util.directions){
+//                tryBuild(RobotType.MINER,Util.randomDirection());
+//            }
+//        }
     }
 }
