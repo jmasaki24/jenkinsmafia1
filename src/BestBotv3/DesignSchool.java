@@ -17,7 +17,7 @@ public class DesignSchool extends Building {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         
-        if (rc.getTeamSoup()>=(4*RobotType.LANDSCAPER.cost)){
+        if (rc.getTeamSoup()>=(3*RobotType.LANDSCAPER.cost)){
             shouldMakeBuilders = true;
         }
         if (shouldMakeBuilders){
