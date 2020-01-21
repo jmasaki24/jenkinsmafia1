@@ -19,7 +19,6 @@ public class Robot {
     public void takeTurn() throws GameActionException {
         turnCount += 1;
         myLoc = rc.getLocation();
-
     }
 
     // THIS METHOD REQUIRES THAT THE ROBOT CAN SEE ALL TILES ADJACENT TO SOUP!!!!!!!!!!!!!!!!!!!!!!!!!!

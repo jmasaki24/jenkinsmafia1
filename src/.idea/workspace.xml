@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9a671f80-d08d-4ba0-b1f8-1057f572dbd2" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/BestBotv3/Miner.java" beforeDir="false" afterPath="$PROJECT_DIR$/BestBotv3/Miner.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BestBotv3/RobotPlayer.java" beforeDir="false" afterPath="$PROJECT_DIR$/BestBotv3/RobotPlayer.java" afterDir="false" />
-    </list>
+    <list default="true" id="9a671f80-d08d-4ba0-b1f8-1057f572dbd2" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -50,9 +47,9 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="740" y="296" key="FileChooserDialogImpl" timestamp="1579489024487">
+    <state x="740" y="296" key="FileChooserDialogImpl" timestamp="1579633952300">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state x="740" y="296" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1579489024487" />
+    <state x="740" y="296" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1579633952300" />
   </component>
 </project>
