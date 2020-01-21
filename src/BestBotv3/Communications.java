@@ -14,6 +14,7 @@ public class Communications {
     final int EHQID = 232455;
     final int BUILDINGID = 554;
     final int SOUPID = 312;
+    final int WATERID = 820;
     final int ATTACKER = 505;
 
     int[] lastSpoofedMessage;
@@ -137,7 +138,40 @@ public class Communications {
         return type;
     }
 
+    public void broadcastWaterLocation(MapLocation loc ) throws GameActionException {
+        int[] message = new int[7];
+        message[0] = teamSecret;
+        message[1] = WATERID;
+        message[2] = loc.x; // x coord of HQ
+        message[3] = loc.y; // y coord of HQ
+        if (rc.canSubmitTransaction(message, 3)) {
+            rc.submitTransaction(message, 3);
+            System.out.println("new water!" + loc);
+        }
+    }
 
+    // TODO 1/19/2020 should this be in Unit? or Miner??
+    public void updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
+        // if its just been created, go through all of the blocks and transactions to find soup
+        if (RobotPlayer.turnCount == 1) {
+            System.out.println("turncount 1 in updatewaterloc");
+            for (int i = 1; i < rc.getRoundNum(); i++) {
+                crawlBlockchainForWaterLocations(waterLocations, i);
+            }
+        } else {
+            crawlBlockchainForWaterLocations(waterLocations, rc.getRoundNum() - 1);
+        }
+    }
+    public void crawlBlockchainForWaterLocations(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
+        for(Transaction tx : rc.getBlock(roundNum)) {
+            int[] mess = tx.getMessage();
+            if(mess[0] == teamSecret && mess[1] == WATERID){
+                // TODO: don't add duplicate locations
+                System.out.println("heard water at [" + mess[2] + ", " + mess[3] + "]");
+                waterLocations.add(new MapLocation(mess[2], mess[3]));
+            }
+        }
+    }
 
 
     boolean complete = false;
