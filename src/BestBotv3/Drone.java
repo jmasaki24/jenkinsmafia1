@@ -39,7 +39,7 @@ public class Drone extends Unit{
         // gotoEHQ();
 
         // Enemy Detection
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo robot : nearbyRobots) {
             if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) && robot.getTeam() == rc.getTeam().opponent()) {
                 // If its on opponent team
