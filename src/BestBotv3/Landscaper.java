@@ -14,7 +14,11 @@ public class Landscaper extends Unit {
         System.out.println(myLoc.x + " " + myLoc.y);
 
         if(rc.getDirtCarrying() == 0){
-            tryDig();
+            //While we haven't digged, we should keep digging
+            Boolean digged = false;
+            while(!digged){
+                digged = DontDigTheWall();
+            }
         }
 
         //Wait 15 turns to build
@@ -26,8 +30,8 @@ public class Landscaper extends Unit {
                     int lowestElevation = 9999999;
                     for (Direction dir : Util.directions) {
                         MapLocation tileToCheck = hqLoc.add(dir);
-                        if (rc.getLocation().distanceSquaredTo(tileToCheck) < 4
-                                && rc.canDepositDirt(rc.getLocation().directionTo(tileToCheck))) {
+                        if (myLoc.distanceSquaredTo(tileToCheck) < 4
+                                && rc.canDepositDirt(myLoc.directionTo(tileToCheck))) {
                             if (rc.senseElevation(tileToCheck) < lowestElevation) {
                                 lowestElevation = rc.senseElevation(tileToCheck);
                                 bestPlaceToBuildWall = tileToCheck;
@@ -39,7 +43,7 @@ public class Landscaper extends Unit {
                 if (Math.random() < 0.4) {
                     // build the wall
                     if (bestPlaceToBuildWall != null) {
-                        rc.depositDirt(rc.getLocation().directionTo(bestPlaceToBuildWall));
+                        rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
                         rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
                         System.out.println("building a wall");
                     }
@@ -53,19 +57,19 @@ public class Landscaper extends Unit {
 
             //Runs from the school
             RobotInfo[] robots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared,rc.getTeam());
-            MapLocation nextPlace = rc.getLocation();
+            MapLocation nextPlace = myLoc;
             for (RobotInfo robot:robots){
                 if (robot.type == RobotType.DESIGN_SCHOOL){
-                    nextPlace = nextPlace.add(rc.getLocation().directionTo(robot.location).opposite());
+                    nextPlace = nextPlace.add(myLoc.directionTo(robot.location).opposite());
                 }
             }
-            if(nextPlace == rc.getLocation()){
+            if(nextPlace == myLoc){
                 nextPlace = nextPlace.add(Util.randomDirection());
             }
-            if(nextPlace != rc.getLocation()) {
+            if(nextPlace != myLoc) {
                 if(myLoc.add(myLoc.directionTo(nextPlace)).distanceSquaredTo(hqLoc) < 3) { //Only move in directions where you end up on the wall
                     System.out.println("Going to next wall location" + myLoc.add(myLoc.directionTo(nextPlace)).distanceSquaredTo(hqLoc));
-                    nav.tryMove(rc.getLocation().directionTo(nextPlace));
+                    nav.tryMove(myLoc.directionTo(nextPlace));
                 }
             }
             //Else move random (uses move limits to not go random every line)
@@ -80,12 +84,17 @@ public class Landscaper extends Unit {
         }
     }
 
-    boolean tryDig() throws GameActionException {
-        Direction dir = Util.randomDirection();
-        if(rc.canDigDirt(dir)){
-            rc.digDirt(dir);
-            rc.setIndicatorDot(rc.getLocation().add(dir), 255, 0, 0);
-            return true;
+
+    boolean DontDigTheWall() throws GameActionException {
+        Direction randomDir = Util.randomDirection();
+        System.out.println("Direction Chosen" + randomDir);
+        System.out.println("Distance to HQ" + myLoc.add(randomDir).distanceSquaredTo(hqLoc));
+        if (myLoc.add(randomDir).distanceSquaredTo(hqLoc) > 2){
+            if (rc.canDigDirt(randomDir)) {
+                rc.digDirt(randomDir);
+                rc.setIndicatorDot(myLoc.add(randomDir) ,0,0,250);
+                return true;
+            }
         }
         return false;
     }
