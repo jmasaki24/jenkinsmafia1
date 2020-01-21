@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 public class Drone extends Unit{
 
-    //Vars
+    // Vars
     boolean shouldMove = true;
     int hqToCheck = 0;
     MapLocation[] potentialHQ;
@@ -41,7 +41,7 @@ public class Drone extends Unit{
         // Enemy Detection
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots) {
-            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) /*&& robot.getTeam() == rc.getTeam().opponent()*/) {
+            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) && robot.getTeam() == rc.getTeam().opponent()) {
                 // If its on opponent team
                 onMission = true;
                 targetBot = robot;
@@ -106,6 +106,14 @@ public class Drone extends Unit{
         }
     }
 
+
+
+
+
+
+
+    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
+
     public void goToEHQ() throws GameActionException {
         shouldMove = true;
 
@@ -138,7 +146,7 @@ public class Drone extends Unit{
                 System.out.println("Going to a potential HQ:" + potentialHQ);
                 if(shouldMove)
                     nav.tryMove(myLoc.directionTo(potentialHQ[hqToCheck]));
-                rc.setIndicatorLine(rc.getLocation(),potentialHQ[hqToCheck],0,230,0);
+                rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
             } else{
                 System.out.println("Nothing Here at potential HQ:" + potentialHQ);
                 hqToCheck += 1;

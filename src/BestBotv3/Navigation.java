@@ -22,10 +22,19 @@ public class Navigation {
      * @throws GameActionException
      */
     boolean tryMove(Direction dir) throws GameActionException {
-        if (rc.isReady() && rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir))) {
+        if (rc.isReady() && rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir)) && isOnMap(dir)) {
             rc.move(dir);
             return true;
         } else return false;
+    }
+
+    boolean isOnMap(Direction dir){
+        // Basically if the coordinates are less than dimension and greater than 0
+        if (rc.getLocation().add(dir).x <= rc.getMapWidth() && rc.getLocation().add(dir).x >= 0 && rc.getLocation().add(dir).y <= rc.getMapHeight() && rc.getLocation().add(dir).y >= 0){
+            return true;
+        } else{
+            return false;
+        }
     }
 
     // tries to move in the general direction of dir
