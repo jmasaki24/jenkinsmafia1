@@ -35,25 +35,48 @@ public class Miner extends Unit {
         }
 
         //Update Stuff
-        updateBuildingLocations();
+        comms.updateBuildingLocations(amazonLocations);
+        comms.updateBuildingLocations(designSchoolLocations);
+        comms.updateBuildingLocations(refineryLocations);
+        comms.updateBuildingLocations(vaporatorLocations);
+
         comms.updateSoupLocations(soupLocations);
-//      comms.updateAmazonLocations(amazonLocations);
+
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
         }
+
+        // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
+//        for (Direction dir : Util.directions) {
+//            if (rc.senseFlooding(myLoc.add(dir))) {
+//                comms.broadcastWaterLocation(myLoc.add(dir));
+//            }
+//        }
+
         if (refineryLocations.size() > 0) {
             checkIfRefineryGone(findClosestRefinery());
         }
-        for (Direction dir: Util.directions){
-            if (rc.senseFlooding(myLoc.add(dir))){
-                comms.broadcastWaterLocation(myLoc.add(dir));
+
+        // Build 1 amazon, then build school.
+        if (amazonLocations.size() == 0 && rc.getTeamSoup() >= 155) {
+            if (myLoc.distanceSquaredTo(hqLoc) > 2) {
+                System.out.println("Trybuild amazon");
+                if (tryBuild(RobotType.FULFILLMENT_CENTER, myLoc.directionTo(hqLoc).opposite())) {
+                    comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
+                }
             }
-        }
-
-        if (designSchoolLocations.size() > 0) {
+        } else if (designSchoolLocations.size() == 0) {
+            System.out.println("No design schools yet");
+            if (myLoc.directionTo(hqLoc) == Direction.NORTHEAST && myLoc.distanceSquaredTo(hqLoc) == 2) {
+                if (tryBuild(RobotType.DESIGN_SCHOOL, Direction.NORTH)) {
+                    System.out.println("built school");
+                    comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(Direction.NORTH));
+                }
+            }
+        } else {
+            System.out.println("There are design schools");
             boolean landscapersNearby = false;
-            RobotInfo[] nearbyTeammates =  rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
-
+            RobotInfo[] nearbyTeammates = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
             if (nearbyTeammates.length > 0) {
                 for (RobotInfo bot : nearbyTeammates) {
                     if (bot.type.equals(RobotType.LANDSCAPER)) {
@@ -62,7 +85,6 @@ public class Miner extends Unit {
                     }
                 }
             }
-
 
             if (landscapersNearby) {
                 if (!hqRemovedFromRefineryLocations) {
@@ -75,46 +97,21 @@ public class Miner extends Unit {
                     System.out.println("need to build refinery asap");
                     buildRefineryIfAppropriate();
                 }
-//            if (myLoc.distanceSquaredTo(hqLoc) > 2) {
-//                for (Direction dir: Util.directions) {
-//                    if (!dir.equals(myLoc.directionTo(hqLoc))
-//                            && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
-//                            && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
-//                        if (tryBuild(RobotType.REFINERY, dir)) {
-//                            comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
-//                        }
-//                    }
-//                }
-//            }
+                if (myLoc.distanceSquaredTo(hqLoc) > 2) {
+                    for (Direction dir: Util.directions) {
+                        if (!dir.equals(myLoc.directionTo(hqLoc))
+                                && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
+                                && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
+                            if (tryBuild(RobotType.REFINERY, dir)) {
+                                comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
+                            }
+                        }
+                    }
+                }
 
                 // TODO: 1/20/2020 gotta try and make it move away from HQ
                 if (myLoc.distanceSquaredTo(hqLoc) < 6) {
                     runAwayyyyyy();
-                }
-            }
-        }
-
-        // Build 1 amazon, then build school.
-//        System.out.println(turnCount);
-//        if(!comms.updateAmazonLocations(amazonLocations) && rc.getTeamSoup()>=155){
-//            if(myLoc.distanceSquaredTo(hqLoc) > 0){
-//                System.out.println("Trybuild amazon");
-//                if (tryBuild(RobotType.FULFILLMENT_CENTER, rc.getLocation().directionTo(hqLoc).opposite())){
-//                    comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER,rc.getLocation().add(rc.getLocation().directionTo(hqLoc).opposite()));
-//                }
-//            }
-        if (amazonLocations.size() == 0 && rc.getTeamSoup() >= 155) {
-            if (myLoc.distanceSquaredTo(hqLoc) > 0) {
-                System.out.println("Trybuild amazon");
-                if (tryBuild(RobotType.FULFILLMENT_CENTER, myLoc.directionTo(hqLoc).opposite())) {
-                    comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(rc.getLocation().directionTo(hqLoc).opposite()));
-                }
-            }
-        } else if (designSchoolLocations.size() == 0) {
-            if (myLoc.directionTo(hqLoc) == Direction.NORTHEAST && myLoc.distanceSquaredTo(hqLoc) == 2) {
-                if (tryBuild(RobotType.DESIGN_SCHOOL, Direction.NORTH)) {
-                    System.out.println("built school");
-                    comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(Direction.NORTH));
                 }
             }
         }
@@ -131,41 +128,42 @@ public class Miner extends Unit {
                 }
             }
         }
-
-
-        // then, try to mine soup in all directions
+            // then, try to mine soup in all directions
         for (Direction dir : Util.directions) {
             if (tryMine(dir)) {
                 System.out.println("I mined soup! " + rc.getSoupCarrying());
-                MapLocation soupLoc = rc.getLocation().add(dir);
+                MapLocation soupLoc = myLoc.add(dir);
                 if (!soupLocations.contains(soupLoc)) {
                     comms.broadcastSoupLocation(soupLoc);
                 }
             }
         }
 
+
         // if closest refinery is far away, build a refinery.
 
-        //lastly, move
+        // MOVEMENT
 
-        // if at soup limit, go to nearest refinery
-        //      if there is a design school, hq is no longer part of the nearest refineries.
-        // if there are soupLocations, go to nearest soup
-        // else, move away from other miners
+                // if at soup limit, go to nearest refinery
+                //      if there is a design school, hq is no longer part of the nearest refineries.
+                // if there are soupLocations, go to nearest soup
+                // else, move away from other miners
+
         if (rc.getSoupCarrying() == RobotType.MINER.soupLimit) {
             System.out.println("I'm full of soup, refineTime");
 
-            // TODO: 1/20/2020 need to sit still when there isn't enough soup 
+            // TODO: 1/20/2020 need to sit still when there isn't enough soup
             buildRefineryIfAppropriate();
 
             //find closest refinery (including hq, should change that tho since HQ will become unreachable)
             if (refineryLocations.size() > 0) {
                 MapLocation closestRefineryLoc = findClosestRefinery();
                 nav.goTo(closestRefineryLoc);
-                rc.setIndicatorLine(rc.getLocation(), closestRefineryLoc, 255, 0, 255);
+                rc.setIndicatorLine(myLoc, closestRefineryLoc, 255, 0, 255);
             }
             // else, just sit there?
-        } else {
+        }
+        else {
             if (soupLocations.size() > 0) {
                 goToNearestSoup();
             } else {
@@ -173,6 +171,12 @@ public class Miner extends Unit {
             }
         }
     }
+
+
+
+
+
+    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     public void goToNearestSoup() throws GameActionException {
         MapLocation nearestSoupLoc = findClosestSoup();
@@ -187,25 +191,25 @@ public class Miner extends Unit {
 //        }
         System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
 
-        rc.setIndicatorLine(rc.getLocation(), nearestSoupLoc, 255, 0, 255);
+        rc.setIndicatorLine(myLoc, nearestSoupLoc, 255, 0, 255);
         nav.goTo(nearestSoupLoc);
     }
 
     public void searchForSoup() throws GameActionException {
         System.out.println("I'm searching for soup, moving away from other miners");
         RobotInfo[] robots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
-        MapLocation nextPlace = rc.getLocation();
+        MapLocation nextPlace = myLoc;
         for (RobotInfo robot : robots) {
             if (robot.type == RobotType.MINER) {
-                nextPlace = nextPlace.add(rc.getLocation().directionTo(robot.location).opposite());
+                nextPlace = nextPlace.add(myLoc.directionTo(robot.location).opposite());
             }
         }
         if (robots.length == 0) {
             nextPlace.add(Util.randomDirection());
         }
-        System.out.println("Trying to go: " + rc.getLocation().directionTo(nextPlace));
-        if (nextPlace != rc.getLocation()) {
-            nav.goTo(rc.getLocation().directionTo(nextPlace));
+        System.out.println("Trying to go: " + myLoc.directionTo(nextPlace));
+        if (nextPlace != myLoc) {
+            nav.goTo(myLoc.directionTo(nextPlace));
         } else {
             nav.goTo(Util.randomDirection());
         }
@@ -256,9 +260,13 @@ public class Miner extends Unit {
     // MAKE SURE SOUPLOCATIONS.SIZE > 0 WHEN USING THIS METHOD
     public MapLocation findClosestSoup() throws GameActionException {
         MapLocation nearestSoupLoc = soupLocations.get(0);
-        for (MapLocation loc : soupLocations) {
-            if (myLoc.distanceSquaredTo(loc) < myLoc.distanceSquaredTo(nearestSoupLoc)) {
-                nearestSoupLoc = loc;
+
+        // Find Closest Soup Location if theres more than 1
+        if (soupLocations.size() > 0) { // This might be fixed because intelij thinks that its always greater than 0, not really sure. - Matt 1/21
+            for (MapLocation loc : soupLocations) {
+                if (myLoc.distanceSquaredTo(loc) < myLoc.distanceSquaredTo(nearestSoupLoc)) {
+                    nearestSoupLoc = loc;
+                }
             }
         }
         return nearestSoupLoc;

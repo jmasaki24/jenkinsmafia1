@@ -12,24 +12,24 @@ import java.util.Map;
  * Build refinery (if there isn’t already one)
  * build 2 landscapers
  */
+
 public class HQ extends Shooter {
-    public int numMiners = 0;
+    public static int numMiners = 0;
 
     // why is this static? idk. might be helpful later. -jm
     public static final int MINER_LIMIT = 4;
 
     public HQ(RobotController r) throws GameActionException {
         super(r);
-        comms.sendHqLoc(rc.getLocation());
+        comms.sendHqLoc(myLoc);
     }
-
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         int numSoupNearby = 0;
-        // on first turn, sendHqLoc, send nearbySoupLocations,
+        // on first turn, sendHqLoc, send nearbySoupLocations
         if (turnCount == 1) {
-            comms.sendHqLoc(rc.getLocation());
+            comms.sendHqLoc(myLoc);
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
             if (nearbySoupLocations.length > 0) {
                 for (MapLocation nearbySoup : nearbySoupLocations) {
@@ -63,12 +63,6 @@ public class HQ extends Shooter {
                 if (tryBuild(RobotType.MINER, dir)) {
                     numMiners++;
                 }
-        } else if (comms.amazonMade()) { // WHAT IS GOING ON HERE??? 1.19.2020 -jm
-//          for (Direction dir : Util.directions) {
-//              if (tryBuild(RobotType.MINER, dir)) {
-//                  numMiners++;
-//              }
-//          }
         }
 
         //Request a school next to base
@@ -95,6 +89,9 @@ public class HQ extends Shooter {
 //            }
 //        }
     }
+
+
+    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     // go from top row to bottom row, left to right
     void broadcastNearbyWaterLocations() throws GameActionException {
