@@ -54,13 +54,11 @@ public class Drone extends Unit{
             if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
                 standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
             } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
-                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+                standbyLocation = new MapLocation(hqLoc.x - 4, hqLoc.y - 4);
             } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
-
-                standbyLocation= new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+                standbyLocation= new MapLocation(hqLoc.x + 4, hqLoc.y + 4);
             } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
-
-                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
+                standbyLocation = new MapLocation(hqLoc.x - 4, hqLoc.y + 4);
             } else {
                 standbyLocation = myLoc;
             }
