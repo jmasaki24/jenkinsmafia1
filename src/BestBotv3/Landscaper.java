@@ -14,7 +14,11 @@ public class Landscaper extends Unit {
         System.out.println(myLoc.x + " " + myLoc.y);
 
         if(rc.getDirtCarrying() == 0){
-            tryDig();
+            //While we haven't digged, we should keep digging
+            Boolean digged = false;
+            while(!digged){
+                digged = DontDigTheWall();
+            }
         }
 
         //Wait 15 turns to build
@@ -80,12 +84,17 @@ public class Landscaper extends Unit {
         }
     }
 
-    boolean tryDig() throws GameActionException {
-        Direction dir = Util.randomDirection();
-        if(rc.canDigDirt(dir)){
-            rc.digDirt(dir);
-            rc.setIndicatorDot(myLoc.add(dir), 255, 0, 0);
-            return true;
+
+    boolean DontDigTheWall() throws GameActionException {
+        Direction randomDir = Util.randomDirection();
+        System.out.println("Direction Chosen" + randomDir);
+        System.out.println("Distance to HQ" + myLoc.add(randomDir).distanceSquaredTo(hqLoc));
+        if (myLoc.add(randomDir).distanceSquaredTo(hqLoc) > 2){
+            if (rc.canDigDirt(randomDir)) {
+                rc.digDirt(randomDir);
+                rc.setIndicatorDot(myLoc.add(randomDir) ,0,0,250);
+                return true;
+            }
         }
         return false;
     }
