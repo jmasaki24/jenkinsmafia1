@@ -73,11 +73,11 @@ public class HQ extends Shooter {
 
         //Request a school next to base
         boolean seeDesignSchool = false;
-        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.HQ.sensorRadiusSquared, rc.getTeam());
+        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.HQ.sensorRadiusSquared);
         for (RobotInfo robot : robots) {
-            if (robot.type == RobotType.DESIGN_SCHOOL) {
+            if (robot.type == RobotType.DESIGN_SCHOOL && robot.getTeam() == rc.getTeam()) {
                 seeDesignSchool = true;
-            } else if ((robot.type == RobotType.MINER || robot.type == RobotType.LANDSCAPER) /*&& robot.getTeam() == rc.getTeam().opponent()*/){
+            } else if ((robot.type == RobotType.MINER || robot.type == RobotType.LANDSCAPER) && robot.getTeam() == rc.getTeam().opponent()){
                 // I am intentionally leaving out the team part of it just to test if the drones will pick up our own miners or not
                 comms.broadcastAttackerInfo(robot.ID, myLoc.directionTo(robot.location));
             }

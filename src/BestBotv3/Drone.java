@@ -18,6 +18,8 @@ public class Drone extends Unit{
     int hqToCheck = 0;
     MapLocation[] potentialHQ;
     public ArrayList<Direction> enemyDir = new ArrayList<>();
+    public ArrayList<MapLocation> waterLocation = new ArrayList<>();
+
 
 
     public Drone(RobotController r) {
@@ -31,6 +33,7 @@ public class Drone extends Unit{
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
+        comms.updateWaterLocations(waterLocation);
 
         // goToEHQ works, but first we need a defensive drone.
         // gotoEHQ();
@@ -38,10 +41,11 @@ public class Drone extends Unit{
         // Enemy Detection
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots) {
-            if (robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) {
+            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) /*&& robot.getTeam() == rc.getTeam().opponent()*/) {
+                // If its on opponent team
                 onMission = true;
                 targetBot = robot;
-                nav.goTo(robot.location);
+                break;
             }
         }
 
@@ -69,15 +73,25 @@ public class Drone extends Unit{
                 if (rc.senseFlooding(myLoc.add(dir))){
                     rc.dropUnit(dir);
                 } else{
-                    rc.move(Util.randomDirection());
+                    if (waterLocation.size() != 0){
+                        nav.goTo(waterLocation.get(waterLocation.size()-1));
+                    } else{
+                        rc.move(Util.randomDirection());
+                    }
                 }
             }
         }
         // I see a bot
         else if (targetBot != null){
             // I am there
-            if (rc.canPickUpUnit(targetBot.ID)) {
-                rc.pickUpUnit(targetBot.ID);
+            if (myLoc.distanceSquaredTo(targetBot.location) <=2){
+                if (rc.canPickUpUnit(targetBot.ID)){
+                    rc.pickUpUnit(targetBot.ID);
+                    System.out.println("I should have picked this unit up" + targetBot.ID);
+                } else {
+                    System.out.println("dude");
+                }
+
             }
             // I'm not there yet
             else{
