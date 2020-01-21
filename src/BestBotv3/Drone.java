@@ -18,6 +18,8 @@ public class Drone extends Unit{
     int hqToCheck = 0;
     MapLocation[] potentialHQ;
     public ArrayList<Direction> enemyDir = new ArrayList<>();
+    public ArrayList<MapLocation> waterLocation = new ArrayList<>();
+
 
 
     public Drone(RobotController r) {
@@ -31,6 +33,7 @@ public class Drone extends Unit{
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
+        comms.updateWaterLocations(waterLocation);
 
         // goToEHQ works, but first we need a defensive drone.
         // gotoEHQ();
@@ -38,7 +41,7 @@ public class Drone extends Unit{
         // Enemy Detection
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
         for (RobotInfo robot : nearbyRobots) {
-            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) && robot.getTeam() == rc.getTeam().opponent()) {
+            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) /*&& robot.getTeam() == rc.getTeam().opponent()*/) {
                 // If its on opponent team
                 onMission = true;
                 targetBot = robot;
@@ -70,7 +73,11 @@ public class Drone extends Unit{
                 if (rc.senseFlooding(myLoc.add(dir))){
                     rc.dropUnit(dir);
                 } else{
-                    rc.move(Util.randomDirection());
+                    if (waterLocation.size() != 0){
+                        nav.goTo(waterLocation.get(waterLocation.size()-1));
+                    } else{
+                        rc.move(Util.randomDirection());
+                    }
                 }
             }
         }
@@ -82,7 +89,7 @@ public class Drone extends Unit{
                     rc.pickUpUnit(targetBot.ID);
                     System.out.println("I should have picked this unit up" + targetBot.ID);
                 } else {
-                    System.out.println("Wtf dude");
+                    System.out.println("dude");
                 }
 
             }

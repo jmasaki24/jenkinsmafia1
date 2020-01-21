@@ -44,6 +44,11 @@ public class Miner extends Unit {
         if (refineryLocations.size() > 0) {
             checkIfRefineryGone(findClosestRefinery());
         }
+        for (Direction dir: Util.directions){
+            if (rc.senseFlooding(myLoc.add(dir))){
+                comms.broadcastWaterLocation(myLoc.add(dir));
+            }
+        }
 
         if (designSchoolLocations.size() > 0) {
             boolean landscapersNearby = false;
