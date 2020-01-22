@@ -35,11 +35,7 @@ public class Miner extends Unit {
         }
 
         //Update Stuff
-        comms.updateBuildingLocations(amazonLocations);
-        comms.updateBuildingLocations(designSchoolLocations);
-        comms.updateBuildingLocations(refineryLocations);
-        comms.updateBuildingLocations(vaporatorLocations);
-
+        comms.updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
 
         if (soupLocations.size() > 0) {
@@ -65,7 +61,7 @@ public class Miner extends Unit {
                     comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             }
-        } else if (designSchoolLocations.size() == 0 && rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) > 2) {
+        } else if (designSchoolLocations.size() == 0 && rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) < 9 ) {
             System.out.println("No design schools yet");
             if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
                 System.out.println("built school");
@@ -100,7 +96,7 @@ public class Miner extends Unit {
                         if (!dir.equals(myLoc.directionTo(hqLoc))
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
-                            if (tryBuild(RobotType.REFINERY, dir)) {
+                            if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 5 && tryBuild(RobotType.REFINERY, dir)) {
                                 comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                             }
                         }
@@ -117,7 +113,7 @@ public class Miner extends Unit {
 
         // TODO: 1/20/2020 somehow trying to deposit and refine in all directions slows down mining when miner is next to hq
 
-        if (rc.getSoupCarrying() >= RobotType.MINER.soupLimit * 0.8) {
+        if (rc.getSoupCarrying() >= RobotType.MINER.soupLimit-7) {
             // Better to deposit soup while you can
             for (Direction dir : Util.directions) {
                 if (rc.canDepositSoup(dir)) {

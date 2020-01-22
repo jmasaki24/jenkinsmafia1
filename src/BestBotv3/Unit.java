@@ -7,10 +7,12 @@ public class Unit extends Robot {
 
     Navigation nav;
 
-    MapLocation hqLoc;
-    MapLocation EHqLoc = new MapLocation(-3, -3);
-    ArrayList<MapLocation> soupLocations = new ArrayList<>();
+    public static MapLocation hqLoc;
+    public static MapLocation EHqLoc = new MapLocation(-3, -3);
+    public static ArrayList<MapLocation> soupLocations = new ArrayList<>();
 
+    public static ArrayList<MapLocation> hqLocations = new ArrayList<>();
+    public static ArrayList<MapLocation> ehqLocations = new ArrayList<>();
     public static ArrayList<MapLocation> amazonLocations = new ArrayList<>();
     public static ArrayList<MapLocation> designSchoolLocations = new ArrayList<>();
     public static ArrayList<MapLocation> refineryLocations = new ArrayList<>();
@@ -26,6 +28,7 @@ public class Unit extends Robot {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         findHQ();
+        comms.updateBuildingLocations();
     }
 
 
@@ -40,7 +43,8 @@ public class Unit extends Robot {
             }
             if (hqLoc == null) {
                 // if still null, search the blockchain
-                hqLoc = comms.getHqLocFromBlockchain();
+                comms.updateBuildingLocations();
+                System.out.println("HQ loc still null bruh");
             }
         }
     }
@@ -53,12 +57,13 @@ public class Unit extends Robot {
                 if (robot.type == RobotType.HQ && robot.team == rc.getTeam().opponent()) {
                     EHqLoc = robot.location;
                     System.out.println("Sending Enemy Location");
-                    comms.sendEHqLoc(EHqLoc);
+                    comms.broadcastBuildingCreation(RobotType.HQ, EHqLoc, rc.getTeam().opponent());
                 }
             }
             if (EHqLoc.x < 0 || EHqLoc.y < 0) {
                 // if still null, search the blockchain
-                comms.getEHqLocFromBlockchain();
+                comms.updateBuildingLocations();
+                System.out.println("Ehq loc still null");
             }
         }
     }

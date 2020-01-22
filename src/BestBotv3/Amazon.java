@@ -15,11 +15,11 @@ public class Amazon extends Building {
         super(r);
     }
 
-    int numDrones = 1;
+    int numDrones = 0;
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        if (numDrones <= 2) {
+        if (numDrones < 1) {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;

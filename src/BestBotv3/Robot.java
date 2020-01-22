@@ -19,12 +19,14 @@ public class Robot {
     public void takeTurn() throws GameActionException {
         turnCount += 1;
         myLoc = rc.getLocation();
+        comms.updateBuildingLocations();
     }
 
     // THIS METHOD REQUIRES THAT THE ROBOT CAN SEE ALL TILES ADJACENT TO SOUP!!!!!!!!!!!!!!!!!!!!!!!!!!
     // this method could be done MUCH MUCH better, I think. sorry in advance.
     // if a tile adjacent to soup is not flooded, it is accessible
-    // returns true if soup is accessible
+    // returns true if soup is accessible 
+    // TODO: 1/21/2020 Figure out if there is a direct path to the soup or not - matt 
     public boolean isSoupAccessible(MapLocation soupLoc) throws GameActionException {
         MapLocation[] surroundingLocs = {
                 soupLoc.add(Util.directions[0]), soupLoc.add(Util.directions[1]),

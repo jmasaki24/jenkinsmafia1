@@ -53,10 +53,19 @@ public class Landscaper extends Unit {
         if(rc.onTheMap(hqLoc)){
             System.out.println("Can See hq");
             if (myLoc.distanceSquaredTo(hqLoc) > 2){
-                if (!nav.goTo(hqLoc)){
-                    if (!nav.goTo(myLoc.add(myLoc.directionTo(hqLoc).rotateLeft()))) {
-                        nav.goTo(myLoc.add(myLoc.directionTo(hqLoc).rotateRight()));
+                nav.goTo(hqLoc.add(myLoc.directionTo(hqLoc)));
+            } else { // In the circle
+                if (!nav.tryMove(myLoc.directionTo(hqLoc).rotateLeft())){
+                    Direction toHQ = myLoc.directionTo(hqLoc);
+                    Direction next = Direction.CENTER;
+                    switch (toHQ){
+                        case NORTH:         next = Direction.WEST;      break;
+                        case EAST:          next = Direction.NORTH;     break;
+                        case SOUTH:         next = Direction.EAST;      break;
+                        case WEST:          next = Direction.SOUTH;     break;
+                        default:            next = Direction.CENTER;    break;
                     }
+                    nav.tryMove(next);
                 }
             }
 
