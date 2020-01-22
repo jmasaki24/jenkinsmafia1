@@ -1,10 +1,13 @@
 package BestBotv3;
 
 import battlecode.common.*;
+import java.util.ArrayList;
+
 
 public class Robot {
     RobotController rc;
     Communications comms;
+    Navigation nav;
 
     int turnCount = 0;
     MapLocation myLoc;
@@ -26,22 +29,27 @@ public class Robot {
     // this method could be done MUCH MUCH better, I think. sorry in advance.
     // if a tile adjacent to soup is not flooded, it is accessible
     // returns true if soup is accessible 
-    // TODO: 1/21/2020 Figure out if there is a direct path to the soup or not - matt 
+    // TODO: 1/21/2020 Figure out if there is a direct path to the soup or not - matt
+    // This no longer produces null pointer exceptions for miners with soup on the edge i think.
+    public static ArrayList<MapLocation> surroundingLocs;
     public boolean isSoupAccessible(MapLocation soupLoc) throws GameActionException {
-        MapLocation[] surroundingLocs = {
-                soupLoc.add(Util.directions[0]), soupLoc.add(Util.directions[1]),
-                soupLoc.add(Util.directions[2]), soupLoc.add(Util.directions[3]),
-                soupLoc.add(Util.directions[4]), soupLoc.add(Util.directions[5]),
-                soupLoc.add(Util.directions[6]), soupLoc.add(Util.directions[7]),
-        };
+        for (int i = 0; i<8; i++){
+            if (       soupLoc.add(Util.directions[i]).x <= rc.getMapWidth()
+                    && soupLoc.add(Util.directions[i]).x >= 0
+                    && soupLoc.add(Util.directions[i]).y <= rc.getMapHeight()
+                    && soupLoc.add(Util.directions[i]).y >= 0){
+                surroundingLocs.add(soupLoc.add(Util.directions[i]));
+            }
+        }
 
         boolean isAccessible = false;
         for (MapLocation loc : surroundingLocs) {
 
+
             // if tile is not flooded, doesn't have a building, then true
 
             // if there is flooding, don't bother checking for a building. saves bytecode
-            if (!rc.senseFlooding(loc)) {
+            if (nav.isOnMap(myLoc.directionTo(loc)) && !rc.senseFlooding(loc)) {
                 boolean tileHasABuilding = false;
                 RobotInfo robotOnLoc = rc.senseRobotAtLocation(loc);
                 if (robotOnLoc != null) {

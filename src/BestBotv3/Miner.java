@@ -91,7 +91,7 @@ public class Miner extends Unit {
                     System.out.println("need to build refinery asap");
                     buildRefineryIfAppropriate();
                 }
-                if (myLoc.distanceSquaredTo(hqLoc) > 2) {
+                if (myLoc.distanceSquaredTo(findClosestRefinery()) > 35) {
                     for (Direction dir: Util.directions) {
                         if (!dir.equals(myLoc.directionTo(hqLoc))
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
@@ -318,7 +318,7 @@ public class Miner extends Unit {
                 System.out.println("soup at " + loc + "is gone");
                 soupLocations.remove(loc);
             } else {
-                if (myLoc.distanceSquaredTo(loc) < 20 && !isSoupAccessible(loc)) {
+                if (myLoc.distanceSquaredTo(loc) < 20 /*&& !isSoupAccessible(loc)*/) {
                     System.out.println("soup at " + loc + "is gone");
                     soupLocations.remove(loc);
                 }

@@ -21,8 +21,8 @@ public class Landscaper extends Unit {
             }
         }
 
-        //Wait 15 turns to build
-        if (turnCount > 30) {
+        //Wait 45 turns to build
+        if (turnCount > 0) {
             for (int i = 0; i < 8; i++){ //8 times per turn
                 MapLocation bestPlaceToBuildWall = null;
                 // find best place to build
@@ -30,7 +30,7 @@ public class Landscaper extends Unit {
                     int lowestElevation = 9999999;
                     for (Direction dir : Util.directions) {
                         MapLocation tileToCheck = hqLoc.add(dir);
-                        if (myLoc.distanceSquaredTo(tileToCheck) < 4
+                        if (myLoc.distanceSquaredTo(tileToCheck) < 2
                                 && rc.canDepositDirt(myLoc.directionTo(tileToCheck))) {
                             if (rc.senseElevation(tileToCheck) < lowestElevation) {
                                 lowestElevation = rc.senseElevation(tileToCheck);
@@ -42,9 +42,24 @@ public class Landscaper extends Unit {
 
                 // build the wall
                 if (bestPlaceToBuildWall != null) {
-                    rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
-                    rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
-                    System.out.println("building a wall");
+                    if (rc.getRoundNum()%5 == 0){
+                        Direction toHQ = myLoc.directionTo(hqLoc);
+                        Direction next;
+                        switch (toHQ){
+                            case NORTH:         next = Direction.WEST;      break;
+                            case EAST:          next = Direction.NORTH;     break;
+                            case SOUTH:         next = Direction.EAST;      break;
+                            case WEST:          next = Direction.SOUTH;     break;
+                            default:            next = Direction.CENTER;    break;
+                        }
+                        nav.tryMove(next);
+                    } else {
+                        rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
+                        rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
+                        System.out.println("building a wall");
+                    }
+
+
                 }
             }
         }
