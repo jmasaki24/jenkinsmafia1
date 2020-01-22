@@ -14,6 +14,37 @@ import java.util.Map;
  * try mine soup
  * move
  */
+
+/*
+ * STATE-MANAGEMENT - think of each bot being in a certain 'state' at any point in time.
+ *   Use takeTurn() to define the states, and then use methods to define the behavior in that state.
+ *
+ * MINER STATE(s) in order of priority/precedence
+  0. INITIALIZATION (turnCount == 1)
+    - crawl blockchain for locations.
+  1.update everything from current block.
+  2.if you can see all tiles in a 5x5 around soup or a refinery:
+    A. if it's hq, presence of landscapers also define accessibility.
+    B. if it's not accessible, remove it from locations arraylist.
+  3.if <= 2 squared away from a landscaper, run away.
+  4.if there are no refineries, build one.
+  5.if there are no amazons, build one in suitable location.
+  6. if there is an amazon and no design school, build a design school in suitable location.
+  7.if at soup limit:
+    A. if there is a refinery:
+      a. if it's not too far away, go to it.
+      b. if it's too far away and there's more than 50 soup:
+        1. build one if you can.
+      c. if it's too far away and there's less than 50 soup:
+        1. go to it anyway. (don't need miners sitting around, waiting for passive soup income)
+    B. if there is no refinery, build it.
+  8.if at > 80% soup limit, try to deposit in all directions.
+  9.if
+  *
+1/21/2020 I'll finish this later. -jm.
+
+ */
+
 public class Miner extends Unit {
 
     int numDesignSchools = 0;
@@ -30,12 +61,18 @@ public class Miner extends Unit {
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
+        // 0. INITIALIZATION
         if (turnCount == 1) {
             System.out.println("adding hq to refineries");
             refineryLocations.add(hqLoc);   // since hq is technically a refinery
         }
 
+<<<<<<< Updated upstream
         //Update Stuff
+=======
+        // 1.update everything from current block.
+        comms.updateBuildingLocations();
+>>>>>>> Stashed changes
         comms.updateSoupLocations(soupLocations);
 
         if (soupLocations.size() > 0) {
@@ -49,6 +86,7 @@ public class Miner extends Unit {
         }
 
         // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
+        // see
 //        for (Direction dir : Util.directions) {
 //            if (rc.senseFlooding(myLoc.add(dir))) {
 //                comms.broadcastWaterLocation(myLoc.add(dir));
@@ -185,7 +223,7 @@ public class Miner extends Unit {
     public void goToNearestSoup() throws GameActionException {
         MapLocation nearestSoupLoc = findClosestSoup();
 
-        // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible 
+        // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible
         // if a tile adjacent to soup is not flooded, it is accessible
         // if we can see around soupLoc, check if accessible
 //        if (myLoc.distanceSquaredTo(nearestSoupLoc) < 20) {
