@@ -58,20 +58,18 @@ public class Miner extends Unit {
         }
 
         // Build 1 amazon, then build school.
-        if (amazonLocations.size() == 0 && rc.getTeamSoup() >= 155) {
+        if (amazonLocations.size() == 0 && rc.getTeamSoup() >= RobotType.FULFILLMENT_CENTER.cost + 5) {
             if (myLoc.distanceSquaredTo(hqLoc) > 2) {
                 System.out.println("Trybuild amazon");
                 if (tryBuild(RobotType.FULFILLMENT_CENTER, myLoc.directionTo(hqLoc).opposite())) {
                     comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             }
-        } else if (designSchoolLocations.size() == 0) {
+        } else if (designSchoolLocations.size() == 0 && rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) > 2) {
             System.out.println("No design schools yet");
-            if (myLoc.directionTo(hqLoc) == Direction.NORTHEAST && myLoc.distanceSquaredTo(hqLoc) == 2) {
-                if (tryBuild(RobotType.DESIGN_SCHOOL, Direction.NORTH)) {
-                    System.out.println("built school");
-                    comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(Direction.NORTH));
-                }
+            if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
+                System.out.println("built school");
+                comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
             }
         } else {
             System.out.println("There are design schools");
