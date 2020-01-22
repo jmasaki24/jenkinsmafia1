@@ -17,6 +17,7 @@ import java.util.Map;
 public class Miner extends Unit {
 
     int numDesignSchools = 0;
+    int distanceToMakeRefinery = 50;
 
     // ALL "...Locations" ArrayList<MapLocation> ARE IN Unit.java!!!!!!!!!!!!!!!!!!!!
 
@@ -35,11 +36,16 @@ public class Miner extends Unit {
         }
 
         //Update Stuff
-        comms.updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
 
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
+        }
+        if (hqLocations.size() == 0 && hqLoc == null){
+            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
+            System.out.println("Hq didnt broadcast its location well");
+        } else {
+            System.out.println("HQ has been broadcasted and I recieved. Its at " + hqLoc);
         }
 
         // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
@@ -61,11 +67,15 @@ public class Miner extends Unit {
                     comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             }
-        } else if (designSchoolLocations.size() == 0 && rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) < 9 ) {
-            System.out.println("No design schools yet");
-            if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
-                System.out.println("built school");
+        } else if (designSchoolLocations.size() == 0){
+            if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) < 9) {
+                System.out.println("No design schools yet, gotta build one");
+                if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
+                    System.out.println("built school");
+                }
                 comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
+            } else {
+                System.out.println("There are no design schools, but we dont have enough money to make one");
             }
         } else {
             System.out.println("There are design schools");
@@ -91,7 +101,7 @@ public class Miner extends Unit {
                     System.out.println("need to build refinery asap");
                     buildRefineryIfAppropriate();
                 }
-                if (myLoc.distanceSquaredTo(findClosestRefinery()) > 35) {
+                if (myLoc.distanceSquaredTo(findClosestRefinery()) > distanceToMakeRefinery) {
                     for (Direction dir: Util.directions) {
                         if (!dir.equals(myLoc.directionTo(hqLoc))
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
@@ -317,12 +327,12 @@ public class Miner extends Unit {
                     && rc.senseSoup(loc) == 0) {
                 System.out.println("soup at " + loc + "is gone");
                 soupLocations.remove(loc);
-            } else {
-                if (myLoc.distanceSquaredTo(loc) < 20 /*&& !isSoupAccessible(loc)*/) {
+            } /*else {
+                if (myLoc.distanceSquaredTo(loc) < 20 *//*&& !isSoupAccessible(loc)*//*) {
                     System.out.println("soup at " + loc + "is gone");
                     soupLocations.remove(loc);
                 }
-            }
+            }*/
         }
     }
     void checkIfRefineryGone(MapLocation loc) throws GameActionException {

@@ -26,16 +26,16 @@ public class HQ extends Shooter {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         int numSoupNearby = 0;
-        // on first turn, sendHqLoc, send nearbySoupLocations
-        if (turnCount == 1) {
-            comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
+
+        // on first turn send nearbySoupLocations
+        if (turnCount == 11) {
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
             if (nearbySoupLocations.length > 0) {
                 for (MapLocation nearbySoup : nearbySoupLocations) {
                     System.out.println("hq sees soup " + nearbySoup);
                     // TODO: 1/19/2020 if the soup is surrounded by water or elevated land, miner will be fucked
                     if (numSoupNearby < 10) { // don't want to spend all the soup broadcasting locs
-                        if (myLoc.distanceSquaredTo(nearbySoup) < 32 && isSoupAccessible(nearbySoup)) {
+                        if (myLoc.distanceSquaredTo(nearbySoup) < 32 /*&& isSoupAccessible(nearbySoup)*/) {
                             comms.broadcastSoupLocation(nearbySoup);
                             numSoupNearby++;
                         } else {
@@ -44,17 +44,19 @@ public class HQ extends Shooter {
                     }
                 }
             }
+        } else if (turnCount == 12){
+            comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
         }
 
         // wait until 30th turn to send nearby water locations cuz who knows how much soup we'll have
-        if (turnCount == 30) {
+        else if (turnCount == 30) {
             broadcastNearbyWaterLocations();
         }
 
         //Every 3 turns repeat messages. why >3? see method
-        if (turnCount > 3 && turnCount % 3 == 2) {
-            comms.jamEnemyComms();
-        }
+//        if (turnCount > 3 && turnCount % 3 == 2) {
+//            comms.jamEnemyComms();
+//        }
 
         if (numMiners < MINER_LIMIT) {
             for (Direction dir : Util.directions)
