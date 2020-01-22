@@ -11,13 +11,12 @@ public class Communications {
     final int teamSecret = 444444444;
 
     final int HQID = 82;
-    final int EHQID = 232455;
+    final int EHQID = 382;
 
     final int AMAZONID = 101;
     final int DESIGNSCHOOLID = 202;
     final int REFINERYID = 303;
     final int VAPORATORID = 404;
-
 
     final int SOUPID = 312;
     final int WATERID = 820;
@@ -35,50 +34,50 @@ public class Communications {
         rc = r;
     }
 
-    public void sendHqLoc(MapLocation loc) throws GameActionException {
-        int[] message = new int[7];
-        message[0] = teamSecret;
-        message[1] = HQID;
-        message[2] = loc.x; // x coord of HQ
-        message[3] = loc.y; // y coord of HQ
-        if (rc.canSubmitTransaction(message, 3))
-            rc.submitTransaction(message, 3);
-    }
+//    public void sendHqLoc(MapLocation loc) throws GameActionException {
+//        int[] message = new int[7];
+//        message[0] = teamSecret;
+//        message[1] = HQID;
+//        message[2] = loc.x; // x coord of HQ
+//        message[3] = loc.y; // y coord of HQ
+//        if (rc.canSubmitTransaction(message, 3))
+//            rc.submitTransaction(message, 3);
+//    }
 
-    public void sendEHqLoc(MapLocation loc) throws GameActionException {
-        int[] message = new int[7];
-        message[0] = teamSecret;
-        message[1] = EHQID;
-        message[2] = loc.x; // x coord of HQ
-        message[3] = loc.y; // y coord of HQ
-        if (rc.canSubmitTransaction(message, 3))
-            rc.submitTransaction(message, 3);
-    }
+//    public void sendEHqLoc(MapLocation loc) throws GameActionException {
+//        int[] message = new int[7];
+//        message[0] = teamSecret;
+//        message[1] = EHQID;
+//        message[2] = loc.x; // x coord of HQ
+//        message[3] = loc.y; // y coord of HQ
+//        if (rc.canSubmitTransaction(message, 3))
+//            rc.submitTransaction(message, 3);
+//    }
 
-    public MapLocation getHqLocFromBlockchain() throws GameActionException {
-        for (int i = 1; i < rc.getRoundNum(); i++){
-            for(Transaction tx : rc.getBlock(i)) {
-                int[] mess = tx.getMessage();
-                if(mess[0] == teamSecret && mess[1] == HQID){
-                    System.out.println("found the HQ!");
-                    return new MapLocation(mess[2], mess[3]);
-                }
-            }
-        }
-        return null;
-    }
-
-    public MapLocation getEHqLocFromBlockchain() throws GameActionException {
-        for (int i = 1; i < rc.getRoundNum(); i++){
-            for(Transaction tx : rc.getBlock(i)) {
-                int[] mess = tx.getMessage();
-                if(mess[0] == teamSecret && mess[1] == EHQID){
-                    return new MapLocation(mess[2], mess[3]);
-                }
-            }
-        }
-        return null;
-    }
+//    public MapLocation getHqLocFromBlockchain() throws GameActionException {
+//        for (int i = 1; i < rc.getRoundNum(); i++){
+//            for(Transaction tx : rc.getBlock(i)) {
+//                int[] mess = tx.getMessage();
+//                if(mess[0] == teamSecret && mess[1] == HQID){
+//                    System.out.println("found the HQ!");
+//                    return new MapLocation(mess[2], mess[3]);
+//                }
+//            }
+//        }
+//        return null;
+//    }
+//
+//    public MapLocation getEHqLocFromBlockchain() throws GameActionException {
+//        for (int i = 1; i < rc.getRoundNum(); i++){
+//            for(Transaction tx : rc.getBlock(i)) {
+//                int[] mess = tx.getMessage();
+//                if(mess[0] == teamSecret && mess[1] == EHQID){
+//                    return new MapLocation(mess[2], mess[3]);
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
 
 // ATTACKER COMMUNICATION
@@ -187,8 +186,8 @@ public class Communications {
         message[1] = SOUPID;
         message[2] = loc.x; // x coord of HQ
         message[3] = loc.y; // y coord of HQ
-        if (rc.canSubmitTransaction(message, 3)) {
-            rc.submitTransaction(message, 3);
+        if (rc.canSubmitTransaction(message, 1)) {
+            rc.submitTransaction(message, 1);
             System.out.println("new soup!" + loc);
         }
     }
@@ -216,6 +215,7 @@ public class Communications {
 
 
 // BUILDING COMMUNICATION
+    // One default if its on our team
     public void broadcastBuildingCreation(RobotType type, MapLocation loc) throws GameActionException {
         System.out.println("broadcast building creation");
         int SENTID;
@@ -243,7 +243,39 @@ public class Communications {
             System.out.println("new building! type: " + SENTID + "Location:" + loc);
         }
     }
-    public void updateBuildingLocations(ArrayList<MapLocation> buildingLocations) throws GameActionException {
+    // Other for potential enemies/enemy HQ that is team specific
+    public void broadcastBuildingCreation(RobotType type, MapLocation loc, Team team) throws GameActionException {
+        System.out.println("broadcast building creation");
+        int SENTID;
+        switch (type) {
+            // case COW:                     SENTID = 1;                break;
+            // case DELIVERY_DRONE:          SENTID = 2;                break;
+            case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
+            case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
+            case HQ:                         SENTID = HQID;             break;
+            // case LANDSCAPER:              SENTID = 6;                break;
+            // case MINER:                   SENTID = 7;                break;
+            // case NET_GUN:                 SENTID = 8;                break;
+            case REFINERY:                   SENTID = REFINERYID;       break;
+            case VAPORATOR:                  SENTID = VAPORATORID;      break;
+            default:                         SENTID = 0;                break;
+        }
+        if (team == rc.getTeam().opponent()){
+            SENTID = EHQID;
+        }
+
+        int[] message = new int[7];
+        message[0] = teamSecret;
+        message[1] = SENTID;
+        message[2] = loc.x; // x coord of unit
+        message[3] = loc.y; // y coord of unit
+        if (rc.canSubmitTransaction(message, 1)) {
+            rc.submitTransaction(message, 1);
+            System.out.println("new building! type: " + SENTID + "Location:" + loc);
+        }
+    }
+
+    public void updateBuildingLocations() throws GameActionException {
         if (RobotPlayer.turnCount == 1) {
             System.out.println("turncount 1 in updateBuildingLoc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
@@ -259,8 +291,10 @@ public class Communications {
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if (mess[0] == teamSecret && (mess[1] == DESIGNSCHOOLID || mess[1] == AMAZONID || mess[1] == REFINERYID || mess[1] == VAPORATORID)) {
-                System.out.print("Possible new building? Type " + mess[1] + "at [" + mess[2] + ", " + mess[3] + "]");
+                System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
+                    case HQID:                  buildingLocations = Unit.hqLocations;               break;
+                    case EHQID:                 buildingLocations = Unit.ehqLocations;              break;
                     case DESIGNSCHOOLID:        buildingLocations = Unit.designSchoolLocations;     break;
                     case AMAZONID:              buildingLocations = Unit.amazonLocations;           break;
                     case REFINERYID:            buildingLocations = Unit.refineryLocations;         break;
@@ -271,7 +305,7 @@ public class Communications {
 
                 if (!buildingLocations.contains(new MapLocation(mess[2], mess[3]))) {
                     buildingLocations.add(new MapLocation(mess[2], mess[3]));
-                    System.out.println("New building. Type: " + mess[1]);
+                    System.out.println("New building. Type: " + mess[1] + ".");
                 } else {
                     System.out.println("Already seen this building. Type " + mess[1]);
                 }
