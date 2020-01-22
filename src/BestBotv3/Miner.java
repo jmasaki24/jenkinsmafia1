@@ -67,12 +67,8 @@ public class Miner extends Unit {
             refineryLocations.add(hqLoc);   // since hq is technically a refinery
         }
 
-<<<<<<< Updated upstream
-        //Update Stuff
-=======
         // 1.update everything from current block.
         comms.updateBuildingLocations();
->>>>>>> Stashed changes
         comms.updateSoupLocations(soupLocations);
 
         if (soupLocations.size() > 0) {
