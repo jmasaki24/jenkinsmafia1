@@ -29,6 +29,8 @@ public class HQ extends Shooter {
 
         // on first turn send nearbySoupLocations
         if (turnCount == 11) {
+            comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
+            System.out.println("I broadcasted my location");
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
             if (nearbySoupLocations.length > 0) {
                 for (MapLocation nearbySoup : nearbySoupLocations) {
@@ -44,8 +46,6 @@ public class HQ extends Shooter {
                     }
                 }
             }
-        } else if (turnCount == 12){
-            comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
         }
 
         // wait until 30th turn to send nearby water locations cuz who knows how much soup we'll have

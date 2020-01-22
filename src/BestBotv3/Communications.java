@@ -277,7 +277,7 @@ public class Communications {
     }
 
     public void updateBuildingLocations() throws GameActionException {
-        if (RobotPlayer.turnCount <= 1) {
+        if (RobotPlayer.turnCount == 1) {
             System.out.println("turncount 1 in updateBuildingLoc");
             for (int i = 1; i < rc.getRoundNum(); i++) {   // This could also start at round num and go downwards instead of starting from scratch. Might be better that way. - MZ
 //                System.out.println("crawl chain round " + i);
@@ -293,7 +293,7 @@ public class Communications {
         ArrayList<MapLocation> buildingLocations;
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if (mess[0] == teamSecret && (mess[1] == DESIGNSCHOOLID || mess[1] == AMAZONID || mess[1] == REFINERYID || mess[1] == VAPORATORID)) {
+            if (mess[0] == teamSecret && (mess[1] == HQID || mess[1] == EHQID || mess[1] == DESIGNSCHOOLID || mess[1] == AMAZONID || mess[1] == REFINERYID || mess[1] == VAPORATORID)) {
                 System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
                     case HQID:                  buildingLocations = Unit.hqLocations;               break;

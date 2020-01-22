@@ -41,7 +41,6 @@ public class Drone extends Unit{
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
-        findHQ();
 
         // Water Locations isnt updated right now
         // comms.updateWaterLocations(waterLocation);

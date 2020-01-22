@@ -35,12 +35,14 @@ public class Unit extends Robot {
             comms.updateBuildingLocations();
             for (MapLocation location : hqLocations){
                 hqLoc = location;
+                System.out.println("I got the HQ location from the hqLocations list");
             }
             // search surroundings for HQ
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.HQ && robot.team == rc.getTeam()) {
                     hqLoc = robot.location;
+                    System.out.println("I saw the HQ because I'm near to it");
                 }
             }
             if (hqLoc == null) {
