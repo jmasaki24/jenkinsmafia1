@@ -15,14 +15,14 @@ public class Landscaper extends Unit {
 
         if(rc.getDirtCarrying() == 0){
             //While we haven't digged, we should keep digging
-            Boolean digged = false;
+            boolean digged = false;
             while(!digged){
                 digged = DontDigTheWall();
             }
         }
 
-        //Wait 15 turns to build
-        if (turnCount > 50) {
+        //DONT HAVE TO WAIT TO BUILD
+        if (turnCount > 0) {
             for (int i = 0; i < 8; i++){ //8 times per turn
                 MapLocation bestPlaceToBuildWall = null;
                 // find best place to build
@@ -30,7 +30,7 @@ public class Landscaper extends Unit {
                     int lowestElevation = 9999999;
                     for (Direction dir : Util.directions) {
                         MapLocation tileToCheck = hqLoc.add(dir);
-                        if (myLoc.distanceSquaredTo(tileToCheck) < 4
+                        if (myLoc.distanceSquaredTo(tileToCheck) < 2
                                 && rc.canDepositDirt(myLoc.directionTo(tileToCheck))) {
                             if (rc.senseElevation(tileToCheck) < lowestElevation) {
                                 lowestElevation = rc.senseElevation(tileToCheck);
@@ -40,13 +40,26 @@ public class Landscaper extends Unit {
                     }
                 }
 
-                if (Math.random() < 0.4) {
-                    // build the wall
-                    if (bestPlaceToBuildWall != null) {
+                // build the wall
+                if (bestPlaceToBuildWall != null) {
+                    if (rc.getRoundNum()%5 == 0){
+                        Direction toHQ = myLoc.directionTo(hqLoc);
+                        Direction next;
+                        switch (toHQ){
+                            case NORTH:         next = Direction.WEST;      break;
+                            case EAST:          next = Direction.NORTH;     break;
+                            case SOUTH:         next = Direction.EAST;      break;
+                            case WEST:          next = Direction.SOUTH;     break;
+                            default:            next = Direction.CENTER;    break;
+                        }
+                        nav.tryMove(next);
+                    } else {
                         rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
                         rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
                         System.out.println("building a wall");
                     }
+
+
                 }
             }
         }
@@ -54,8 +67,24 @@ public class Landscaper extends Unit {
         // otherwise try to get to the hq
         if(rc.onTheMap(hqLoc)){
             System.out.println("Can See hq");
+            if (myLoc.distanceSquaredTo(hqLoc) > 2){
+                nav.goTo(hqLoc.add(myLoc.directionTo(hqLoc)));
+            } else { // In the circle
+                if (!nav.tryMove(myLoc.directionTo(hqLoc).rotateLeft())){
+                    Direction toHQ = myLoc.directionTo(hqLoc);
+                    Direction next = Direction.CENTER;
+                    switch (toHQ){
+                        case NORTH:         next = Direction.WEST;      break;
+                        case EAST:          next = Direction.NORTH;     break;
+                        case SOUTH:         next = Direction.EAST;      break;
+                        case WEST:          next = Direction.SOUTH;     break;
+                        default:            next = Direction.CENTER;    break;
+                    }
+                    nav.tryMove(next);
+                }
+            }
 
-            //Runs from the school
+           /* //Runs from the school
             RobotInfo[] robots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared,rc.getTeam());
             MapLocation nextPlace = myLoc;
             for (RobotInfo robot:robots){
@@ -77,7 +106,7 @@ public class Landscaper extends Unit {
             if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
                 System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
                 nav.tryMove(rand);
-            }
+            }*/
         } else {
             System.out.println("Can't see hq");
             nav.tryMove(Util.randomDirection());

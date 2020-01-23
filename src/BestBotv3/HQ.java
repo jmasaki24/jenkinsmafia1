@@ -17,11 +17,10 @@ public class HQ extends Shooter {
     public static int numMiners = 0;
 
     // why is this static? idk. might be helpful later. -jm
-    public static final int MINER_LIMIT = 4;
+    public static final int MINER_LIMIT = 5;
 
     public HQ(RobotController r) throws GameActionException {
         super(r);
-        comms.sendHqLoc(myLoc);
     }
 
     public void takeTurn() throws GameActionException {
@@ -29,18 +28,17 @@ public class HQ extends Shooter {
         int numSoupNearby = 0;
         // on first turn, sendHqLoc, send nearbySoupLocations
         if (turnCount == 1) {
-            comms.sendHqLoc(myLoc);
+            comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
             if (nearbySoupLocations.length > 0) {
                 for (MapLocation nearbySoup : nearbySoupLocations) {
                     System.out.println("hq sees soup " + nearbySoup);
-                    // TODO: 1/19/2020 if the soup is surrounded by water, miner will be fucked
-                    if (numSoupNearby < 20) { // don't want to spend all the soup broadcasting locs
+                    // TODO: 1/19/2020 if the soup is surrounded by water or elevated land, miner will be fucked
+                    if (numSoupNearby < 10) { // don't want to spend all the soup broadcasting locs
                         if (myLoc.distanceSquaredTo(nearbySoup) < 32 && isSoupAccessible(nearbySoup)) {
                             comms.broadcastSoupLocation(nearbySoup);
                             numSoupNearby++;
                         } else {
-                            comms.broadcastSoupLocation(nearbySoup);
                             numSoupNearby++;
                         }
                     }
