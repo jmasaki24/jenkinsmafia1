@@ -98,6 +98,8 @@ public class Miner extends Unit {
 //        }
 
 
+
+
         // 3.if <= 2 squared away from a landscaper, run away.
         // 4.if there are no refineries, build one.
         // 5.if there are no amazons, build one in suitable location.
@@ -177,6 +179,7 @@ public class Miner extends Unit {
 
     // TODO: 1/22/2020 make this method smaller (to an extent), and clearer.
     void buildAmazonThenSchoolThenCheckForLandscapersAndRunAway() throws GameActionException {
+
         if (amazonLocations.size() == 0 && rc.getTeamSoup() >= RobotType.FULFILLMENT_CENTER.cost + 5) {
             if (myLoc.distanceSquaredTo(hqLoc) > 2) {
                 System.out.println("Trybuild amazon");
@@ -189,8 +192,8 @@ public class Miner extends Unit {
                 System.out.println("No design schools yet, gotta build one");
                 if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
                     System.out.println("built school");
+                    comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
-                comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
             } else {
                 System.out.println("There are no design schools, but we dont have enough money to make one");
             }
