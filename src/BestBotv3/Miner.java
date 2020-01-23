@@ -176,7 +176,7 @@ public class Miner extends Unit {
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
-
+    // TODO: 1/22/2020 make this method smaller (to an extent), and clearer. 
     void buildAmazonThenSchoolThenCheckForLandscapersAndRunAway() throws GameActionException {
         if (amazonLocations.size() == 0 && rc.getTeamSoup() >= RobotType.FULFILLMENT_CENTER.cost + 5) {
             if (myLoc.distanceSquaredTo(hqLoc) > 2) {
