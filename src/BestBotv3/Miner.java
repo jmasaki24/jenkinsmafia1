@@ -43,11 +43,12 @@ public class Miner extends Unit {
         }
 
         // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
-//        for (Direction dir : Util.directions) {
-//            if (rc.senseFlooding(myLoc.add(dir))) {
-//                comms.broadcastWaterLocation(myLoc.add(dir));
-//            }
-//        }
+        // TODO: Why was this commented out? Commenting makes them blind to water entirely -cam
+        for (Direction dir : Util.directions) {
+            if (rc.senseFlooding(myLoc.add(dir))) {
+                comms.broadcastWaterLocation(myLoc.add(dir));
+            }
+        }
 
         if (refineryLocations.size() > 0) {
             checkIfRefineryGone(findClosestRefinery());

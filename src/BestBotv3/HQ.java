@@ -14,10 +14,9 @@ import java.util.Map;
  */
 
 public class HQ extends Shooter {
-    public static int numMiners = 0;
-
-    // why is this static? idk. might be helpful later. -jm
-    public static final int MINER_LIMIT = 5;
+    //HQ variables
+    public int numMiners = 0;
+    public final int MINER_LIMIT = 6;
 
     public HQ(RobotController r) throws GameActionException {
         super(r);
