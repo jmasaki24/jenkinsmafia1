@@ -10,7 +10,7 @@ public class Communications {
 
     final int teamSecret = 444444444;
 
-    final int HQID = 82;
+    final int HQID = 982;
     final int EHQID = 382;
 
     final int AMAZONID = 101;
@@ -186,14 +186,14 @@ public class Communications {
         message[1] = SOUPID;
         message[2] = loc.x; // x coord of HQ
         message[3] = loc.y; // y coord of HQ
-        if (rc.canSubmitTransaction(message, 1)) {
+        if (!Unit.soupLocations.contains(new MapLocation (loc.x, loc.y)) && rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
             System.out.println("new soup!" + loc);
         }
     }
     public void updateSoupLocations(ArrayList<MapLocation> soupLocations) throws GameActionException {
         // if its just been created, go through all of the blocks and transactions to find soup
-        if (RobotPlayer.turnCount == 1) {
+        if (RobotPlayer.turnCount <= 1) {
             System.out.println("turncount 1 in updatesouploc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
                 crawlBlockchainForSoupLocations(soupLocations, i);
@@ -206,9 +206,10 @@ public class Communications {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == SOUPID){
-                // TODO: don't add duplicate locations
-                System.out.println("heard soup at [" + mess[2] + ", " + mess[3] + "]");
-                soupLocations.add(new MapLocation(mess[2], mess[3]));
+                if (!Unit.soupLocations.contains(new MapLocation (mess[2], mess[3]))) {
+                    System.out.println("heard NEW soup at [" + mess[2] + ", " + mess[3] + "]");
+                    soupLocations.add(new MapLocation(mess[2], mess[3]));
+                }
             }
         }
     }
@@ -278,11 +279,13 @@ public class Communications {
     public void updateBuildingLocations() throws GameActionException {
         if (RobotPlayer.turnCount == 1) {
             System.out.println("turncount 1 in updateBuildingLoc");
-            for (int i = 1; i < rc.getRoundNum(); i++) {
+            for (int i = 1; i < rc.getRoundNum(); i++) {   // This could also start at round num and go downwards instead of starting from scratch. Might be better that way. - MZ
 //                System.out.println("crawl chain round " + i);
                 crawlBlockchainForBuildingLocations(i);
+                System.out.println("Im searching all the rounds before I was created");
             }
         } else {
+            System.out.println("Currently updating building locations. Round: " + RobotPlayer.turnCount);
             crawlBlockchainForBuildingLocations(rc.getRoundNum() - 1);
         }
     }
@@ -290,7 +293,7 @@ public class Communications {
         ArrayList<MapLocation> buildingLocations;
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if (mess[0] == teamSecret && (mess[1] == DESIGNSCHOOLID || mess[1] == AMAZONID || mess[1] == REFINERYID || mess[1] == VAPORATORID)) {
+            if (mess[0] == teamSecret && (mess[1] == HQID || mess[1] == EHQID || mess[1] == DESIGNSCHOOLID || mess[1] == AMAZONID || mess[1] == REFINERYID || mess[1] == VAPORATORID)) {
                 System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
                     case HQID:                  buildingLocations = Unit.hqLocations;               break;

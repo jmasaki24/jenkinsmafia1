@@ -8,6 +8,8 @@ import java.util.ArrayList;
 // 1. not doing anything. go near standbyLocation
 // 2. sees a target (i.e. has a targetEnemy). go to targetEnemy's location
 // 3. is carrying a bot. go to water?
+// 4. Sees a landscaper that needs help
+// 5. Drops landscaper off on wall
 
 
 
@@ -17,6 +19,7 @@ public class Drone extends Unit{
     boolean shouldMove = true;
     int hqToCheck = 0;
     MapLocation[] potentialHQ;
+    MapLocation standbyLocation;
     public ArrayList<Direction> enemyDir = new ArrayList<>();
     public ArrayList<Direction> helpDir = new ArrayList<>();
     public ArrayList<MapLocation> waterLocation = new ArrayList<>();
@@ -27,7 +30,6 @@ public class Drone extends Unit{
         super(r);
     }
 
-    MapLocation standbyLocation;
     boolean onMission = false;
     boolean onHelpMission = false;
     RobotInfo targetEnemy = null;
@@ -36,10 +38,13 @@ public class Drone extends Unit{
     boolean findANewBot = false;
 
 
+
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
-        comms.updateWaterLocations(waterLocation);
+
+        // Water Locations isnt updated right now
+        // comms.updateWaterLocations(waterLocation);
 
         // goToEHQ works, but first we need a defensive drone.
         // gotoEHQ();
@@ -51,19 +56,15 @@ public class Drone extends Unit{
         RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
         // Setting Standby Location
-        if (turnCount == 1) {
-            if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
+        if (standbyLocation == null) {
+            if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) {            // top left
                 standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
+            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) {     // top right
                 standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-            } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
-
-                standbyLocation= new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
-
+            } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) {     // bottom left
                 standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-            } else {
-                standbyLocation = myLoc;
+            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) {
+                standbyLocation = new MapLocation(hqLoc.x - 4, hqLoc.y - 4);                   // bottom right
             }
         }
 
@@ -97,23 +98,22 @@ public class Drone extends Unit{
                 }
 
                 // If I see an enemy, go pick them up
-                else if (targetEnemy != null){
+                else if (targetEnemy != null) {
                     // And I'm there
-                    if (myLoc.distanceSquaredTo(targetEnemy.location) <=2){
+                    if (myLoc.distanceSquaredTo(targetEnemy.location) <= 2) {
                         //And the bot is not on the wall
                         if (targetEnemy.location.distanceSquaredTo(hqLoc) > 3)
-                            if (rc.canPickUpUnit(targetEnemy.ID)){
+                            if (rc.canPickUpUnit(targetEnemy.ID)) {
                                 rc.pickUpUnit(targetEnemy.ID);
                             } else {
                                 System.out.println("Can't pickup Landscape #" + targetEnemy.ID);
                             }
                     }
                     // If I'm not close enough get closer
-                    else{
+                    else {
                         nav.flyTo(targetEnemy.location);
                     }
                 }
-
                 // HQ has seen an enemy bot
                 else if (enemyDir.size() != 0){
                     nav.flyTo(hqLoc.add(enemyDir.get(0))); // Goes to enemies
@@ -196,7 +196,6 @@ public class Drone extends Unit{
             nav.flyTo(standbyLocation);
         }
     }
-
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     public void goToEHQ() throws GameActionException {

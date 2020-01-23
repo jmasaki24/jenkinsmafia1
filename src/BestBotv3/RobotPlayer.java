@@ -19,7 +19,7 @@ public strictfp class RobotPlayer {
         RobotPlayer.rc = rc;
         Robot me = null;
 
-        turnCount = 0;
+        turnCount = 1;
 
         switch (rc.getType()) {
             case HQ:                 me = new HQ(rc);           break;
@@ -36,9 +36,8 @@ public strictfp class RobotPlayer {
 
         while(true) {
             try {
-                turnCount++;
                 me.takeTurn();
-
+                turnCount++;
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
                 Clock.yield();
             } catch (Exception e) {

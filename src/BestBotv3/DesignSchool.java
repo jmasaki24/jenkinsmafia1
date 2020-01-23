@@ -13,6 +13,9 @@ public class DesignSchool extends Building {
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
+        if (turnCount == 1){
+            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
+        }
 
         if (rc.getTeamSoup()>=(3*RobotType.LANDSCAPER.cost)){
             for (Direction dir : Util.directions) {

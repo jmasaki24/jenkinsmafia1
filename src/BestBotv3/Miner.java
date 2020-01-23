@@ -14,9 +14,41 @@ import java.util.Map;
  * try mine soup
  * move
  */
+
+/*
+ * STATE-MANAGEMENT - think of each bot being in a certain 'state' at any point in time.
+ *   Use takeTurn() to define the states, and then use methods to define the behavior in that state.
+ *
+ * MINER STATE(s) in order of priority/precedence
+  0. INITIALIZATION (turnCount == 1)
+    - crawl blockchain for locations.
+  1.update everything from current block.
+  2.if you can see all tiles in a 5x5 around soup or a refinery:
+    A. if it's hq, presence of landscapers also define accessibility.
+    B. if it's not accessible, remove it from locations arraylist.
+  3.if <= 2 squared away from a landscaper, run away.
+  4.if there are no refineries, build one.
+  5.if there are no amazons, build one in suitable location.
+  6. if there is an amazon and no design school, build a design school in suitable location.
+  7.if at soup limit:
+    A. if there is a refinery:
+      a. if it's not too far away, go to it.
+      b. if it's too far away and there's more than 50 soup:
+        1. build one if you can.
+      c. if it's too far away and there's less than 50 soup:
+        1. go to it anyway. (don't need miners sitting around, waiting for passive soup income)
+    B. if there is no refinery, build it.
+  8.if at > 80% soup limit, try to deposit in all directions.
+  9.if
+  *
+1/21/2020 I'll finish this later. -jm.
+
+ */
+
 public class Miner extends Unit {
 
     int numDesignSchools = 0;
+    int distanceToMakeRefinery = 50;
 
     // ALL "...Locations" ArrayList<MapLocation> ARE IN Unit.java!!!!!!!!!!!!!!!!!!!!
 
@@ -29,17 +61,24 @@ public class Miner extends Unit {
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
+        // 0. INITIALIZATION
         if (turnCount == 1) {
             System.out.println("adding hq to refineries");
             refineryLocations.add(hqLoc);   // since hq is technically a refinery
         }
 
-        //Update Stuff
+        // 1.update everything from current block.
         comms.updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
 
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
+        }
+        if (hqLocations.size() == 0 && hqLoc == null){
+            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
+            System.out.println("Hq didnt broadcast its location well");
+        } else {
+            System.out.println("HQ has been broadcasted and I recieved. Its at " + hqLoc);
         }
 
         // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
@@ -62,11 +101,15 @@ public class Miner extends Unit {
                     comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             }
-        } else if (designSchoolLocations.size() == 0 && rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) < 9 ) {
-            System.out.println("No design schools yet");
-            if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
-                System.out.println("built school");
+        } else if (designSchoolLocations.size() == 0){
+            if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) < 9) {
+                System.out.println("No design schools yet, gotta build one");
+                if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
+                    System.out.println("built school");
+                }
                 comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
+            } else {
+                System.out.println("There are no design schools, but we dont have enough money to make one");
             }
         } else {
             System.out.println("There are design schools");
@@ -92,7 +135,7 @@ public class Miner extends Unit {
                     System.out.println("need to build refinery asap");
                     buildRefineryIfAppropriate();
                 }
-                if (myLoc.distanceSquaredTo(findClosestRefinery()) > 35) {
+                if (myLoc.distanceSquaredTo(findClosestRefinery()) > distanceToMakeRefinery) {
                     for (Direction dir: Util.directions) {
                         if (!dir.equals(myLoc.directionTo(hqLoc))
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
@@ -176,7 +219,7 @@ public class Miner extends Unit {
     public void goToNearestSoup() throws GameActionException {
         MapLocation nearestSoupLoc = findClosestSoup();
 
-        // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible 
+        // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible
         // if a tile adjacent to soup is not flooded, it is accessible
         // if we can see around soupLoc, check if accessible
 //        if (myLoc.distanceSquaredTo(nearestSoupLoc) < 20) {
@@ -318,12 +361,12 @@ public class Miner extends Unit {
                     && rc.senseSoup(loc) == 0) {
                 System.out.println("soup at " + loc + "is gone");
                 soupLocations.remove(loc);
-            } else {
-                if (myLoc.distanceSquaredTo(loc) < 20 /*&& !isSoupAccessible(loc)*/) {
+            } /*else {
+                if (myLoc.distanceSquaredTo(loc) < 20 *//*&& !isSoupAccessible(loc)*//*) {
                     System.out.println("soup at " + loc + "is gone");
                     soupLocations.remove(loc);
                 }
-            }
+            }*/
         }
     }
     void checkIfRefineryGone(MapLocation loc) throws GameActionException {

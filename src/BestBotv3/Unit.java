@@ -28,22 +28,25 @@ public class Unit extends Robot {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         findHQ();
-        comms.updateBuildingLocations();
     }
-
 
     public void findHQ() throws GameActionException {
         if (hqLoc == null) {
+            comms.updateBuildingLocations();
+            for (MapLocation location : hqLocations){
+                hqLoc = location;
+                System.out.println("I got the HQ location from the hqLocations list");
+            }
             // search surroundings for HQ
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.HQ && robot.team == rc.getTeam()) {
                     hqLoc = robot.location;
+                    System.out.println("I saw the HQ because I'm near to it");
                 }
             }
             if (hqLoc == null) {
                 // if still null, search the blockchain
-                comms.updateBuildingLocations();
                 System.out.println("HQ loc still null bruh");
             }
         }
@@ -62,7 +65,6 @@ public class Unit extends Robot {
             }
             if (EHqLoc.x < 0 || EHqLoc.y < 0) {
                 // if still null, search the blockchain
-                comms.updateBuildingLocations();
                 System.out.println("Ehq loc still null");
             }
         }
