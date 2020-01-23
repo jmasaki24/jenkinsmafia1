@@ -57,14 +57,8 @@ public class Drone extends Unit{
 
         // Setting Standby Location
         if (standbyLocation == null) {
-            if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) {            // top left
-                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) {     // top right
-                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-            } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) {     // bottom left
-                standbyLocation = new MapLocation(hqLoc.x + 4, hqLoc.y - 4);
-            } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) {
-                standbyLocation = new MapLocation(hqLoc.x - 4, hqLoc.y - 4);                   // bottom right
+            if (hqLoc != null){
+                standbyLocation = hqLoc;
             }
         }
 
@@ -122,12 +116,12 @@ public class Drone extends Unit{
         }
 
         //If I'm helping landscapers:
-        if (onHelpMission){
+        else if (onHelpMission){
 
             // If drone is holding friendly landscaper, put him back on the wall
             if (rc.isCurrentlyHoldingUnit()){
                 for (Direction dir: Util.directions){
-                    if (myLoc.add(dir).distanceSquaredTo(hqLoc) <=2 && myLoc.add(dir).distanceSquaredTo(hqLoc) > 0){
+                    if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2){
                         if (rc.canDropUnit(dir)){
                             rc.dropUnit(dir);
                             targetLandscaper = null;
@@ -135,9 +129,11 @@ public class Drone extends Unit{
                             helpDir = null;
                             findANewBot = true;
                         }
-                    } else {
-                        nav.flyTo(hqLoc);
                     }
+                }
+                //Good fuzzy nav
+                if (!nav.tryFly(myLoc.directionTo(hqLoc))){
+                    nav.tryFly(Util.randomDirection());
                 }
             }
 
@@ -146,27 +142,21 @@ public class Drone extends Unit{
                 if (hqLoc != null){
                     System.out.println("My target landscaper is " + targetLandscaper.location.distanceSquaredTo(hqLoc) + " away from hq");
                     System.out.println("Target id: #" + targetLandscaper.ID);
-                    if (myLoc.distanceSquaredTo(targetLandscaper.location) < 2){ // If target not on wall
-                        if (targetLandscaper.location.distanceSquaredTo(hqLoc) < 3) {
+                    if (myLoc.distanceSquaredTo(targetLandscaper.location) < 3){ // If target is close
+                        if (targetLandscaper.location.distanceSquaredTo(hqLoc) > 2) { // if target not on wall
                             if (rc.canPickUpUnit(targetLandscaper.ID)) {
                                 rc.pickUpUnit(targetLandscaper.ID);
                                 System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
                             }
                         }
-                        // I'm not there yet
+                        // Target is on wall, mission accomplished
                         else{
-                            if(targetLandscaper.location.distanceSquaredTo(hqLoc) > 2){
-                                nav.flyTo(targetLandscaper.location);
-                            } else{
-                                targetLandscaper = null;
-                                onHelpMission = false;
-                            }
+                            targetLandscaper = null;
+                            onHelpMission = false;
                         }
-                    } else{
-                        targetLandscaper = null;
-                        onHelpMission = false;
+                    } else{ //target out of range, going in for the rescue
+                        nav.flyTo(targetLandscaper.location);
                     }
-
                 } else {
                     nav.flyTo(targetLandscaper.location);
                 }
@@ -178,22 +168,12 @@ public class Drone extends Unit{
                     nav.flyTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
                 }
             }
-
-            // If I should find a new bot
-            else if (findANewBot){
-                System.out.println("Going back to the school!");
-                //If we see the school go, else find it
-                if (designSchoolLocations.size() != 0){
-                    nav.flyTo(designSchoolLocations.get(0));
-                } else{
-                    nav.flyTo(Util.randomDirection());
-                }
-            }
         }
-
-        // Standby if we are not on a mission
-        if (myLoc.distanceSquaredTo(standbyLocation) > 2){
-            nav.flyTo(standbyLocation);
+        else {
+            // Standby if we are not on a mission
+            if (standbyLocation != null) {
+                nav.flyTo(standbyLocation);
+            }
         }
     }
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
@@ -251,10 +231,14 @@ public class Drone extends Unit{
         RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
         for (RobotInfo robot : nearbyLandscapers) {
             if ((robot.type.equals(RobotType.LANDSCAPER))){
-                // If its on opponent team
-                onHelpMission = true;
-                targetLandscaper = robot;
-                break;
+                if (hqLoc != null){
+                    if (robot.location.distanceSquaredTo(hqLoc) > 2){
+                        // If its on opponent team
+                        targetLandscaper = robot;
+                        onHelpMission = true;
+                        break;
+                    }
+                }
             }
         }
         return nearbyLandscapers;
