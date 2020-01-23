@@ -13,11 +13,12 @@ import java.util.ArrayList;
 
 public class Drone extends Unit{
 
-    //Vars
+    // Vars
     boolean shouldMove = true;
     int hqToCheck = 0;
     MapLocation[] potentialHQ;
     public ArrayList<Direction> enemyDir = new ArrayList<>();
+    public ArrayList<Direction> helpDir = new ArrayList<>();
     public ArrayList<MapLocation> waterLocation = new ArrayList<>();
 
 
@@ -28,7 +29,12 @@ public class Drone extends Unit{
 
     MapLocation standbyLocation;
     boolean onMission = false;
+    boolean onHelpMission = false;
     RobotInfo targetBot = null;
+    RobotInfo targetHelpBot = null;
+
+    boolean findANewBot = false;
+
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
@@ -39,12 +45,21 @@ public class Drone extends Unit{
         // gotoEHQ();
 
         // Enemy Detection
-        RobotInfo[] nearbyRobots = rc.senseNearbyRobots();
-        for (RobotInfo robot : nearbyRobots) {
-            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER)) /*&& robot.getTeam() == rc.getTeam().opponent()*/) {
+        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
+        for (RobotInfo robot : nearbyEnemyRobots) {
+            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
                 // If its on opponent team
                 onMission = true;
                 targetBot = robot;
+                break;
+            }
+        }
+        RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : nearbyLandscapers) {
+            if ((robot.type.equals(RobotType.LANDSCAPER))){
+                // If its on opponent team
+                onHelpMission = true;
+                targetHelpBot = robot;
                 break;
             }
         }
@@ -68,10 +83,13 @@ public class Drone extends Unit{
 
 
         // If its holding a unit, sense if its near flooding and drop. If not, move randomly.
-        if (rc.isCurrentlyHoldingUnit()){
+        if (rc.isCurrentlyHoldingUnit() && onMission){
             for (Direction dir: Util.directions){
                 if (rc.senseFlooding(myLoc.add(dir))){
                     rc.dropUnit(dir);
+                    targetBot = null;
+                    onMission = false;
+                    enemyDir = null;
                 } else{
                     if (waterLocation.size() != 0){
                         nav.goTo(waterLocation.get(waterLocation.size()-1));
@@ -101,10 +119,68 @@ public class Drone extends Unit{
         // HQ has seen a bot
         else if (enemyDir.size() != 0){
             nav.goTo(hqLoc.add(enemyDir.get(enemyDir.size()-1)));
-        } else if (myLoc.distanceSquaredTo(standbyLocation) > 2){
+        }
+
+
+        // Does it need to find a new bot?
+        else if (findANewBot){
+            nav.goTo(myLoc.directionTo(hqLoc).opposite());
+            if (myLoc.distanceSquaredTo(hqLoc) > 4){
+                findANewBot = false;
+            }
+        }
+        // If its holding a unit, can it drop it on the wall? If not, go the HQ.
+        else if (rc.isCurrentlyHoldingUnit() && onHelpMission){
+            for (Direction dir: Util.directions){
+                if (myLoc.add(dir).distanceSquaredTo(hqLoc) <=2 && myLoc.add(dir).distanceSquaredTo(hqLoc) > 0){
+                    if (rc.canDropUnit(dir)){
+                        rc.dropUnit(dir);
+                        targetHelpBot = null;
+                        onHelpMission = false;
+                        helpDir = null;
+                        findANewBot = true;
+                    }
+                } else {
+                    nav.goTo(hqLoc);
+                }
+            }
+        }
+        // I see a bot that needs help
+        else if (targetHelpBot != null){
+            // I am there
+            if (myLoc.distanceSquaredTo(targetHelpBot.location) <=2){
+                if (rc.canPickUpUnit(targetHelpBot.ID)){
+                    rc.pickUpUnit(targetHelpBot.ID);
+                    System.out.println("I should have picked this unit up" + targetHelpBot.ID);
+                } else {
+                    System.out.println("dude");
+                }
+            }
+            // I'm not there yet
+            else{
+                nav.goTo(targetHelpBot.location);
+            }
+        }
+        // HQ has seen a bot
+        else if (helpDir.size() != 0){
+            nav.goTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
+        }
+
+
+        // Standby as last resort
+        else if (myLoc.distanceSquaredTo(standbyLocation) > 2){
             nav.goTo(standbyLocation);
         }
+
     }
+
+
+
+
+
+
+
+    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     public void goToEHQ() throws GameActionException {
         shouldMove = true;
@@ -138,7 +214,7 @@ public class Drone extends Unit{
                 System.out.println("Going to a potential HQ:" + potentialHQ);
                 if(shouldMove)
                     nav.tryMove(myLoc.directionTo(potentialHQ[hqToCheck]));
-                rc.setIndicatorLine(rc.getLocation(),potentialHQ[hqToCheck],0,230,0);
+                rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
             } else{
                 System.out.println("Nothing Here at potential HQ:" + potentialHQ);
                 hqToCheck += 1;
