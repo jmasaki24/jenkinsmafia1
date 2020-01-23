@@ -59,6 +59,10 @@ public class Miner extends Unit {
 
     boolean hqRemovedFromRefineryLocations = false;
 
+    // array and not an arraylist!
+    MapLocation[] recentlyVisitedLocations = new MapLocation[7];
+
+
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         // 0. INITIALIZATION
@@ -67,7 +71,9 @@ public class Miner extends Unit {
             refineryLocations.add(hqLoc);   // since hq is technically a refinery
         }
 
-        // 1.update everything from current block.
+        recentlyVisitedLocations[turnCount%7] = myLoc;
+
+        //Update Stuff
         comms.updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
 
@@ -196,27 +202,24 @@ public class Miner extends Unit {
             //find closest refinery (including hq, should change that tho since HQ will become unreachable)
             if (refineryLocations.size() > 0) {
                 MapLocation closestRefineryLoc = findClosestRefinery();
-                nav.goTo(closestRefineryLoc);
-                rc.setIndicatorLine(myLoc, closestRefineryLoc, 255, 0, 255);
+                minerGoTo(closestRefineryLoc);
+                rc.setIndicatorLine(rc.getLocation(), closestRefineryLoc, 255, 0, 255);
             }
             // else, just sit there?
         }
         else {
             if (soupLocations.size() > 0) {
-                goToNearestSoup();
+                minerGoToNearestSoup();
             } else {
                 searchForSoup();
             }
         }
     }
 
-
-
-
-
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
-    public void goToNearestSoup() throws GameActionException {
+    public void minerGoToNearestSoup() throws GameActionException {
+
         MapLocation nearestSoupLoc = findClosestSoup();
 
         // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible
@@ -229,8 +232,9 @@ public class Miner extends Unit {
 //        }
         System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
 
-        rc.setIndicatorLine(myLoc, nearestSoupLoc, 255, 0, 255);
-        nav.goTo(nearestSoupLoc);
+        rc.setIndicatorLine(rc.getLocation(), nearestSoupLoc, 255, 0, 255);
+        minerGoTo(nearestSoupLoc);
+
     }
 
     public void searchForSoup() throws GameActionException {
@@ -245,11 +249,12 @@ public class Miner extends Unit {
         if (robots.length == 0) {
             nextPlace.add(Util.randomDirection());
         }
-        System.out.println("Trying to go: " + myLoc.directionTo(nextPlace));
-        if (nextPlace != myLoc) {
-            nav.goTo(myLoc.directionTo(nextPlace));
+        System.out.println("Trying to go: " + rc.getLocation().directionTo(nextPlace));
+        if (nextPlace != rc.getLocation()) {
+            minerGoTo(rc.getLocation().directionTo(nextPlace));
+
         } else {
-            nav.goTo(Util.randomDirection());
+            minerGoTo(Util.randomDirection());
         }
     }
 
@@ -356,6 +361,7 @@ public class Miner extends Unit {
 
     void checkIfSoupGone(MapLocation loc) throws GameActionException {
         if (soupLocations.size() > 0) {
+            System.out.println("check soup" + loc);
 //            MapLocation targetSoupLoc = soupLocations.get(0);
             if (rc.canSenseLocation(loc)
                     && rc.senseSoup(loc) == 0) {
@@ -381,18 +387,65 @@ public class Miner extends Unit {
         }
     }
 
+    // fuzzy nav, except it won't go to a place it has visited in the last ten rounds
+    boolean minerGoTo(Direction dir) throws GameActionException {
+
+        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                dir.opposite(),
+        };
+
+        MapLocation moveTowardLocation = myLoc;
+        boolean shouldIMoveThere = true;
+        Direction moveToward = fuzzyNavDirectionsInOrder[0];
+        for (int i = 0; i < 8; i ++) {
+            moveToward = fuzzyNavDirectionsInOrder[i];
+            moveTowardLocation = myLoc.add(moveToward);
+
+            for (int j = 0; j < recentlyVisitedLocations.length; j++) {
+                if (moveTowardLocation.equals(recentlyVisitedLocations[j])) {
+                    shouldIMoveThere = false;
+                    break;
+                }
+            }
+
+            System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
+
+            if (shouldIMoveThere) {
+                if (nav.tryMove(moveToward)) {
+                    return true;
+                }
+            }
+        }
+//
+//        for (Direction d : toTry){
+//            if(tryMove(d))
+//                return true;
+//        }
+        return false;
+    }
+
+    // navigate towards a particular location
+    boolean minerGoTo(MapLocation destination) throws GameActionException {
+        return minerGoTo(rc.getLocation().directionTo(destination));
+    }
+    
+    
+
     // basically, goes in the direction of the center of the map
     void runAwayyyyyy() throws GameActionException {
         System.out.println("Run awayyyyyyyy");
 
         if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
-            nav.goTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
         } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
-            nav.goTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
         } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
-            nav.goTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
         } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
-            nav.goTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
         } // else.. idk?!?!?
     }
 }
