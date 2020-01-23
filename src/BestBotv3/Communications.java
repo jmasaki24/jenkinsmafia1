@@ -298,7 +298,7 @@ public class Communications {
                 switch(mess[1]){
                     case HQID:                  buildingLocations = Unit.hqLocations;               break;
                     case EHQID:                 buildingLocations = Unit.ehqLocations;              break;
-                    case DESIGNSCHOOLID:        buildingLocations = Unit.designSchoolLocations;     break;
+                    case DESIGNSCHOOLID:        buildingLocations = Unit.designSchoolLocations; System.out.println("Design School added");     break;
                     case AMAZONID:              buildingLocations = Unit.amazonLocations;           break;
                     case REFINERYID:            buildingLocations = Unit.refineryLocations;         break;
                     case VAPORATORID:           buildingLocations = Unit.vaporatorLocations;        break;

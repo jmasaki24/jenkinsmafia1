@@ -61,9 +61,43 @@ public class Navigation {
 //        }
         return false;
     }
-
     // navigate towards a particular location
     boolean goTo(MapLocation destination) throws GameActionException {
         return goTo(rc.getLocation().directionTo(destination));
+    }
+
+
+    // Same as above, but doesnt care about flooding
+    boolean droneGoTo(Direction dir) throws GameActionException {
+
+        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                dir.opposite(),
+        };
+
+        Direction moveToward = fuzzyNavDirectionsInOrder[0];
+        for (int i = 0; i < 8; i ++) {
+            moveToward = fuzzyNavDirectionsInOrder[i];
+            if (tryDroneMove(moveToward)) {
+                return true;
+            }
+        }
+//
+//        for (Direction d : toTry){
+//            if(tryDroneMove(d))
+//                return true;
+//        }
+        return false;
+    }
+    boolean droneGoTo(MapLocation destination) throws GameActionException {
+        return droneGoTo(rc.getLocation().directionTo(destination));
+    }
+    boolean tryDroneMove(Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canMove(dir) && isOnMap(dir)) {
+            rc.move(dir);
+            return true;
+        } else return false;
     }
 }

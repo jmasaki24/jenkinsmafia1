@@ -21,6 +21,7 @@ public class Drone extends Unit{
     MapLocation[] potentialHQ;
     public ArrayList<Direction> enemyDir = new ArrayList<>();
     public ArrayList<Direction> helpDir = new ArrayList<>();
+    public ArrayList<Direction> bootDir = new ArrayList<>();
     public ArrayList<MapLocation> waterLocation = new ArrayList<>();
 
 
@@ -31,11 +32,13 @@ public class Drone extends Unit{
 
     boolean onMission = false;
     boolean onHelpMission = false;
+    boolean onBootMission = false;
     RobotInfo targetBot = null;
     RobotInfo targetHelpBot = null;
+    RobotInfo targetBootBot = null;
 
     boolean findANewBot = false;
-
+    boolean findANewBootBot = false;
 
 
     public void takeTurn() throws GameActionException {
@@ -61,8 +64,8 @@ public class Drone extends Unit{
                     break;
                 }
             }
+
             RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
-            System.out.println("These are the locations: " + hqLocations + "This is HQLoc: " + hqLoc);
             for (RobotInfo robot : nearbyLandscapers) {
                 if (robot.type.equals(RobotType.LANDSCAPER)){
                     // If its a landscaper on our team
@@ -82,6 +85,29 @@ public class Drone extends Unit{
                 }
             }
 
+            RobotInfo[] nearbyBootMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+            for (RobotInfo robot : nearbyBootMiners) {
+                if (robot.type.equals(RobotType.MINER)){
+                    // If its a miner on our team
+                    if (hqLoc != null){
+                        // Only go for the robots that are too close to the HQ
+                        if (robot.location.distanceSquaredTo(hqLoc) <= 2){
+                            System.out.println("Theres a boot bot near HQ");
+                            onBootMission = true;
+                            targetBootBot = robot;
+                        } else{
+                            targetBootBot = null;
+                            System.out.println("No boot bot near HQ");
+                        }
+                    } else{
+                        targetBootBot = null;
+                        System.out.println("No boot bot cause no HQ");
+                    }
+                }
+            }
+
+
+// KILL
             if (rc.isCurrentlyHoldingUnit() && onMission) {
                 for (Direction dir : Util.directions) {
                     if (rc.senseFlooding(myLoc.add(dir))) {
@@ -91,7 +117,7 @@ public class Drone extends Unit{
                         enemyDir = null;
                     } else {
                         if (waterLocation.size() != 0) {
-                            nav.goTo(waterLocation.get(waterLocation.size() - 1));
+                            nav.droneGoTo(waterLocation.get(waterLocation.size() - 1));
                         } else {
                             rc.move(Util.randomDirection());
                         }
@@ -112,18 +138,67 @@ public class Drone extends Unit{
                 }
                 // I'm not there yet
                 else {
-                    nav.goTo(targetBot.location);
+                    nav.droneGoTo(targetBot.location);
                 }
             }
             // HQ has seen a bot
             else if (enemyDir.size() != 0) {
-                nav.goTo(hqLoc.add(enemyDir.get(enemyDir.size() - 1)));
+                nav.droneGoTo(hqLoc.add(enemyDir.get(enemyDir.size() - 1)));
             }
 
 
+// BOOT
+            // Does it need to find a new bot to BOOT?
+            else if (findANewBootBot) {
+                nav.droneGoTo(myLoc.directionTo(hqLoc).opposite().rotateRight());
+                if (myLoc.distanceSquaredTo(hqLoc) > 4) {
+                    findANewBootBot = false;
+                }
+            }
+            // If its holding a booted miner, can it get rid of it? If not, go away from HQ.
+            else if (rc.isCurrentlyHoldingUnit() && onBootMission) {
+                for (Direction dir : Util.directions) {
+                    if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2) {
+                        if (rc.canDropUnit(dir)) {
+                            rc.dropUnit(dir);
+                            System.out.println("I dropped the miner in the water!");
+                            targetBootBot = null;
+                            onBootMission = false;
+                            bootDir = null;
+                            findANewBootBot = true;
+                            nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+                        }
+                    } else {
+                        nav.droneGoTo(hqLoc);
+                    }
+                }
+            }
+            // I see a bot that needs to be BOOTED
+            else if (targetBootBot != null) {
+                // I am there
+                if (myLoc.distanceSquaredTo(targetBootBot.location) <= 2) {
+                    if (rc.canPickUpUnit(targetBootBot.ID)) {
+                        rc.pickUpUnit(targetBootBot.ID);
+                        System.out.println("I should have picked this unit up" + targetBootBot.ID);
+                    } else {
+                        System.out.println("dude cant boot");
+                    }
+                }
+                // I'm not there yet
+                else {
+                    nav.droneGoTo(targetBootBot.location);
+                }
+            }
+            // HQ has seen a bot that needs to be BOOTED
+//            else if (bootDir.size() != 0) {
+//                nav.droneGoTo(hqLoc.add(bootDir.get(bootDir.size() - 1)));
+//            } // Boot dir doesnt do anything right now.
+
+
+// HELP
             // Does it need to find a new bot?
             else if (findANewBot) {
-                nav.goTo(myLoc.directionTo(hqLoc).opposite().rotateRight());
+                nav.droneGoTo(myLoc.directionTo(hqLoc).opposite().rotateRight());
                 if (myLoc.distanceSquaredTo(hqLoc) > 4) {
                     findANewBot = false;
                 }
@@ -139,10 +214,10 @@ public class Drone extends Unit{
                             onHelpMission = false;
                             helpDir = null;
                             findANewBot = true;
-                            nav.goTo(myLoc.directionTo(hqLoc).opposite());
+                            nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
                         }
                     } else {
-                        nav.goTo(hqLoc);
+                        nav.droneGoTo(hqLoc);
                     }
                 }
             }
@@ -159,28 +234,28 @@ public class Drone extends Unit{
                 }
                 // I'm not there yet
                 else {
-                    nav.goTo(targetHelpBot.location);
+                    nav.droneGoTo(targetHelpBot.location);
                 }
             }
             // HQ has seen a bot
-            else if (helpDir.size() != 0) {
-                nav.goTo(hqLoc.add(helpDir.get(helpDir.size() - 1)));
-            }
+//            else if (helpDir.size() != 0) {
+//                nav.droneGoTo(hqLoc.add(helpDir.get(helpDir.size() - 1)));
+//            }   // Help dir doesnt do anything right now.
 
 
-            // Standby as last resort
+// STANDBY
             // Setting Standby Location to constantly change
             else if (hqLoc != null){
                 if (myLoc.distanceSquaredTo(hqLoc) <= 10 && myLoc.distanceSquaredTo(hqLoc) >= 8){
                     for (Direction dir : Direction.allDirections()){
                         if (myLoc.add(dir).distanceSquaredTo(hqLoc)>=8 && myLoc.add(dir).distanceSquaredTo(hqLoc) <=10 && dir != myLoc.directionTo(hqLoc).rotateRight()){
-                            nav.goTo(dir);
+                            nav.droneGoTo(dir);
                         }
                     }
                 } else if (myLoc.distanceSquaredTo(hqLoc) < 8){
-                    nav.goTo(myLoc.directionTo(hqLoc).opposite());
+                    nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
                 } else if (myLoc.distanceSquaredTo(hqLoc) > 10){
-                    nav.goTo(myLoc.directionTo(hqLoc));
+                    nav.droneGoTo(myLoc.directionTo(hqLoc));
                 }
             } else{
                 findHQ();

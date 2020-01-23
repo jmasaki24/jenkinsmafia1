@@ -79,13 +79,15 @@ public class HQ extends Shooter {
 
 
         if (!seeDesignSchool) {
-            if (rc.getTeamSoup() > RobotType.DESIGN_SCHOOL.cost + RobotType.MINER.cost) {
+            if (rc.getTeamSoup() > RobotType.DESIGN_SCHOOL.cost + RobotType.MINER.cost + 10 && numMiners < MINER_LIMIT + 1) {
                 tryBuild(RobotType.MINER, Direction.SOUTHWEST);
+                numMiners++;
             }
         }
-//        if (seeDesignSchool && rc.getRoundNum() > 300){
+//        if (seeDesignSchool && rc.getRoundNum() > 300 && numMiners < MINER_LIMIT){
 //            for (Direction dir: Util.directions){
 //                tryBuild(RobotType.MINER,Util.randomDirection());
+//                numMiners++;
 //            }
 //        }
     }

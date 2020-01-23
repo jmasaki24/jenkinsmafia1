@@ -72,8 +72,8 @@ public class Miner extends Unit {
                 System.out.println("No design schools yet, gotta build one");
                 if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
                     System.out.println("built school");
+                    comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
-                comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
             } else {
                 System.out.println("There are no design schools, but we dont have enough money to make one");
             }
