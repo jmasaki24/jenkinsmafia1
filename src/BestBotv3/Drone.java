@@ -45,24 +45,10 @@ public class Drone extends Unit{
         // gotoEHQ();
 
         // Enemy Detection
-        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
-        for (RobotInfo robot : nearbyEnemyRobots) {
-            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
-                // If its on opponent team
-                onMission = true;
-                targetBot = robot;
-                break;
-            }
-        }
-        RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
-        for (RobotInfo robot : nearbyLandscapers) {
-            if ((robot.type.equals(RobotType.LANDSCAPER))){
-                // If its on opponent team
-                onHelpMission = true;
-                targetHelpBot = robot;
-                break;
-            }
-        }
+        RobotInfo[] nearbyEnemies = getNearbyEnemies();
+
+        //Landscaper Detection
+        RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
         // Setting Standby Location
         if (turnCount == 1) {
@@ -92,7 +78,7 @@ public class Drone extends Unit{
                     enemyDir = null;
                 } else{
                     if (waterLocation.size() != 0){
-                        nav.goTo(waterLocation.get(waterLocation.size()-1));
+                        nav.flyTo(waterLocation.get(waterLocation.size()-1));
                     } else{
                         rc.move(Util.randomDirection());
                     }
@@ -105,7 +91,6 @@ public class Drone extends Unit{
             if (myLoc.distanceSquaredTo(targetBot.location) <=2){
                 if (rc.canPickUpUnit(targetBot.ID)){
                     rc.pickUpUnit(targetBot.ID);
-                    System.out.println("I should have picked this unit up" + targetBot.ID);
                 } else {
                     System.out.println("dude");
                 }
@@ -113,18 +98,18 @@ public class Drone extends Unit{
             }
             // I'm not there yet
             else{
-                nav.goTo(targetBot.location);
+                nav.flyTo(targetBot.location);
             }
         }
         // HQ has seen a bot
         else if (enemyDir.size() != 0){
-            nav.goTo(hqLoc.add(enemyDir.get(enemyDir.size()-1)));
+            nav.flyTo(hqLoc.add(enemyDir.get(enemyDir.size()-1)));
         }
 
 
         // Does it need to find a new bot?
         else if (findANewBot){
-            nav.goTo(myLoc.directionTo(hqLoc).opposite());
+            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
             if (myLoc.distanceSquaredTo(hqLoc) > 4){
                 findANewBot = false;
             }
@@ -141,10 +126,11 @@ public class Drone extends Unit{
                         findANewBot = true;
                     }
                 } else {
-                    nav.goTo(hqLoc);
+                    nav.flyTo(hqLoc);
                 }
             }
         }
+
         // I see a bot that needs help
         else if (targetHelpBot != null){
             // I am there
@@ -158,49 +144,49 @@ public class Drone extends Unit{
             }
             // I'm not there yet
             else{
-                nav.goTo(targetHelpBot.location);
+                nav.flyTo(targetHelpBot.location);
             }
         }
         // HQ has seen a bot
         else if (helpDir.size() != 0){
-            nav.goTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
+            nav.flyTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
         }
-
 
         // Standby as last resort
         else if (myLoc.distanceSquaredTo(standbyLocation) > 2){
-            nav.goTo(standbyLocation);
+            nav.flyTo(standbyLocation);
         }
-
     }
-
-
-
-
-
-
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     public void goToEHQ() throws GameActionException {
+        //Define internal variables
         shouldMove = true;
 
+        //Determine if we know enemy HQ Location
         findEHQ();
 
+        //Define every potential EHQ location
         MapLocation[] potentialHQ = new MapLocation[] {new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (hqLoc.y) - 1),
                 new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (rc.getMapHeight() - hqLoc.y) - 1),
                 new MapLocation((hqLoc.x) - 1                   , (rc.getMapHeight() - hqLoc.y) - 1)};
+
+        //Mark the potential loc with dots
         for (MapLocation loc: potentialHQ){
             rc.setIndicatorDot(loc,0,200,200);
         }
 
+        //If we are a drone with an even robot id (random number... gets called ~50% of the time) -cam
+        if (rc.getID()%2 == 0){ //Essentially makes half the drones swarm and half not
+            //if I do swarm
 
-        if (rc.getID()%2 == 0){
+            //Find the enemy hq
             if(EHqLoc.x > 0 || EHqLoc.y > 0){
                 System.out.println("Found ENEMY HQ");
                 if (myLoc.distanceSquaredTo(EHqLoc) > 5){
                     System.out.println("Going to ENEMY HQ:" + EHqLoc);
-                    nav.tryMove(myLoc.directionTo(EHqLoc));
+                    nav.tryFly(myLoc.directionTo(EHqLoc));
                 } else{
                     System.out.println("Standing my gound at ENEMY HQ");
                     for (Direction dir: Util.directions){
@@ -213,7 +199,7 @@ public class Drone extends Unit{
             if(myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > 5){
                 System.out.println("Going to a potential HQ:" + potentialHQ);
                 if(shouldMove)
-                    nav.tryMove(myLoc.directionTo(potentialHQ[hqToCheck]));
+                    nav.tryFly(myLoc.directionTo(potentialHQ[hqToCheck]));
                 rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
             } else{
                 System.out.println("Nothing Here at potential HQ:" + potentialHQ);
@@ -223,4 +209,29 @@ public class Drone extends Unit{
 
     }
 
+    public RobotInfo[] getNearbyLandscapers(){
+        RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : nearbyLandscapers) {
+            if ((robot.type.equals(RobotType.LANDSCAPER))){
+                // If its on opponent team
+                onHelpMission = true;
+                targetHelpBot = robot;
+                break;
+            }
+        }
+        return nearbyLandscapers;
+    }
+
+    public RobotInfo[] getNearbyEnemies(){
+        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
+        for (RobotInfo robot : nearbyEnemyRobots) {
+            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
+                // If its on opponent team
+                onMission = true;
+                targetBot = robot;
+                break;
+            }
+        }
+        return nearbyEnemyRobots;
+    }
 }
