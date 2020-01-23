@@ -87,8 +87,8 @@ public class Communications {
         message[1] = ATTACKERID;
         message[2] = AttackerID; // ID of attacking bot
         message[3] = directionToNumber(dir); // direction number
-        if (rc.canSubmitTransaction(message, 3)) {
-            rc.submitTransaction(message, 3);
+        if (rc.canSubmitTransaction(message, 1)) {
+            rc.submitTransaction(message, 1);
         }
     }
     public void updateAttackerDir(ArrayList<Direction> enemyDir) throws GameActionException {
@@ -151,8 +151,8 @@ public class Communications {
         message[1] = WATERID;
         message[2] = loc.x; // x coord of HQ
         message[3] = loc.y; // y coord of HQ
-        if (rc.canSubmitTransaction(message, 3)) {
-            rc.submitTransaction(message, 3);
+        if (rc.canSubmitTransaction(message, 1)) {
+            rc.submitTransaction(message, 1);
             System.out.println("new water!" + loc);
         }
     }
