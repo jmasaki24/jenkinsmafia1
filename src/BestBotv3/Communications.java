@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Communications {
     RobotController rc;
@@ -17,6 +18,8 @@ public class Communications {
     final int DESIGNSCHOOLID = 202;
     final int REFINERYID = 303;
     final int VAPORATORID = 404;
+
+    final ArrayList<Integer> BuildingIDs = new ArrayList<Integer>(Arrays.asList(HQID,EHQID,AMAZONID,DESIGNSCHOOLID,REFINERYID,VAPORATORID));
 
     final int SOUPID = 312;
     final int WATERID = 820;
@@ -293,7 +296,7 @@ public class Communications {
         ArrayList<MapLocation> buildingLocations = null;
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if (mess[0] == teamSecret) {
+            if (mess[0] == teamSecret && BuildingIDs.contains(mess[1])) {
                 // System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
                     case HQID:  // bruh findHQ is in Unit
