@@ -1,0 +1,26 @@
+package BestBotv3;
+
+import battlecode.common.*;
+
+//Todo: set a hard limit of landscapers to make
+
+public class DesignSchool extends Building {
+    private static MapLocation hqLoc;
+
+    public DesignSchool(RobotController r) {
+        super(r);
+    }
+
+    public void takeTurn() throws GameActionException {
+        super.takeTurn();
+        if (turnCount == 1){
+            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
+        }
+
+        if (rc.getTeamSoup()>=(3*RobotType.LANDSCAPER.cost)){
+            for (Direction dir : Util.directions) {
+                tryBuild(RobotType.LANDSCAPER, dir);
+            }
+        }
+    }
+}
