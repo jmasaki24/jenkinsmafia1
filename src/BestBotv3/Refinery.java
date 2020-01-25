@@ -12,6 +12,8 @@ public class Refinery extends Building {
     }
 
     public void takeTurn() throws GameActionException {
-        comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc);
+        if (turnCount == 1) {
+            comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc);
+        }
     }
 }
