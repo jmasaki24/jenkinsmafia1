@@ -14,7 +14,13 @@ public class Navigation {
         rc = r;
     }
     
-    //Attempts to move in a given direction
+    /**
+     * Attempts to move in a given direction.
+     *
+     * @param dir The intended direction of movement
+     * @return true if a move was performed
+     * @throws GameActionException
+     */
     boolean tryMove(Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir)) && isOnMap(dir)) {
             rc.move(dir);
