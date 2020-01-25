@@ -84,12 +84,12 @@ public class Miner extends Unit {
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
         }
-        if (hqLocations.size() == 0 && hqLoc == null){
-//            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
-            // System.out.println("Hq didnt broadcast its location well");
-        } else {
-            // System.out.println("HQ has been broadcasted and I recieved. Its at " + hqLoc);
-        }
+//        if (hqLoc == null){
+////            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
+//            // System.out.println("Hq didnt broadcast its location well");
+//        } else {
+//            // System.out.println("HQ has been broadcasted and I recieved. Its at " + hqLoc);
+//        }
 
         // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
         // TODO: Why was this commented out? Commenting makes them blind to water entirely -cam
