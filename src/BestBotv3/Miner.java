@@ -49,6 +49,7 @@ public class Miner extends Unit {
 
     int numDesignSchools = 0;
     int distanceToMakeRefinery = 50;
+    boolean IBroadcastedWaterLoc = false; //Use for only sending 1 water loc per miner(We lose from overspending)
 
     // ALL "...Locations" ArrayList<MapLocation> ARE IN Unit.java!!!!!!!!!!!!!!!!!!!!
 
@@ -89,9 +90,14 @@ public class Miner extends Unit {
 
         // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
         // TODO: Why was this commented out? Commenting makes them blind to water entirely -cam
-        for (Direction dir : Util.directions) {
-            if (rc.senseFlooding(myLoc.add(dir))) {
-                comms.broadcastWaterLocation(myLoc.add(dir));
+        if (!IBroadcastedWaterLoc) {
+            for (Direction dir : Util.directions) {
+                if (rc.canSenseLocation(myLoc.add(dir))) {
+                    if (rc.senseFlooding(myLoc.add(dir))) {
+                        comms.broadcastWaterLocation(myLoc.add(dir));
+                        IBroadcastedWaterLoc = true;
+                    }
+                }
             }
         }
 
