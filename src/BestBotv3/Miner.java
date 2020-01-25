@@ -84,7 +84,7 @@ public class Miner extends Unit {
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
         }
-        if (hqLocations.size() == 0 && hqLoc == null){
+        if (hqLoc == null){
 //            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
             // System.out.println("Hq didnt broadcast its location well");
         } else {
