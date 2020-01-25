@@ -205,7 +205,7 @@ public class Drone extends Unit{
                             break;
                         } else {
                             System.out.println("Can't help drop it here");
-                            if (!nav.droneGoTo(myLoc.directionTo(hqLoc).rotateRight())) {
+                            if (!nav.droneGoTo(myLoc.directionTo(hqLoc).rotateRight())){
                                 nav.droneGoTo(myLoc.directionTo(hqLoc).rotateLeft());
                                 break;
                             }
