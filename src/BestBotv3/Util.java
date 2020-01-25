@@ -17,20 +17,6 @@ public class Util {
         Direction.NORTHWEST
     };
 
-
-    static Direction[] allDirections = {
-            Direction.CENTER,
-            Direction.NORTH,
-            Direction.NORTHEAST,
-            Direction.EAST,
-            Direction.SOUTHEAST,
-            Direction.SOUTH,
-            Direction.SOUTHWEST,
-            Direction.WEST,
-            Direction.NORTHWEST
-    };
-
-
     /**
      * Returns a random Direction.
      *

@@ -92,13 +92,16 @@ public class Drone extends Unit{
                     if (hqLoc != null){
                         // Only go for the robots that are too close to the HQ
                         if (robot.location.distanceSquaredTo(hqLoc) <= 2){
+                            System.out.println("Theres a boot bot near HQ");
                             onBootMission = true;
                             targetBootBot = robot;
                         } else{
                             targetBootBot = null;
+                            System.out.println("No boot bot near HQ");
                         }
                     } else{
                         targetBootBot = null;
+                        System.out.println("No boot bot cause no HQ");
                     }
                 }
             }
@@ -202,7 +205,7 @@ public class Drone extends Unit{
             }
             // If its holding a unit, can it drop it on the wall? If not, go the HQ.
             else if (rc.isCurrentlyHoldingUnit() && onHelpMission) {
-                for (Direction dir : Util.allDirections) {
+                for (Direction dir : Util.directions) {
                     if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2 && myLoc.add(dir).distanceSquaredTo(hqLoc) > 0) {
                         if (rc.canDropUnit(dir)) {
                             rc.dropUnit(dir);
@@ -213,14 +216,8 @@ public class Drone extends Unit{
                             findANewBot = true;
                             nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
                         }
-                    }
-                }
-                if (!rc.isCurrentlyHoldingUnit()) {
-                    System.out.println("Drop sucessful");
-                } else{
-                    System.out.println("Can't drop it here");
-                    if (!nav.droneGoTo(myLoc.directionTo(hqLoc).rotateRight())){
-                        nav.droneGoTo(myLoc.directionTo(hqLoc).rotateLeft());
+                    } else {
+                        nav.droneGoTo(hqLoc);
                     }
                 }
             }
