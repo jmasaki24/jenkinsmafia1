@@ -37,19 +37,19 @@ public class Unit extends Robot {
             comms.updateBuildingLocations();
             for (MapLocation location : hqLocations){
                 hqLoc = location;
-                System.out.println("I got the HQ location from the hqLocations list");
+                // System.out.println("I got the HQ location from the hqLocations list");
             }
             // search surroundings for HQ
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.HQ && robot.team == rc.getTeam()) {
                     hqLoc = robot.location;
-                    System.out.println("I saw the HQ because I'm near to it");
+                    // System.out.println("I saw the HQ because I'm near to it");
                 }
             }
             if (hqLoc == null) {
                 // if still null, search the blockchain
-                System.out.println("HQ loc still null bruh");
+                // System.out.println("HQ loc still null bruh");
             }
         }
     }
@@ -61,13 +61,13 @@ public class Unit extends Robot {
             for (RobotInfo robot : robots) {
                 if (robot.type == RobotType.HQ && robot.team == rc.getTeam().opponent()) {
                     EHqLoc = robot.location;
-                    System.out.println("Sending Enemy Location");
+                    // System.out.println("Sending Enemy Location");
                     comms.broadcastBuildingCreation(RobotType.HQ, EHqLoc, rc.getTeam().opponent());
                 }
             }
             if (EHqLoc.x < 0 || EHqLoc.y < 0) {
                 // if still null, search the blockchain
-                System.out.println("Ehq loc still null");
+                // System.out.println("Ehq loc still null");
             }
         }
     }

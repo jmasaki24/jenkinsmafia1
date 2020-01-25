@@ -64,10 +64,10 @@ public class Drone extends Unit{
 
         //State your Mission:
         if (onMission){
-            System.out.println("I am getting rid of the enemy!");
+            // System.out.println("I am getting rid of the enemy!");
         }
         if (onHelpMission){
-            System.out.println("I'm helping to build the wall!");
+            // System.out.println("I'm helping to build the wall!");
         }
 
         // If my task is to remove the enemy
@@ -100,7 +100,7 @@ public class Drone extends Unit{
                             if (rc.canPickUpUnit(targetEnemy.ID)) {
                                 rc.pickUpUnit(targetEnemy.ID);
                             } else {
-                                System.out.println("Can't pickup Landscape #" + targetEnemy.ID);
+                                // System.out.println("Can't pickup Landscape #" + targetEnemy.ID);
                             }
                     }
                     // If I'm not close enough get closer
@@ -140,13 +140,13 @@ public class Drone extends Unit{
             //If I see a landscaper not on the wall, pick him up
             if (targetLandscaper != null){
                 if (hqLoc != null){
-                    System.out.println("My target landscaper is " + targetLandscaper.location.distanceSquaredTo(hqLoc) + " away from hq");
-                    System.out.println("Target id: #" + targetLandscaper.ID);
+                    // System.out.println("My target landscaper is " + targetLandscaper.location.distanceSquaredTo(hqLoc) + " away from hq");
+                    // System.out.println("Target id: #" + targetLandscaper.ID);
                     if (myLoc.distanceSquaredTo(targetLandscaper.location) < 3){ // If target is close
                         if (targetLandscaper.location.distanceSquaredTo(hqLoc) > 2) { // if target not on wall
                             if (rc.canPickUpUnit(targetLandscaper.ID)) {
                                 rc.pickUpUnit(targetLandscaper.ID);
-                                System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
+                                // System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
                             }
                         }
                         // Target is on wall, mission accomplished
@@ -201,12 +201,12 @@ public class Drone extends Unit{
 
             //Find the enemy hq
             if(EHqLoc.x > 0 || EHqLoc.y > 0){
-                System.out.println("Found ENEMY HQ");
+                // System.out.println("Found ENEMY HQ");
                 if (myLoc.distanceSquaredTo(EHqLoc) > 5){
-                    System.out.println("Going to ENEMY HQ:" + EHqLoc);
+                    // System.out.println("Going to ENEMY HQ:" + EHqLoc);
                     nav.tryFly(myLoc.directionTo(EHqLoc));
                 } else{
-                    System.out.println("Standing my gound at ENEMY HQ");
+                    // System.out.println("Standing my gound at ENEMY HQ");
                     for (Direction dir: Util.directions){
                         tryBuild(RobotType.NET_GUN,dir);
                     }
@@ -215,12 +215,12 @@ public class Drone extends Unit{
             }
 
             if(myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > 5){
-                System.out.println("Going to a potential HQ:" + potentialHQ);
+                // System.out.println("Going to a potential HQ:" + potentialHQ);
                 if(shouldMove)
                     nav.tryFly(myLoc.directionTo(potentialHQ[hqToCheck]));
                 rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
             } else{
-                System.out.println("Nothing Here at potential HQ:" + potentialHQ);
+                // System.out.println("Nothing Here at potential HQ:" + potentialHQ);
                 hqToCheck += 1;
             }
         }
