@@ -59,7 +59,7 @@ public class Communications {
 //            for(Transaction tx : rc.getBlock(i)) {
 //                int[] mess = tx.getMessage();
 //                if(mess[0] == teamSecret && mess[1] == HQID){
-//                    System.out.println("found the HQ!");
+//                    // System.out.println("found the HQ!");
 //                    return new MapLocation(mess[2], mess[3]);
 //                }
 //            }
@@ -94,7 +94,7 @@ public class Communications {
     public void updateAttackerDir(ArrayList<Direction> enemyDir) throws GameActionException {
         // if its just been created, go through all of the blocks and transactions to find attackers directions
         if (RobotPlayer.turnCount == 1) {
-            System.out.println("turncount 1 in updateAttackerDirection");
+            // System.out.println("turncount 1 in updateAttackerDirection");
             for (int i = 1; i < rc.getRoundNum(); i++) {
                 crawlBlockchainForAttackers(enemyDir, 1);
             }
@@ -106,7 +106,7 @@ public class Communications {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == ATTACKERID){
-                System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
+                // System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
                 enemyDir.add(numberToDirection(mess[3]));
             }
         }
@@ -153,13 +153,13 @@ public class Communications {
         message[3] = loc.y; // y coord of HQ
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
-            System.out.println("new water!" + loc);
+            // System.out.println("new water!" + loc);
         }
     }
     public void updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
         // if its just been created, go through all of the blocks and transactions to find soup
         if (RobotPlayer.turnCount == 1) {
-            System.out.println("turncount 1 in updatewaterloc");
+            // System.out.println("turncount 1 in updatewaterloc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
                 crawlBlockchainForWaterLocations(waterLocations, i);
             }
@@ -172,7 +172,7 @@ public class Communications {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == WATERID){
                 // TODO: don't add duplicate locations
-                System.out.println("heard water at [" + mess[2] + ", " + mess[3] + "]");
+                // System.out.println("heard water at [" + mess[2] + ", " + mess[3] + "]");
                 waterLocations.add(new MapLocation(mess[2], mess[3]));
             }
         }
@@ -188,13 +188,13 @@ public class Communications {
         message[3] = loc.y; // y coord of HQ
         if (!Unit.soupLocations.contains(new MapLocation (loc.x, loc.y)) && rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
-            System.out.println("new soup!" + loc);
+            // System.out.println("new soup!" + loc);
         }
     }
     public void updateSoupLocations(ArrayList<MapLocation> soupLocations) throws GameActionException {
         // if its just been created, go through all of the blocks and transactions to find soup
         if (RobotPlayer.turnCount <= 1) {
-            System.out.println("turncount 1 in updatesouploc");
+            // System.out.println("turncount 1 in updatesouploc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
                 crawlBlockchainForSoupLocations(soupLocations, i);
             }
@@ -207,7 +207,7 @@ public class Communications {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == SOUPID){
                 if (!Unit.soupLocations.contains(new MapLocation (mess[2], mess[3]))) {
-                    System.out.println("heard NEW soup at [" + mess[2] + ", " + mess[3] + "]");
+                    // System.out.println("heard NEW soup at [" + mess[2] + ", " + mess[3] + "]");
                     soupLocations.add(new MapLocation(mess[2], mess[3]));
                 }
             }
@@ -218,7 +218,7 @@ public class Communications {
 // BUILDING COMMUNICATION
     // One default if its on our team
     public void broadcastBuildingCreation(RobotType type, MapLocation loc) throws GameActionException {
-        System.out.println("broadcast building creation");
+        // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
             // case COW:                     SENTID = 1;                break;
@@ -241,12 +241,12 @@ public class Communications {
         message[3] = loc.y; // y coord of unit
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
-            System.out.println("new building! type: " + SENTID + "Location:" + loc);
+            // System.out.println("new building! type: " + SENTID + "Location:" + loc);
         }
     }
     // Other for potential enemies/enemy HQ that is team specific
     public void broadcastBuildingCreation(RobotType type, MapLocation loc, Team team) throws GameActionException {
-        System.out.println("broadcast building creation");
+        // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
             // case COW:                     SENTID = 1;                break;
@@ -272,20 +272,20 @@ public class Communications {
         message[3] = loc.y; // y coord of unit
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
-            System.out.println("new building! type: " + SENTID + "Location:" + loc);
+            // System.out.println("new building! type: " + SENTID + "Location:" + loc);
         }
     }
 
     public void updateBuildingLocations() throws GameActionException {
         if (RobotPlayer.turnCount == 1) {
-            System.out.println("turncount 1 in updateBuildingLoc");
+            // System.out.println("turncount 1 in updateBuildingLoc");
             for (int i = 1; i < rc.getRoundNum(); i++) {   // This could also start at round num and go downwards instead of starting from scratch. Might be better that way. - MZ
-//                System.out.println("crawl chain round " + i);
+//                // System.out.println("crawl chain round " + i);
                 crawlBlockchainForBuildingLocations(i);
-                System.out.println("Im searching all the rounds before I was created");
+                // System.out.println("Im searching all the rounds before I was created");
             }
         } else {
-            System.out.println("Currently updating building locations. Round: " + RobotPlayer.turnCount);
+            // System.out.println("Currently updating building locations. Round: " + RobotPlayer.turnCount);
             crawlBlockchainForBuildingLocations(rc.getRoundNum() - 1);
         }
     }
@@ -294,7 +294,7 @@ public class Communications {
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if (mess[0] == teamSecret && (mess[1] == HQID || mess[1] == EHQID || mess[1] == DESIGNSCHOOLID || mess[1] == AMAZONID || mess[1] == REFINERYID || mess[1] == VAPORATORID)) {
-                System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
+                // System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
                     case HQID:                  buildingLocations = Unit.hqLocations;               break;
                     case EHQID:                 buildingLocations = Unit.ehqLocations;              break;
@@ -308,45 +308,45 @@ public class Communications {
 
                 if (!buildingLocations.contains(new MapLocation(mess[2], mess[3]))) {
                     buildingLocations.add(new MapLocation(mess[2], mess[3]));
-                    System.out.println("New building. Type: " + mess[1] + ".");
+                    // System.out.println("New building. Type: " + mess[1] + ".");
                 } else {
-                    System.out.println("Already seen this building. Type " + mess[1]);
+                    // System.out.println("Already seen this building. Type " + mess[1]);
                 }
 
 //                switch (mess[1]) {
 //                    case 101:
 //                        if (!designSchoolLocations.contains(buildingLoc)) {
 //                            designSchoolLocations.add(buildingLoc);
-//                            System.out.println("yes, new school");
+//                            // System.out.println("yes, new school");
 //                        } else {
-//                            System.out.println("no, school");
+//                            // System.out.println("no, school");
 //                        }
 //                        break;
 //                    case 202:
 //                        if (!amazonLocations.contains(buildingLoc)) {
 //                            amazonLocations.add(buildingLoc);
-//                            System.out.println("yes, new amazon");
+//                            // System.out.println("yes, new amazon");
 //                        } else {
-//                            System.out.println("no, amazon");
+//                            // System.out.println("no, amazon");
 //                        }
 //                        break;
 //                    case 303:
 //                        if (!refineryLocations.contains(buildingLoc)) {
 //                            refineryLocations.add(buildingLoc);
-//                            System.out.println("yes, new refinery");
+//                            // System.out.println("yes, new refinery");
 //                        } else {
-//                            System.out.println("no, refinery");
+//                            // System.out.println("no, refinery");
 //                        }
 //                        break;
 //                    case 404:
 //                        if (!vaporatorLocations.contains(buildingLoc)) {
 //                            vaporatorLocations.add(buildingLoc);
-//                            System.out.println("yes, new vaporator");
+//                            // System.out.println("yes, new vaporator");
 //                        }
-//                        System.out.println("no, vaporator");
+//                        // System.out.println("no, vaporator");
 //                        break;
 //                    default:
-//                        System.out.println("idk?!?");
+//                        // System.out.println("idk?!?");
 //                        break;
                 }
 
@@ -378,6 +378,6 @@ public class Communications {
             }
         }
 
-        System.out.println(RobotPlayer.turnCount);
+        // System.out.println(RobotPlayer.turnCount);
     }
 }

@@ -29,11 +29,11 @@ public class HQ extends Shooter {
         // on first turn send nearbySoupLocations
         if (turnCount == 11) {
             comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
-            System.out.println("I broadcasted my location");
+            // System.out.println("I broadcasted my location");
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
             if (nearbySoupLocations.length > 0) {
                 for (MapLocation nearbySoup : nearbySoupLocations) {
-                    System.out.println("hq sees soup " + nearbySoup);
+                    // System.out.println("hq sees soup " + nearbySoup);
                     // TODO: 1/19/2020 if the soup is surrounded by water or elevated land, miner will be fucked
                     if (numSoupNearby < 10) { // don't want to spend all the soup broadcasting locs
                         if (myLoc.distanceSquaredTo(nearbySoup) < 32 /*&& isSoupAccessible(nearbySoup)*/) {
