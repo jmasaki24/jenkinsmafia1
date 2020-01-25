@@ -2,16 +2,22 @@ package BestBotv3;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 public class Landscaper extends Unit {
 
     public Landscaper(RobotController r) {
         super(r);
     }
 
+    //Vars
+    MapLocation bestPlaceToBuildWall;
+
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
         System.out.println(myLoc.x + " " + myLoc.y);
+
 
         if(rc.getDirtCarrying() == 0){
             //While we haven't digged, we should keep digging
@@ -24,42 +30,15 @@ public class Landscaper extends Unit {
         //DONT HAVE TO WAIT TO BUILD
         if (turnCount > 0) {
             for (int i = 0; i < 8; i++){ //8 times per turn
-                MapLocation bestPlaceToBuildWall = null;
+                bestPlaceToBuildWall = null;
                 // find best place to build
-                if (hqLoc != null) {
-                    int lowestElevation = 9999999;
-                    for (Direction dir : Util.directions) {
-                        MapLocation tileToCheck = hqLoc.add(dir);
-                        if (myLoc.distanceSquaredTo(tileToCheck) < 2
-                                && rc.canDepositDirt(myLoc.directionTo(tileToCheck))) {
-                            if (rc.senseElevation(tileToCheck) < lowestElevation) {
-                                lowestElevation = rc.senseElevation(tileToCheck);
-                                bestPlaceToBuildWall = tileToCheck;
-                            }
-                        }
-                    }
-                }
+                findBestPlaceToBuild();
 
                 // build the wall
                 if (bestPlaceToBuildWall != null) {
-                    if (rc.getRoundNum()%5 == 0){
-                        Direction toHQ = myLoc.directionTo(hqLoc);
-                        Direction next;
-                        switch (toHQ){
-                            case NORTH:         next = Direction.WEST;      break;
-                            case EAST:          next = Direction.NORTH;     break;
-                            case SOUTH:         next = Direction.EAST;      break;
-                            case WEST:          next = Direction.SOUTH;     break;
-                            default:            next = Direction.CENTER;    break;
-                        }
-                        nav.tryMove(next);
-                    } else {
-                        rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
-                        rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
-                        System.out.println("building a wall");
-                    }
-
-
+                    rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
+                    rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
+                    System.out.println("building a wall");
                 }
             }
         }
@@ -113,6 +92,7 @@ public class Landscaper extends Unit {
         }
     }
 
+    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     boolean DontDigTheWall() throws GameActionException {
         Direction randomDir = Util.randomDirection();
@@ -126,6 +106,22 @@ public class Landscaper extends Unit {
             }
         }
         return false;
+    }
+
+    void findBestPlaceToBuild() throws GameActionException {
+        if (hqLoc != null) {
+            int lowestElevation = 9999999;
+            for (Direction dir : Util.directions) {
+                MapLocation tileToCheck = hqLoc.add(dir);
+                if (myLoc.distanceSquaredTo(tileToCheck) < 2
+                        && rc.canDepositDirt(myLoc.directionTo(tileToCheck))) {
+                    if (rc.senseElevation(tileToCheck) < lowestElevation) {
+                        lowestElevation = rc.senseElevation(tileToCheck);
+                        bestPlaceToBuildWall = tileToCheck;
+                    }
+                }
+            }
+        }
     }
 }
 

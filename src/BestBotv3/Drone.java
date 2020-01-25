@@ -19,6 +19,7 @@ public class Drone extends Unit{
     boolean shouldMove = true;
     int hqToCheck = 0;
     MapLocation[] potentialHQ;
+    MapLocation standbyLocation;
     public ArrayList<Direction> enemyDir = new ArrayList<>();
     public ArrayList<Direction> helpDir = new ArrayList<>();
     public ArrayList<Direction> bootDir = new ArrayList<>();
@@ -39,6 +40,7 @@ public class Drone extends Unit{
     RobotInfo targetBootBot = null;
 
     boolean findANewEnemyBot = false;
+    boolean findANewHelpBot = false;
     boolean findANewBootBot = false;
 
 
@@ -52,15 +54,23 @@ public class Drone extends Unit{
         // goToEHQ works, but first we need a defensive drone.
         // gotoEHQ();
 
-
         if (RobotPlayer.turnCount > 10) { //  Wait until turn 11 to start doing stuff.
-            // If its holding a unit, sense if its near flooding and drop. If not, move randomly.
-            // Enemy Detection
+
+            // Unit Detection
             getNearbyEnemyBots();
             getNearbyLandscapers();
             getNearbyBootMiners();
 
-            
+            //State your Mission:
+            if (onEnemyMission){
+                System.out.println("I am getting rid of the enemy!");
+            }
+            if (onHelpMission){
+                System.out.println("I'm helping to build the wall!");
+            }
+            if (onBootMission){
+              System.out.println("I am on a BOOT mission");
+            }
 
 
 // KILL
@@ -114,10 +124,14 @@ public class Drone extends Unit{
             }
 
 
+
 // BOOT
             // Does it need to find a new bot to BOOT?
             else if (findANewBootBot) {
-                nav.droneGoTo(myLoc.directionTo(hqLoc).opposite().rotateRight());
+                //Good fuzzy nav
+                if (!nav.droneGoTo(myLoc.directionTo(hqLoc).opposite())){
+                    nav.droneGoTo(Util.randomDirection());
+                }
                 if (myLoc.distanceSquaredTo(hqLoc) > 4) {
                     findANewBootBot = false;
                 }
@@ -128,15 +142,17 @@ public class Drone extends Unit{
                     if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2) {
                         if (rc.canDropUnit(dir)) {
                             rc.dropUnit(dir);
-                            System.out.println("I dropped the miner in the water!");
                             targetBootBot = null;
                             onBootMission = false;
                             bootDir = null;
                             findANewBootBot = true;
                             nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+                            System.out.println("I dropped the miner in the water!");
+                            break;
                         }
                     } else {
                         nav.droneGoTo(hqLoc);
+                        break;
                     }
                 }
             }
@@ -146,14 +162,15 @@ public class Drone extends Unit{
                 if (myLoc.distanceSquaredTo(targetBootBot.location) <= 2) {
                     if (rc.canPickUpUnit(targetBootBot.ID)) {
                         rc.pickUpUnit(targetBootBot.ID);
-                        System.out.println("I should have picked this unit up" + targetBootBot.ID);
+                        System.out.println("I picked this unit up: " + targetBootBot.ID);
                     } else {
-                        System.out.println("dude cant boot");
+                        System.out.println("I cant pick up unit: " + targetBootBot.ID);
                     }
                 }
                 // I'm not there yet
                 else {
                     nav.droneGoTo(targetBootBot.location);
+                    System.out.println("I'm going to the boot bot");
                 }
             }
             // HQ has seen a bot that needs to be BOOTED
@@ -164,33 +181,36 @@ public class Drone extends Unit{
 
 // HELP
             // Does it need to find a new bot?
-            else if (findANewEnemyBot) {
-                nav.droneGoTo(myLoc.directionTo(hqLoc).opposite().rotateRight());
+            else if (findANewHelpBot) {
+                //Good fuzzy nav
+                if (!nav.droneGoTo(myLoc.directionTo(hqLoc).opposite())){
+                    nav.droneGoTo(Util.randomDirection());
+                }
                 if (myLoc.distanceSquaredTo(hqLoc) > 4) {
-                    findANewEnemyBot = false;
+                    findANewHelpBot = false;
                 }
             }
             // If its holding a unit, can it drop it on the wall? If not, go the HQ.
             else if (rc.isCurrentlyHoldingUnit() && onHelpMission) {
-                for (Direction dir : Util.allDirections) {
+                for (Direction dir : Util.directions) {
                     if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2 && myLoc.add(dir).distanceSquaredTo(hqLoc) > 0) {
                         if (rc.canDropUnit(dir)) {
                             rc.dropUnit(dir);
-                            System.out.println("I dropped the unit!");
                             targetHelpBot = null;
                             onHelpMission = false;
                             helpDir = null;
-                            findANewEnemyBot = true;
+                            findANewHelpBot = true;
                             nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+                            System.out.println("Help drop sucessful. Dropped unit: " + targetHelpBot.ID);
+                            break;
+                        } else {
+                            System.out.println("Can't help drop it here");
+                            if (!nav.droneGoTo(myLoc.directionTo(hqLoc).rotateRight())){
+                                nav.droneGoTo(myLoc.directionTo(hqLoc).rotateLeft());
+                                break;
+                            }
+                            break;
                         }
-                    }
-                }
-                if (!rc.isCurrentlyHoldingUnit()) {
-                    System.out.println("Drop sucessful");
-                } else{
-                    System.out.println("Can't drop it here");
-                    if (!nav.droneGoTo(myLoc.directionTo(hqLoc).rotateRight())){
-                        nav.droneGoTo(myLoc.directionTo(hqLoc).rotateLeft());
                     }
                 }
             }
@@ -200,9 +220,9 @@ public class Drone extends Unit{
                 if (myLoc.distanceSquaredTo(targetHelpBot.location) <= 2) {
                     if (rc.canPickUpUnit(targetHelpBot.ID)) {
                         rc.pickUpUnit(targetHelpBot.ID);
-                        System.out.println("I should have picked this unit up" + targetHelpBot.ID);
+                        System.out.println("I picked this unit up: " + targetHelpBot.ID);
                     } else {
-                        System.out.println("dude");
+                        System.out.println("I can't pick this unit up: " + targetHelpBot.ID);
                     }
                 }
                 // I'm not there yet
@@ -220,47 +240,51 @@ public class Drone extends Unit{
             // Setting Standby Location to constantly change
             else if (hqLoc != null){
                 if (myLoc.distanceSquaredTo(hqLoc) <= 10 && myLoc.distanceSquaredTo(hqLoc) >= 8){
-                    for (Direction dir : Direction.allDirections()){
-                        if (myLoc.add(dir).distanceSquaredTo(hqLoc)>=8 && myLoc.add(dir).distanceSquaredTo(hqLoc) <=10 && dir != myLoc.directionTo(hqLoc).rotateRight()){
+                    for (Direction dir : Direction.allDirections()) {
+                        if (myLoc.add(dir).distanceSquaredTo(hqLoc) >= 8 && myLoc.add(dir).distanceSquaredTo(hqLoc) <= 10) {
                             nav.droneGoTo(dir);
+                        } else if (myLoc.distanceSquaredTo(hqLoc) < 8) {
+                            nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+                        } else if (myLoc.distanceSquaredTo(hqLoc) > 10) {
+                            nav.droneGoTo(myLoc.directionTo(hqLoc));
                         }
                     }
-                } else if (myLoc.distanceSquaredTo(hqLoc) < 8){
-                    nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
-                } else if (myLoc.distanceSquaredTo(hqLoc) > 10){
-                    nav.droneGoTo(myLoc.directionTo(hqLoc));
                 }
-            } else{
-                findHQ();
             }
         }
     }
 
 
-
-
-
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     public void goToEHQ() throws GameActionException {
+        //Define internal variables
         shouldMove = true;
 
+        //Determine if we know enemy HQ Location
         findEHQ();
 
+        //Define every potential EHQ location
         MapLocation[] potentialHQ = new MapLocation[] {new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (hqLoc.y) - 1),
                 new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (rc.getMapHeight() - hqLoc.y) - 1),
                 new MapLocation((hqLoc.x) - 1                   , (rc.getMapHeight() - hqLoc.y) - 1)};
+
+        //Mark the potential loc with dots
         for (MapLocation loc: potentialHQ){
             rc.setIndicatorDot(loc,0,200,200);
         }
 
+        //If we are a drone with an even robot id (random number... gets called ~50% of the time) -cam
+        if (rc.getID()%2 == 0){ //Essentially makes half the drones swarm and half not
+            //if I do swarm
 
-        if (rc.getID()%2 == 0){
+            //Find the enemy hq
             if(EHqLoc.x > 0 || EHqLoc.y > 0){
                 System.out.println("Found ENEMY HQ");
                 if (myLoc.distanceSquaredTo(EHqLoc) > 5){
                     System.out.println("Going to ENEMY HQ:" + EHqLoc);
                     nav.droneGoTo(myLoc.directionTo(EHqLoc));
+
                 } else{
                     System.out.println("Standing my gound at ENEMY HQ");
                     for (Direction dir: Util.directions){
@@ -336,5 +360,6 @@ public class Drone extends Unit{
             }
         }
     }
+
 
 }
