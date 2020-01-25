@@ -52,10 +52,10 @@ public class HQ extends Shooter {
             broadcastNearbyWaterLocations();
         }
 
-        //Every 3 turns repeat messages. why >3? see method
-//        if (turnCount > 3 && turnCount % 3 == 2) {
-//            comms.jamEnemyComms();
-//        }
+        //Every 3 turns repeat messages.
+        if (turnCount > 3 && turnCount % 3 == 2) {
+            comms.jamEnemyComms();
+        }
 
         if (numMiners < MINER_LIMIT) {
             for (Direction dir : Util.directions)
