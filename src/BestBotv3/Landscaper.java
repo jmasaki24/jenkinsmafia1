@@ -62,31 +62,13 @@ public class Landscaper extends Unit {
                     nav.tryMove(next);
                 }
             }
-
-           /* //Runs from the school
-            RobotInfo[] robots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared,rc.getTeam());
-            MapLocation nextPlace = myLoc;
-            for (RobotInfo robot:robots){
-                if (robot.type == RobotType.DESIGN_SCHOOL){
-                    nextPlace = nextPlace.add(myLoc.directionTo(robot.location).opposite());
-                }
-            }
-            if(nextPlace == myLoc){
-                nextPlace = nextPlace.add(Util.randomDirection());
-            }
-            if(nextPlace != myLoc) {
-                if(myLoc.add(myLoc.directionTo(nextPlace)).distanceSquaredTo(hqLoc) < 3) { //Only move in directions where you end up on the wall
-                    // System.out.println("Going to next wall location" + myLoc.add(myLoc.directionTo(nextPlace)).distanceSquaredTo(hqLoc));
-                    nav.tryMove(myLoc.directionTo(nextPlace));
-                }
-            }
             //Else move random (uses move limits to not go random every line)
             Direction rand = Util.randomDirection();
             if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
                 // System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
                 nav.tryMove(rand);
-            }*/
-        } else {
+            }
+        } else { //If we don't see the hq
             // System.out.println("Can't see hq");
             nav.tryMove(Util.randomDirection());
         }
