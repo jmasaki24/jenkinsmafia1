@@ -91,6 +91,7 @@ public class Miner extends Unit {
 //            // System.out.println("HQ has been broadcasted and I recieved. Its at " + hqLoc);
 //        }
 
+
         // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
         // TODO: Why was this commented out? Commenting makes them blind to water entirely -cam
         if (!IBroadcastedWaterLoc) {

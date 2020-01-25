@@ -99,13 +99,13 @@ public class Communications {
         if (RobotPlayer.turnCount == 1) {
             // System.out.println("turncount 1 in updateAttackerDirection");
             for (int i = 1; i < rc.getRoundNum(); i++) {
-                crawlBlockchainForAttackers(enemyDir, 1);
+                getAttackersInBlock(enemyDir, 1);
             }
         } else {
-            crawlBlockchainForAttackers(enemyDir, rc.getRoundNum() - 1);
+            getAttackersInBlock(enemyDir, rc.getRoundNum() - 1);
         }
     }
-    public void crawlBlockchainForAttackers(ArrayList<Direction> enemyDir, int roundNum) throws GameActionException {
+    public void getAttackersInBlock(ArrayList<Direction> enemyDir, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == ATTACKERID){
@@ -164,13 +164,13 @@ public class Communications {
         if (RobotPlayer.turnCount == 1) {
             // System.out.println("turncount 1 in updatewaterloc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
-                crawlBlockchainForWaterLocations(waterLocations, i);
+                getWaterLocInBlock(waterLocations, i);
             }
         } else {
-            crawlBlockchainForWaterLocations(waterLocations, rc.getRoundNum() - 1);
+            getWaterLocInBlock(waterLocations, rc.getRoundNum() - 1);
         }
     }
-    public void crawlBlockchainForWaterLocations(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
+    public void getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == WATERID){
@@ -199,13 +199,13 @@ public class Communications {
         if (RobotPlayer.turnCount <= 1) {
             // System.out.println("turncount 1 in updatesouploc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
-                crawlBlockchainForSoupLocations(soupLocations, i);
+                getSoupLocInBlock(soupLocations, i);
             }
         } else {
-            crawlBlockchainForSoupLocations(soupLocations, rc.getRoundNum() - 1);
+            getSoupLocInBlock(soupLocations, rc.getRoundNum() - 1);
         }
     }
-    public void crawlBlockchainForSoupLocations(ArrayList<MapLocation> soupLocations, int roundNum) throws GameActionException {
+    public void getSoupLocInBlock(ArrayList<MapLocation> soupLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == SOUPID){
@@ -284,15 +284,15 @@ public class Communications {
             // System.out.println("turncount 1 in updateBuildingLoc");
             for (int i = 1; i < rc.getRoundNum(); i++) {   // This could also start at round num and go downwards instead of starting from scratch. Might be better that way. - MZ
 //                // System.out.println("crawl chain round " + i);
-                crawlBlockchainForBuildingLocations(i);
+                getBuildingLocInBlock(i);
                 // System.out.println("Im searching all the rounds before I was created");
             }
         } else {
             // System.out.println("Currently updating building locations. Round: " + RobotPlayer.turnCount);
-            crawlBlockchainForBuildingLocations(rc.getRoundNum() - 1);
+            getBuildingLocInBlock(rc.getRoundNum() - 1);
         }
     }
-    public void crawlBlockchainForBuildingLocations(int roundNum) throws GameActionException {
+    public void getBuildingLocInBlock(int roundNum) throws GameActionException {
         ArrayList<MapLocation> buildingLocations = null;
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
