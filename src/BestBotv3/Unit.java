@@ -30,6 +30,8 @@ public class Unit extends Robot {
         findHQ();
     }
 
+    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
+
     public void findHQ() throws GameActionException {
         if (hqLoc == null) {
             comms.updateBuildingLocations();
