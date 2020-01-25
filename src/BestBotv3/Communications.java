@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Communications {
     RobotController rc;
 
-    final int teamSecret = 444444444;
+    final int teamSecret = 13371337;
 
     final int HQID = 982;
     final int EHQID = 382;
