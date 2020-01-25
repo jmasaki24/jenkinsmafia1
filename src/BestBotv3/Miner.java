@@ -164,7 +164,7 @@ public class Miner extends Unit {
             if (refineryLocations.size() > 0) {
                 MapLocation closestRefineryLoc = findClosestRefinery();
                 minerGoTo(closestRefineryLoc);
-                rc.setIndicatorLine(myLoc, closestRefineryLoc, 255, 0, 255);
+                rc.setIndicatorLine(rc.getLocation(), closestRefineryLoc, 255, 0, 255);
             }
             // else, just sit there?
         }
@@ -259,7 +259,7 @@ public class Miner extends Unit {
 //        }
         System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
 
-        rc.setIndicatorLine(myLoc, nearestSoupLoc, 255, 0, 255);
+        rc.setIndicatorLine(rc.getLocation(), nearestSoupLoc, 255, 0, 255);
         minerGoTo(nearestSoupLoc);
 
     }
@@ -276,9 +276,9 @@ public class Miner extends Unit {
         if (robots.length == 0) {
             nextPlace.add(Util.randomDirection());
         }
-        System.out.println("Trying to go: " + myLoc.directionTo(nextPlace));
-        if (nextPlace != myLoc) {
-            minerGoTo(myLoc.directionTo(nextPlace));
+        System.out.println("Trying to go: " + rc.getLocation().directionTo(nextPlace));
+        if (nextPlace != rc.getLocation()) {
+            minerGoTo(rc.getLocation().directionTo(nextPlace));
 
         } else {
             minerGoTo(Util.randomDirection());
@@ -456,7 +456,7 @@ public class Miner extends Unit {
 
     // navigate towards a particular location
     boolean minerGoTo(MapLocation destination) throws GameActionException {
-        return minerGoTo(myLoc.directionTo(destination));
+        return minerGoTo(rc.getLocation().directionTo(destination));
     }
     
     
