@@ -30,14 +30,15 @@ public class Drone extends Unit{
         super(r);
     }
 
-    boolean onMission = false;
+    boolean onEnemyMission = false;
     boolean onHelpMission = false;
     boolean onBootMission = false;
-    RobotInfo targetBot = null;
+
+    RobotInfo targetEnemyBot = null;
     RobotInfo targetHelpBot = null;
     RobotInfo targetBootBot = null;
 
-    boolean findANewBot = false;
+    boolean findANewHelpBot = false;
     boolean findANewBootBot = false;
 
 
@@ -55,62 +56,21 @@ public class Drone extends Unit{
         if (RobotPlayer.turnCount > 10) { //  Wait until turn 11 to start doing stuff.
             // If its holding a unit, sense if its near flooding and drop. If not, move randomly.
             // Enemy Detection
-            RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
-            for (RobotInfo robot : nearbyEnemyRobots) {
-                if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
-                    // If its on opponent team
-                    onMission = true;
-                    targetBot = robot;
-                    break;
-                }
-            }
+            getNearbyEnemyRobots();
+            getNearbyHelpRobots();
+            getNearbyBootRobots();
 
-            RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
-            for (RobotInfo robot : nearbyLandscapers) {
-                if (robot.type.equals(RobotType.LANDSCAPER)){
-                    // If its a landscaper on our team
 
-                    if (hqLoc != null){
-                        // If we do know where the HQ is, dont move the robots that are in the right place
-                        if (robot.location.distanceSquaredTo(hqLoc) > 2){
-                            onHelpMission = true;
-                            targetHelpBot = robot;
-                        }
-                    } else {
-                        // If we dont know where the HQ is, just dont bother.
-                        onHelpMission = true;
-                        targetHelpBot = robot;
-                        break;
-                    }
-                }
-            }
 
-            RobotInfo[] nearbyBootMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
-            for (RobotInfo robot : nearbyBootMiners) {
-                if (robot.type.equals(RobotType.MINER)){
-                    // If its a miner on our team
-                    if (hqLoc != null){
-                        // Only go for the robots that are too close to the HQ
-                        if (robot.location.distanceSquaredTo(hqLoc) <= 2){
-                            onBootMission = true;
-                            targetBootBot = robot;
-                        } else{
-                            targetBootBot = null;
-                        }
-                    } else{
-                        targetBootBot = null;
-                    }
-                }
-            }
 
 
 // KILL
-            if (rc.isCurrentlyHoldingUnit() && onMission) {
+            if (rc.isCurrentlyHoldingUnit() && onEnemyMission) {
                 for (Direction dir : Util.directions) {
                     if (rc.senseFlooding(myLoc.add(dir))) {
                         rc.dropUnit(dir);
-                        targetBot = null;
-                        onMission = false;
+                        targetEnemyBot = null;
+                        onEnemyMission = false;
                         enemyDir = null;
                     } else {
                         if (waterLocation.size() != 0) {
@@ -122,12 +82,12 @@ public class Drone extends Unit{
                 }
             }
             // I see a bot
-            else if (targetBot != null) {
+            else if (targetEnemyBot != null) {
                 // I am there
-                if (myLoc.distanceSquaredTo(targetBot.location) <= 2) {
-                    if (rc.canPickUpUnit(targetBot.ID)) {
-                        rc.pickUpUnit(targetBot.ID);
-                        System.out.println("I should have picked this unit up" + targetBot.ID);
+                if (myLoc.distanceSquaredTo(targetEnemyBot.location) <= 2) {
+                    if (rc.canPickUpUnit(targetEnemyBot.ID)) {
+                        rc.pickUpUnit(targetEnemyBot.ID);
+                        System.out.println("I should have picked this unit up" + targetEnemyBot.ID);
                     } else {
                         System.out.println("dude");
                     }
@@ -135,7 +95,7 @@ public class Drone extends Unit{
                 }
                 // I'm not there yet
                 else {
-                    nav.droneGoTo(targetBot.location);
+                    nav.droneGoTo(targetEnemyBot.location);
                 }
             }
             // HQ has seen a bot
@@ -194,10 +154,10 @@ public class Drone extends Unit{
 
 // HELP
             // Does it need to find a new bot?
-            else if (findANewBot) {
+            else if (findANewHelpBot) {
                 nav.droneGoTo(myLoc.directionTo(hqLoc).opposite().rotateRight());
                 if (myLoc.distanceSquaredTo(hqLoc) > 4) {
-                    findANewBot = false;
+                    findANewHelpBot = false;
                 }
             }
             // If its holding a unit, can it drop it on the wall? If not, go the HQ.
@@ -210,7 +170,7 @@ public class Drone extends Unit{
                             targetHelpBot = null;
                             onHelpMission = false;
                             helpDir = null;
-                            findANewBot = true;
+                            findANewHelpBot = true;
                             nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
                         }
                     }
@@ -310,7 +270,61 @@ public class Drone extends Unit{
                 hqToCheck += 1;
             }
         }
-
     }
+
+    public void getNearbyEnemyRobots(){
+        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
+        for (RobotInfo robot : nearbyEnemyRobots) {
+            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
+                // If its on opponent team
+                onEnemyMission = true;
+                targetEnemyBot = robot;
+                break;
+            }
+        }
+    }
+
+    public void getNearbyHelpRobots(){
+        RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : nearbyLandscapers) {
+            if (robot.type.equals(RobotType.LANDSCAPER)){
+                // If its a landscaper on our team
+
+                if (hqLoc != null){
+                    // If we do know where the HQ is, dont move the robots that are in the right place
+                    if (robot.location.distanceSquaredTo(hqLoc) > 2){
+                        onHelpMission = true;
+                        targetHelpBot = robot;
+                    }
+                } else {
+                    // If we dont know where the HQ is, just dont bother.
+                    onHelpMission = true;
+                    targetHelpBot = robot;
+                    break;
+                }
+            }
+        }
+    }
+
+    public void getNearbyBootRobots(){
+        RobotInfo[] nearbyBootMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : nearbyBootMiners) {
+            if (robot.type.equals(RobotType.MINER)){
+                // If its a miner on our team
+                if (hqLoc != null){
+                    // Only go for the robots that are too close to the HQ
+                    if (robot.location.distanceSquaredTo(hqLoc) <= 2){
+                        onBootMission = true;
+                        targetBootBot = robot;
+                    } else{
+                        targetBootBot = null;
+                    }
+                } else{
+                    targetBootBot = null;
+                }
+            }
+        }
+    }
+
 
 }
