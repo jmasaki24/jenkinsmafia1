@@ -66,6 +66,11 @@ public class Miner extends Unit {
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
+
+        //Update Stuff
+        comms.updateBuildingLocations();
+        comms.updateSoupLocations(soupLocations);
+
         // 0. INITIALIZATION
         if (turnCount == 1) {
             // System.out.println("adding hq to refineries");
@@ -74,15 +79,13 @@ public class Miner extends Unit {
 
         recentlyVisitedLocations[turnCount%7] = myLoc;
 
-        //Update Stuff
-        comms.updateBuildingLocations();
-        comms.updateSoupLocations(soupLocations);
+
 
         if (soupLocations.size() > 0) {
             checkIfSoupGone(findClosestSoup());
         }
         if (hqLocations.size() == 0 && hqLoc == null){
-            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
+//            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
             // System.out.println("Hq didnt broadcast its location well");
         } else {
             // System.out.println("HQ has been broadcasted and I recieved. Its at " + hqLoc);
@@ -146,14 +149,13 @@ public class Miner extends Unit {
                 if (refineryLocations.size() == 0) {
                     // System.out.println("need to build refinery asap");
                     buildRefineryIfAppropriate();
-                }
-                if (myLoc.distanceSquaredTo(findClosestRefinery()) > distanceToMakeRefinery) {
+                } else if (myLoc.distanceSquaredTo(findClosestRefinery()) > distanceToMakeRefinery) {
                     for (Direction dir: Util.directions) {
                         if (!dir.equals(myLoc.directionTo(hqLoc))
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
-                            if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 5 && tryBuild(RobotType.REFINERY, dir)) {
-                                comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
+                            if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 5){
+                                tryBuild(RobotType.REFINERY, dir);
                             }
                         }
                     }
@@ -276,7 +278,6 @@ public class Miner extends Unit {
                         && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
                     // System.out.println("trybuild refinery away from hq");
                     if (tryBuild(RobotType.REFINERY, dir)) {
-                        comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                         break;
                     }
                 }
@@ -287,7 +288,6 @@ public class Miner extends Unit {
             for (Direction dir : Util.directions) {
                 // System.out.println("trybuild refinery");
                 if (tryBuild(RobotType.REFINERY, dir)) {
-                    comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                     break;
                 }
             }
@@ -298,7 +298,6 @@ public class Miner extends Unit {
                 for (Direction dir : Util.directions) {
                     // System.out.println("trybuild refinery, far away");
                     if (tryBuild(RobotType.REFINERY, dir)) {
-                        comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                         break;
                     }
                 }

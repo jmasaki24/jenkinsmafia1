@@ -19,6 +19,10 @@ public class Amazon extends Building {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
+        if (turnCount == 1) {
+            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
+        }
+
         if (numDrones < 2) {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {

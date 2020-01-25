@@ -54,18 +54,18 @@ public class Communications {
 //            rc.submitTransaction(message, 3);
 //    }
 
-//    public MapLocation getHqLocFromBlockchain() throws GameActionException {
-//        for (int i = 1; i < rc.getRoundNum(); i++){
-//            for(Transaction tx : rc.getBlock(i)) {
-//                int[] mess = tx.getMessage();
-//                if(mess[0] == teamSecret && mess[1] == HQID){
-//                    // System.out.println("found the HQ!");
-//                    return new MapLocation(mess[2], mess[3]);
-//                }
-//            }
-//        }
-//        return null;
-//    }
+    public MapLocation getHqLocFromBlockchain() throws GameActionException {
+        for (int i = 1; i < rc.getRoundNum(); i++){
+            for(Transaction tx : rc.getBlock(i)) {
+                int[] mess = tx.getMessage();
+                if(mess[0] == teamSecret && mess[1] == HQID){
+                     System.out.println("found hqLoc in chain");
+                    return new MapLocation(mess[2], mess[3]);
+                }
+            }
+        }
+        return null;
+    }
 //
 //    public MapLocation getEHqLocFromBlockchain() throws GameActionException {
 //        for (int i = 1; i < rc.getRoundNum(); i++){
@@ -290,19 +290,31 @@ public class Communications {
         }
     }
     public void crawlBlockchainForBuildingLocations(int roundNum) throws GameActionException {
-        ArrayList<MapLocation> buildingLocations;
+        ArrayList<MapLocation> buildingLocations = null;
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if (mess[0] == teamSecret && (mess[1] == HQID || mess[1] == EHQID || mess[1] == DESIGNSCHOOLID || mess[1] == AMAZONID || mess[1] == REFINERYID || mess[1] == VAPORATORID)) {
+            if (mess[0] == teamSecret) {
                 // System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
-                    case HQID:                  buildingLocations = Unit.hqLocations;               break;
-                    case EHQID:                 buildingLocations = Unit.ehqLocations;              break;
-                    case DESIGNSCHOOLID:        buildingLocations = Unit.designSchoolLocations;     break;
-                    case AMAZONID:              buildingLocations = Unit.amazonLocations;           break;
-                    case REFINERYID:            buildingLocations = Unit.refineryLocations;         break;
-                    case VAPORATORID:           buildingLocations = Unit.vaporatorLocations;        break;
-                    default:                    buildingLocations = Unit.vaporatorLocations;        break;
+                    case HQID:  // bruh findHQ is in Unit
+                        break;
+                    case EHQID:
+                        buildingLocations = Unit.ehqLocations;
+                        break;
+                    case DESIGNSCHOOLID:
+                        buildingLocations = Unit.designSchoolLocations;
+                        break;
+                    case AMAZONID:
+                        buildingLocations = Unit.amazonLocations;
+                        break;
+                    case REFINERYID:
+                        buildingLocations = Unit.refineryLocations;
+                        break;
+                    case VAPORATORID:
+                        buildingLocations = Unit.vaporatorLocations;
+                        break;
+                    default:
+                        break;
                 }
 
 

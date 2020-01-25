@@ -7,11 +7,10 @@ public class Unit extends Robot {
 
     Navigation nav;
 
-    public static MapLocation hqLoc;
+    public static MapLocation hqLoc = null;
     public static MapLocation EHqLoc = new MapLocation(-3, -3);
     public static ArrayList<MapLocation> soupLocations = new ArrayList<>();
 
-    public static ArrayList<MapLocation> hqLocations = new ArrayList<>();
     public static ArrayList<MapLocation> ehqLocations = new ArrayList<>();
     public static ArrayList<MapLocation> amazonLocations = new ArrayList<>();
     public static ArrayList<MapLocation> designSchoolLocations = new ArrayList<>();
@@ -34,11 +33,6 @@ public class Unit extends Robot {
 
     public void findHQ() throws GameActionException {
         if (hqLoc == null) {
-            comms.updateBuildingLocations();
-            for (MapLocation location : hqLocations){
-                hqLoc = location;
-                // System.out.println("I got the HQ location from the hqLocations list");
-            }
             // search surroundings for HQ
             RobotInfo[] robots = rc.senseNearbyRobots();
             for (RobotInfo robot : robots) {
@@ -49,7 +43,7 @@ public class Unit extends Robot {
             }
             if (hqLoc == null) {
                 // if still null, search the blockchain
-                // System.out.println("HQ loc still null bruh");
+                hqLoc = comms.getHqLocFromBlockchain();
             }
         }
     }

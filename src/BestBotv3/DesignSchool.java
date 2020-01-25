@@ -18,7 +18,7 @@ public class DesignSchool extends Building {
             comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
         }
 
-        if (numLandscapers < 9){
+        if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.LANDSCAPER, dir)){
                     numLandscapers++;

@@ -27,7 +27,7 @@ public class HQ extends Shooter {
         int numSoupNearby = 0;
 
         // on first turn send nearbySoupLocations
-        if (turnCount == 11) {
+        if (turnCount == 1) {
             comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
             // System.out.println("I broadcasted my location");
             MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
