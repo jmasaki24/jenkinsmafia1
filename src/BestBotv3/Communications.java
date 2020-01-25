@@ -320,12 +320,13 @@ public class Communications {
                         break;
                 }
 
-
-                if (!buildingLocations.contains(new MapLocation(mess[2], mess[3]))) {
-                    buildingLocations.add(new MapLocation(mess[2], mess[3]));
-                    // System.out.println("New building. Type: " + mess[1] + ".");
-                } else {
-                    // System.out.println("Already seen this building. Type " + mess[1]);
+                if (buildingLocations != null){
+                    if (!buildingLocations.contains(new MapLocation(mess[2], mess[3]))) {
+                        buildingLocations.add(new MapLocation(mess[2], mess[3]));
+                        // System.out.println("New building. Type: " + mess[1] + ".");
+                    } else {
+                        // System.out.println("Already seen this building. Type " + mess[1]);
+                    }
                 }
 
 //                switch (mess[1]) {
