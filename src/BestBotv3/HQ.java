@@ -66,13 +66,17 @@ public class HQ extends Shooter {
 
         //Request a school next to base
         boolean seeDesignSchool = false;
+        int numAttackers = 0; // to prevent us from using all of our soup on attacker broadcasts
         RobotInfo[] robots = rc.senseNearbyRobots(RobotType.HQ.sensorRadiusSquared);
         for (RobotInfo robot : robots) {
             if (robot.type == RobotType.DESIGN_SCHOOL && robot.getTeam() == rc.getTeam()) {
                 seeDesignSchool = true;
             } else if ((robot.type == RobotType.MINER || robot.type == RobotType.LANDSCAPER) && robot.getTeam() == rc.getTeam().opponent()){
-                // I am intentionally leaving out the team part of it just to test if the drones will pick up our own miners or not
+                if (numAttackers > 6) {
+                    return;
+                }
                 comms.broadcastAttackerInfo(robot.ID, myLoc.directionTo(robot.location));
+                numAttackers++;
             }
         }
 

@@ -32,6 +32,14 @@ public class Amazon extends Building {
             }
         }
 
+        if (rc.getTeamSoup() > ARBITRARY_SOUP_NUMBER_LMAO) {
+            for (Direction dir : Util.directions) {
+                if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
+                    numDrones++;
+                }
+            }
+        }
+
 //        if (rc.getTeamSoup()>=(6*RobotType.DELIVERY_DRONE.cost)){
 //            shouldMakeBuilders = true;
 //        }
