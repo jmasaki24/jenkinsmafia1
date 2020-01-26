@@ -64,6 +64,15 @@ public class HQ extends Shooter {
                 }
         }
 
+        // just cuz :)
+//        if (rc.getTeamSoup() > 450) {
+//            for (Direction dir : Util.directions) {
+//                if (tryBuild(RobotType.MINER, dir)) {
+//                    numMiners++;
+//                }
+//            }
+//        }
+
         //Request a school next to base
         boolean seeDesignSchool = false;
         int numAttackers = 0; // to prevent us from using all of our soup on attacker broadcasts
