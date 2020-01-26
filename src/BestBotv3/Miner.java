@@ -20,10 +20,10 @@ import java.util.Map;
  *   Use takeTurn() to define the states, and then use methods to define the behavior in that state.
  *
  * MINER STATE(s) in order of priority/precedence
-  0. INITIALIZATION (turnCount == 1)
-    - crawl blockchain for locations.
-  1.update everything from current block.
-  2.if you can see all tiles in a 5x5 around soup or a refinery:
+  0.update stuff (also crawls chain on turnCount==1)
+  1.INITIALIZATION (turnCount == 1)
+  2.Don't get drowned.
+  3.if you can see all tiles in a 5x5 around soup or a refinery:
     A. if it's hq, presence of landscapers also define accessibility.
     B. if it's not accessible, remove it from locations arraylist.
   3.if <= 2 squared away from a landscaper, run away.
@@ -67,17 +67,16 @@ public class Miner extends Unit {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        //Update Stuff
         comms.updateBuildingLocations();
         comms.updateSoupLocations(soupLocations);
+        recentlyVisitedLocations[turnCount%7] = myLoc;
 
-        // 0. INITIALIZATION
         if (turnCount == 1) {
             // System.out.println("adding hq to refineries");
             refineryLocations.add(hqLoc);   // since hq is technically a refinery
         }
 
-        recentlyVisitedLocations[turnCount%7] = myLoc;
+        // if (near water()) { find higherground }
 
 
 

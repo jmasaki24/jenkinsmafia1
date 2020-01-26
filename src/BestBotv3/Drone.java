@@ -64,10 +64,10 @@ public class Drone extends Unit{
 
         //State your Mission:
         if (onMission){
-            // System.out.println("I am getting rid of the enemy!");
+            System.out.println("I am getting rid of the enemy!");
         }
         if (onHelpMission){
-            // System.out.println("I'm helping to build the wall!");
+            System.out.println("I'm helping to build the wall!");
         }
 
         // If my task is to remove the enemy
