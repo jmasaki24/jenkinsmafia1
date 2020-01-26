@@ -15,7 +15,8 @@ public class DesignSchool extends Building {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         if (turnCount == 1){
-            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
+            // this happens in Miner.java instead. wasn't working here.
+//            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
         }
 
         if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){

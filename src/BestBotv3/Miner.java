@@ -121,8 +121,8 @@ public class Miner extends Unit {
                 // System.out.println("No design schools yet, gotta build one");
                 if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
                     // System.out.println("built school");
+                    comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
-                comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
             } else {
                 // System.out.println("There are no design schools, but we dont have enough money to make one");
             }
@@ -154,8 +154,8 @@ public class Miner extends Unit {
                         if (!dir.equals(myLoc.directionTo(hqLoc))
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
                                 && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
-                            if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 5){
-                                tryBuild(RobotType.REFINERY, dir);
+                            if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 5 && tryBuild(RobotType.REFINERY, dir)) {
+                                comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                             }
                         }
                     }
@@ -278,6 +278,7 @@ public class Miner extends Unit {
                         && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
                     // System.out.println("trybuild refinery away from hq");
                     if (tryBuild(RobotType.REFINERY, dir)) {
+                        comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                         break;
                     }
                 }
@@ -288,6 +289,7 @@ public class Miner extends Unit {
             for (Direction dir : Util.directions) {
                 // System.out.println("trybuild refinery");
                 if (tryBuild(RobotType.REFINERY, dir)) {
+                    comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                     break;
                 }
             }
@@ -298,6 +300,7 @@ public class Miner extends Unit {
                 for (Direction dir : Util.directions) {
                     // System.out.println("trybuild refinery, far away");
                     if (tryBuild(RobotType.REFINERY, dir)) {
+                        comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                         break;
                     }
                 }
