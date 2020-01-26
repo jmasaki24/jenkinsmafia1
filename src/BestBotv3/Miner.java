@@ -272,7 +272,7 @@ public class Miner extends Unit {
     public void buildRefineryIfAppropriate() throws GameActionException {
 
         // if near hq, don't build in the direction of hq
-        if ((myLoc.distanceSquaredTo(hqLoc) < 8) && refineryLocations.size() == 0) {
+        if ((myLoc.distanceSquaredTo(hqLoc) < 8) && refineryLocations.size() < 2) {
             for (Direction dir: Util.directions) {
                 if (!dir.equals(myLoc.directionTo(hqLoc))
                         && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
