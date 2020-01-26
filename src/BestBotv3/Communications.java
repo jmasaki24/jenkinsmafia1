@@ -109,7 +109,7 @@ public class Communications {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == ATTACKERID){
-                // System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
+                 System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
                 enemyDir.add(numberToDirection(mess[3]));
             }
         }

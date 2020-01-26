@@ -76,12 +76,16 @@ public class Drone extends Unit{
                 //if I have the scum, look for a place to dispose them
                 if (rc.isCurrentlyHoldingUnit()){
                     for (Direction dir: Util.directions){
-                        if (rc.senseFlooding(myLoc.add(dir))){
-                            rc.dropUnit(dir);
-                            targetEnemy = null;
-                            onMission = false;
-                            enemyDir = null;
-                        } else{
+                        if (rc.onTheMap(myLoc.add(dir))) {
+                            if (rc.senseFlooding(myLoc.add(dir))) {
+                                if (rc.canDropUnit(dir)) {
+                                    rc.dropUnit(dir);
+                                    targetEnemy = null;
+                                    onMission = false;
+                                    enemyDir = null;
+                                }
+                            }
+                        } else {
                             if (waterLocation.size() != 0){
                                 nav.flyTo(waterLocation.get(waterLocation.size()-1));
                             } else{
