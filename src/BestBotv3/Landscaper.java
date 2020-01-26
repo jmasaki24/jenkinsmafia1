@@ -43,33 +43,18 @@ public class Landscaper extends Unit {
             }
         }
 
+        System.out.print(hqLoc);
         // otherwise try to get to the hq
         if(rc.onTheMap(hqLoc)){
-            // System.out.println("Can See hq");
-            if (myLoc.distanceSquaredTo(hqLoc) > 2){
-                nav.goTo(hqLoc.add(myLoc.directionTo(hqLoc)));
-            } else { // In the circle
-                if (!nav.tryMove(myLoc.directionTo(hqLoc).rotateLeft())){
-                    Direction toHQ = myLoc.directionTo(hqLoc);
-                    Direction next = Direction.CENTER;
-                    switch (toHQ){
-                        case NORTH:         next = Direction.WEST;      break;
-                        case EAST:          next = Direction.NORTH;     break;
-                        case SOUTH:         next = Direction.EAST;      break;
-                        case WEST:          next = Direction.SOUTH;     break;
-                        default:            next = Direction.CENTER;    break;
-                    }
-                    nav.tryMove(next);
-                }
-            }
+            System.out.println("Can See hq");
             //Else move random (uses move limits to not go random every line)
             Direction rand = Util.randomDirection();
             if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
-                // System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
+                System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
                 nav.tryMove(rand);
             }
-        } else { //If we don't see the hq
-            // System.out.println("Can't see hq");
+        } else {
+            System.out.println("Can't see hq");
             nav.tryMove(Util.randomDirection());
         }
     }
