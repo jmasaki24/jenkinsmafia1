@@ -12,8 +12,11 @@ public class Refinery extends Building {
     }
 
     public void takeTurn() throws GameActionException {
+        super.takeTurn();
+
         if (turnCount == 1) {
-            comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc);
+            // this happens in Miner.java instead. wasn't working here.
+//            comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc);
         }
     }
 }

@@ -17,7 +17,18 @@ public class Landscaper extends Unit {
         super.takeTurn();
 
         // System.out.println(myLoc.x + " " + myLoc.y);
-
+        if(rc.onTheMap(hqLoc)){
+            System.out.println("Can See hq");
+            //Else move random (uses move limits to not go random every line)
+            Direction rand = Util.randomDirection();
+            if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
+                System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
+                nav.tryMove(rand);
+            }
+        } else {
+            System.out.println("Can't see hq");
+            nav.tryMove(Util.randomDirection());
+        }
 
         if(rc.getDirtCarrying() == 0){
             //While we haven't digged, we should keep digging
@@ -43,54 +54,11 @@ public class Landscaper extends Unit {
             }
         }
 
-        // otherwise try to get to the hq
-        if(rc.onTheMap(hqLoc)){
-            // System.out.println("Can See hq");
-            if (myLoc.distanceSquaredTo(hqLoc) > 2){
-                nav.goTo(hqLoc.add(myLoc.directionTo(hqLoc)));
-            } else { // In the circle
-                if (!nav.tryMove(myLoc.directionTo(hqLoc).rotateLeft())){
-                    Direction toHQ = myLoc.directionTo(hqLoc);
-                    Direction next = Direction.CENTER;
-                    switch (toHQ){
-                        case NORTH:         next = Direction.WEST;      break;
-                        case EAST:          next = Direction.NORTH;     break;
-                        case SOUTH:         next = Direction.EAST;      break;
-                        case WEST:          next = Direction.SOUTH;     break;
-                        default:            next = Direction.CENTER;    break;
-                    }
-                    nav.tryMove(next);
-                }
-            }
+        System.out.print(hqLoc);
+//         otherwise try to get to the hq
 
-           /* //Runs from the school
-            RobotInfo[] robots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared,rc.getTeam());
-            MapLocation nextPlace = myLoc;
-            for (RobotInfo robot:robots){
-                if (robot.type == RobotType.DESIGN_SCHOOL){
-                    nextPlace = nextPlace.add(myLoc.directionTo(robot.location).opposite());
-                }
-            }
-            if(nextPlace == myLoc){
-                nextPlace = nextPlace.add(Util.randomDirection());
-            }
-            if(nextPlace != myLoc) {
-                if(myLoc.add(myLoc.directionTo(nextPlace)).distanceSquaredTo(hqLoc) < 3) { //Only move in directions where you end up on the wall
-                    // System.out.println("Going to next wall location" + myLoc.add(myLoc.directionTo(nextPlace)).distanceSquaredTo(hqLoc));
-                    nav.tryMove(myLoc.directionTo(nextPlace));
-                }
-            }
-            //Else move random (uses move limits to not go random every line)
-            Direction rand = Util.randomDirection();
-            if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
-                // System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
-                nav.tryMove(rand);
-            }*/
-        } else {
-            // System.out.println("Can't see hq");
-            nav.tryMove(Util.randomDirection());
-        }
-    }
+
+}
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 

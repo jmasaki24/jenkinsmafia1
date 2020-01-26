@@ -20,7 +20,8 @@ public class Amazon extends Building {
         super.takeTurn();
 
         if (turnCount == 1) {
-            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
+            // I would love to do this, but instead we're just gonna broadcast from Miner atm. -jm
+//            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
         }
 
         if (numDrones < 2) {
