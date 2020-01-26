@@ -47,9 +47,9 @@ import java.util.Map;
 
 public class Miner extends Unit {
 
-    int numDesignSchools = 0;
     int distanceToMakeRefinery = 50;
-    boolean IBroadcastedWaterLoc = false; //Use for only sending 1 water loc per miner(We lose from overspending)
+    boolean iBroadcastedWaterLoc = false; //Use for only sending 1 water loc per miner(We lose from overspending)
+    boolean isLandscaperNearby = false;
 
     // ALL "...Locations" ArrayList<MapLocation> ARE IN Unit.java!!!!!!!!!!!!!!!!!!!!
 
@@ -63,49 +63,19 @@ public class Miner extends Unit {
     // array and not an arraylist!
     MapLocation[] recentlyVisitedLocations = new MapLocation[7];
 
-
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        comms.updateBuildingLocations();
-        comms.updateSoupLocations(soupLocations);
-        recentlyVisitedLocations[turnCount%7] = myLoc;
+        initializeUpdateAndBroadcast();
 
-        if (turnCount == 1) {
-            // System.out.println("adding hq to refineries");
-            refineryLocations.add(hqLoc);   // since hq is technically a refinery
-        }
+        tryCheckIfSoupOrRefineryIsGone();
 
-        // if (near water()) { find higherground }
+        // if (near water()) { find higherGround }
 
-
-
-        if (soupLocations.size() > 0) {
-            checkIfSoupGone(findClosestSoup());
-        }
-//        if (hqLoc == null){
-////            comms.broadcastBuildingCreation(RobotType.HQ, hqLoc);
-//            // System.out.println("Hq didnt broadcast its location well");
-//        } else {
-//            // System.out.println("HQ has been broadcasted and I recieved. Its at " + hqLoc);
-//        }
-
-
-        // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
-        // TODO: Why was this commented out? Commenting makes them blind to water entirely -cam
-        if (!IBroadcastedWaterLoc) {
-            for (Direction dir : Util.directions) {
-                if (rc.canSenseLocation(myLoc.add(dir))) {
-                    if (rc.senseFlooding(myLoc.add(dir))) {
-                        comms.broadcastWaterLocation(myLoc.add(dir));
-                        IBroadcastedWaterLoc = true;
-                    }
-                }
-            }
-        }
-
-        if (refineryLocations.size() > 0) {
-            checkIfRefineryGone(findClosestRefinery());
+        if (isLandscaperNearby) {
+            runAwayFromHQ();
+        } else {
+            checkForLandscapersNearby();
         }
 
         // Build 1 amazon, then build school.
@@ -163,7 +133,7 @@ public class Miner extends Unit {
 
                 // TODO: 1/20/2020 gotta try and make it move away from HQ
                 if (myLoc.distanceSquaredTo(hqLoc) < 6) {
-                    runAwayyyyyy();
+//                    runAwayyyyyy();
                 }
             }
         }
@@ -225,6 +195,78 @@ public class Miner extends Unit {
     }
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
+
+
+    public void initializeUpdateAndBroadcast() throws GameActionException {
+        comms.updateBuildingLocations();
+        comms.updateSoupLocations(soupLocations);
+        recentlyVisitedLocations[turnCount%7] = myLoc;
+
+        if (turnCount == 1) {
+            // System.out.println("adding hq to refineries");
+            refineryLocations.add(hqLoc);   // since hq is technically a refinery
+        }
+
+        // the following is in the event the chain is spammed or something, idk.
+        if (hqLoc == null){
+            System.out.println("Hq didnt broadcast its location well");
+            RobotInfo[] nearbyRobots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
+            for (RobotInfo robot : nearbyRobots) {
+                if (robot.type.equals(RobotType.HQ)) {
+                    hqLoc = robot.location;
+                }
+            }
+        }
+
+        // TODO: 1/21/2020 How can we make the miners sense water anywhere in their field of vision? -matt
+        // TODO: Why was this commented out? Commenting makes them blind to water entirely -cam
+        if (!iBroadcastedWaterLoc) {
+            for (Direction dir : Util.directions) {
+                if (rc.canSenseLocation(myLoc.add(dir))) {
+                    if (rc.senseFlooding(myLoc.add(dir))) {
+                        comms.broadcastWaterLocation(myLoc.add(dir));
+                        iBroadcastedWaterLoc = true;
+                    }
+                }
+            }
+        }
+    }
+
+    void tryCheckIfSoupOrRefineryIsGone() throws GameActionException {
+        if (refineryLocations.size() > 0) {
+            checkIfRefineryGone(findClosestRefinery());
+        }
+        if (soupLocations.size() > 0) {
+            checkIfSoupGone(findClosestSoup());
+        }
+    }
+
+    // basically, goes in the direction of the center of the map
+    void checkForLandscapersNearby() throws GameActionException {
+        RobotInfo[] nearbyTeammates = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
+        if (nearbyTeammates.length > 0) {
+            for (RobotInfo bot : nearbyTeammates) {
+                if (bot.type.equals(RobotType.LANDSCAPER)) {
+                    isLandscaperNearby = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    void runAwayFromHQ() throws GameActionException {
+        System.out.println("Run awayyyyyyyy");
+
+        if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+        } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+        } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+        } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
+            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+        } // else.. idk?!?!?
+    }
 
     public void minerGoToNearestSoup() throws GameActionException {
 
@@ -439,18 +481,5 @@ public class Miner extends Unit {
     
     
 
-    // basically, goes in the direction of the center of the map
-    void runAwayyyyyy() throws GameActionException {
-        // System.out.println("Run awayyyyyyyy");
 
-        if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
-            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
-        } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
-            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
-        } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
-            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
-        } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
-            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
-        } // else.. idk?!?!?
-    }
 }
