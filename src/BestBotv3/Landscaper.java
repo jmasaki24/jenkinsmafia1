@@ -17,7 +17,18 @@ public class Landscaper extends Unit {
         super.takeTurn();
 
         // System.out.println(myLoc.x + " " + myLoc.y);
-
+        if(rc.onTheMap(hqLoc)){
+            System.out.println("Can See hq");
+            //Else move random (uses move limits to not go random every line)
+            Direction rand = Util.randomDirection();
+            if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
+                System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
+                nav.tryMove(rand);
+            }
+        } else {
+            System.out.println("Can't see hq");
+            nav.tryMove(Util.randomDirection());
+        }
 
         if(rc.getDirtCarrying() == 0){
             //While we haven't digged, we should keep digging
@@ -44,20 +55,10 @@ public class Landscaper extends Unit {
         }
 
         System.out.print(hqLoc);
-        // otherwise try to get to the hq
-        if(rc.onTheMap(hqLoc)){
-            System.out.println("Can See hq");
-            //Else move random (uses move limits to not go random every line)
-            Direction rand = Util.randomDirection();
-            if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
-                System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
-                nav.tryMove(rand);
-            }
-        } else {
-            System.out.println("Can't see hq");
-            nav.tryMove(Util.randomDirection());
-        }
-    }
+//         otherwise try to get to the hq
+
+
+}
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
