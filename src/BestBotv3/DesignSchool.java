@@ -6,6 +6,7 @@ import battlecode.common.*;
 
 public class DesignSchool extends Building {
     private static MapLocation hqLoc;
+    private final int landscaperLimit = 9;
     private int numLandscapers = 0;
 
     public DesignSchool(RobotController r) {
@@ -19,10 +20,12 @@ public class DesignSchool extends Building {
 //            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
         }
 
-        if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){
-            for (Direction dir : Util.directions) {
-                if (tryBuild(RobotType.LANDSCAPER, dir)){
-                    numLandscapers++;
+        if (numLandscapers < 8){
+            if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){
+                for (Direction dir : Util.directions) {
+                    if (tryBuild(RobotType.LANDSCAPER, dir)){
+                        numLandscapers++;
+                    }
                 }
             }
         }
