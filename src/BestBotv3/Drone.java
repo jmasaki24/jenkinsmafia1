@@ -69,6 +69,7 @@ public class Drone extends Unit{
         if (onStrike){
             System.out.println("Going to EHQ");
             goToEHQ();
+            getNearbyEnemies();
             if (targetEnemy != null){
                 pickupEnemy();
             }
@@ -95,7 +96,10 @@ public class Drone extends Unit{
             if (onHelpMission){
                 System.out.println("I'm helping to build the wall!");
             }
-
+            if (onBootMission){
+                System.out.println("I'm booting!");
+            }
+            
             // If my task is to remove the enemy
             if (onMission){
                 if (hqLoc != null){
