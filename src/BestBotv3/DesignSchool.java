@@ -20,6 +20,12 @@ public class DesignSchool extends Building {
 //            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
         }
 
+        comms.updateBuildingLocations();
+
+        if (Unit.refineryLocations.size() >= 1) {
+            System.out.println("two+ refineries");
+        }
+
         if (numLandscapers < 8){
             if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){
                 for (Direction dir : Util.directions) {

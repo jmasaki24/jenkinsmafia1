@@ -446,23 +446,25 @@ public class Miner extends Unit {
         };
 
         MapLocation moveTowardLocation = myLoc;
-        boolean shouldIMoveThere = true;
         Direction moveToward = fuzzyNavDirectionsInOrder[0];
         for (int i = 0; i < 8; i ++) {
+            boolean shouldIMoveThere = true;
             moveToward = fuzzyNavDirectionsInOrder[i];
             moveTowardLocation = myLoc.add(moveToward);
 
             for (int j = 0; j < recentlyVisitedLocations.length; j++) {
                 if (moveTowardLocation.equals(recentlyVisitedLocations[j])) {
+                    System.out.println("recently visited " + moveTowardLocation);
                     shouldIMoveThere = false;
                     break;
                 }
             }
 
-            // System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
+             System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
 
             if (shouldIMoveThere) {
                 if (nav.tryMove(moveToward)) {
+                    System.out.println("moved toward " + moveToward);
                     return true;
                 }
             }
