@@ -212,16 +212,17 @@ public class Drone extends Unit{
 
     }
 
-    public void getNearbyEnemyBots(){
+    public RobotInfo[] getNearbyEnemies(){
         RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
         for (RobotInfo robot : nearbyEnemyRobots) {
             if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
                 // If its on opponent team
-                onEnemyMission = true;
-                targetEnemyBot = robot;
+                onMission = true;
+                targetEnemy = robot;
                 break;
             }
         }
+        return nearbyEnemyRobots;
     }
 
     public void getNearbyLandscapers(){
