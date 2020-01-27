@@ -31,13 +31,15 @@ public class Drone extends Unit{
         super(r);
     }
 
-    boolean onEnemyMission = false;
+    boolean onStrike = false;
+    boolean onMission = false;
     boolean onHelpMission = false;
     boolean onBootMission = false;
-
-    RobotInfo targetEnemyBot = null;
-    RobotInfo targetHelpBot = null;
+    RobotInfo targetEnemy = null;
+    RobotInfo targetLandscaper = null;
     RobotInfo targetBootBot = null;
+    boolean findANewBot = false;
+    boolean iBroadcastedWaterLoc = false;
 
     boolean findANewEnemyBot = false;
     boolean findANewHelpBot = false;
@@ -47,211 +49,115 @@ public class Drone extends Unit{
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
+        onStrike = rc.getRoundNum() > 1447;
 
         // Water Locations isnt updated right now
-        // comms.updateWaterLocations(waterLocation);
-
-        // goToEHQ works, but first we need a defensive drone.
-        // gotoEHQ();
-
-        if (RobotPlayer.turnCount > 10) { //  Wait until turn 11 to start doing stuff.
-
-            // Unit Detection
-            getNearbyEnemyBots();
-            getNearbyBootMiners();
-            getNearbyLandscapers();
-
-            //State your Mission:
-            if (onEnemyMission){
-                System.out.println("I am getting rid of the enemy!");
+        if (!iBroadcastedWaterLoc) {
+            for (Direction dir : Util.directions) {
+                if (rc.canSenseLocation(myLoc.add(dir))) {
+                    if (rc.senseFlooding(myLoc.add(dir))) {
+                        comms.broadcastWaterLocation(myLoc.add(dir));
+                        iBroadcastedWaterLoc = true;
+                    }
+                }
             }
-            else if (onHelpMission){
-                System.out.println("I'm helping to build the wall!");
-            } else if (onBootMission){
+        }
+
+        //If we can swarm
+        if (onStrike){
+            System.out.println("Going to EHQ");
+            goToEHQ();
+            getNearbyEnemies();
+            if (targetEnemy != null){
+                pickupEnemy();
+            }
+            disposeOfScum();
+        } else{
+            // Enemy Detection
+            RobotInfo[] nearbyEnemies = getNearbyEnemies();
+            getNearbyBootMiners();
+
+            else if (onBootMission){
                 System.out.println("I am on a BOOT mission");
             }
 
 
-// KILL
-            // We have a bot of some sort and have been told to kill it
-            if (onEnemyMission){
-                if (rc.isCurrentlyHoldingUnit()) {
-                    // First try to drop if in the water.
-                    for (Direction dir : Util.directions) {
-                        if (rc.senseFlooding(myLoc.add(dir))) {
-                            rc.dropUnit(dir);
-                            onEnemyMission = false;
-                            enemyDir = null;
-                            System.out.println("Dropped");
-                            targetEnemyBot = null;
-                        }
-                        // If I can't, go to some water
-                        else {
-                            if (waterLocation.size() != 0) {
-                                nav.droneGoTo(waterLocation.get(waterLocation.size() - 1));
-                                System.out.println("Going to known water");
-                            } else {
-                                nav.droneGoTo(Util.randomDirection());
-                                System.out.println("Randomly going to water");
-                            }
-                        }
-                    }
-                }
-                // I see a bot that is an enemy and want to pick it up
-                else if (targetEnemyBot != null) {
-                    // I am at the bot
-                    if (myLoc.distanceSquaredTo(targetEnemyBot.location) <= 2) {
-                        if (rc.canPickUpUnit(targetEnemyBot.ID)) {
-                            rc.pickUpUnit(targetEnemyBot.ID);
-                            System.out.println("I picked this unit up to kill it: " + targetEnemyBot.ID);
-                        } else {
-                            System.out.println("I cannot pick up this unit to kill it: " + targetEnemyBot.ID);
-                        }
-                    }
-                    // I'm not there yet
-                    else {
-                        nav.droneGoTo(targetEnemyBot.location);
-                        System.out.println("I am going towards the enemy bot I saw");
-                    }
-                }
-                // HQ has seen a bot
-                else if (enemyDir.size() != 0) {
-                    nav.droneGoTo(hqLoc.add(enemyDir.get(enemyDir.size() - 1)));
-                    System.out.println("I am going to the enemy bot the HQ saw");
+            //Landscaper Detection
+            RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
+
+            // Setting Standby Location
+
+            if (standbyLocation == null) {
+                if (hqLoc != null){
+                    standbyLocation = hqLoc;
                 }
             }
 
-// BOOT
-
-//            // Does it need to find a new bot to BOOT?
-//            else if (findANewBootBot) {
-//                //Good fuzzy nav
-//                if (!nav.droneGoTo(myLoc.directionTo(hqLoc).opposite())){
-//                    nav.droneGoTo(Util.randomDirection());
-//                }
-//                if (myLoc.distanceSquaredTo(hqLoc) > 4) {
-//                    findANewBootBot = false;
-//                }
-//            }
-            // If its holding a booted miner, can it get rid of it? If not, go away from HQ.
-            else if (onBootMission){
-                // I need to boot this hot
-                if (rc.isCurrentlyHoldingUnit()) {
-                    for (Direction dir : Util.directions) {
-                        if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2) {
-                            if (rc.canDropUnit(dir)) {
-                                rc.dropUnit(dir);
-                                onBootMission = false;
-                                bootDir = null;
-                                findANewBootBot = true;
-                                nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
-                                System.out.println("I dropped our booted miner somewhere!");
-                                targetBootBot = null;
-
-
-                            }
-                        } else {
-                            nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
-                        }
-                    }
-                }
-                // I see a bot that needs to be BOOTED
-                else if (targetBootBot != null) {
-                    // I am there
-                    if (myLoc.distanceSquaredTo(targetBootBot.location) <= 2) {
-                        if (rc.canPickUpUnit(targetBootBot.ID)) {
-                            rc.pickUpUnit(targetBootBot.ID);
-                            System.out.println("I picked this unit up to boot it: " + targetBootBot.ID);
-                        } else {
-                            System.out.println("I cant pick up unit to boot it: " + targetBootBot.ID);
-                        }
-                    }
-                    // I'm not there yet
-                    else {
-                        nav.droneGoTo(targetBootBot.location);
-                        System.out.println("I'm going to the boot bot");
-                    }
-                }
-                // HQ has seen a bot that needs to be BOOTED
+            //State your Mission:
+            if (onMission){
+                System.out.println("I am getting rid of the enemy!");
+            }
+            if (onHelpMission){
+                System.out.println("I'm helping to build the wall!");
             }
 
-//            else if (bootDir.size() != 0) {
-//                nav.droneGoTo(hqLoc.add(bootDir.get(bootDir.size() - 1)));
-//            } // Boot dir doesnt do anything right now.
+            // If my task is to remove the enemy
+            if (onMission){
+                if (hqLoc != null){
+                    //if I have the scum, look for a place to dispose them
+                    disposeOfScum();
 
 
-// HELP
+                    // If I see an enemy, go pick them up
+                    if (targetEnemy != null) {
+                        pickupEnemy();
+                    }
+                    // HQ has seen an enemy bot
+                    else if (enemyDir.size() != 0){
+                        nav.flyTo(hqLoc.add(enemyDir.get(0))); // Goes to enemies
+                    }
+                }
+            }
 
-//            // Does it need to find a new bot?
-//            else if (findANewHelpBot) {
-//                //Good fuzzy nav
-//                if (!nav.droneGoTo(myLoc.directionTo(hqLoc).opposite())){
-//                    nav.droneGoTo(Util.randomDirection());
-//                }
-//                if (myLoc.distanceSquaredTo(hqLoc) > 4) {
-//                    findANewHelpBot = false;
-//                }
-//            }
-            // If its holding a unit, can it drop it on the wall? If not, go the HQ.
+            //If I'm helping landscapers:
             else if (onHelpMission){
-                if (rc.isCurrentlyHoldingUnit()) {
-                    if (myLoc.distanceSquaredTo(hqLoc) <= 8){
-                        for (Direction dir : Util.directions) {
-                            if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2 && myLoc.add(dir).distanceSquaredTo(hqLoc) > 0) {
-                                if (rc.canDropUnit(dir)) {
-                                    rc.dropUnit(dir);
-                                    onHelpMission = false;
-                                    helpDir = null;
-                                    findANewHelpBot = true;
-                                    System.out.println("Help drop sucessful. Dropped unit: " + targetHelpBot.ID);
-                                    targetHelpBot = null;
 
-                                } else {
-                                    System.out.println("Can't help drop it here: " + myLoc.add(dir));
-                                }
-                            }
-                        }
-                    } else{
-                        nav.droneGoTo(hqLoc);
-                    }
+                // If drone is holding friendly landscaper, put him back on the wall
+                if (rc.isCurrentlyHoldingUnit()){
+                    getLandscaperToWall();
                 }
-                // I see a bot that needs help
-                else if (targetHelpBot != null) {
-                    // I am there
-                    if (myLoc.distanceSquaredTo(targetHelpBot.location) <= 2) {
-                        if (rc.canPickUpUnit(targetHelpBot.ID)) {
-                            rc.pickUpUnit(targetHelpBot.ID);
-                            System.out.println("I picked this unit up to help it: " + targetHelpBot.ID);
-                        } else {
-                            System.out.println("I can't pick this unit up to help it: " + targetHelpBot.ID);
-                        }
-                    }
-                    // I'm not there yet
-                    else {
-                        nav.droneGoTo(targetHelpBot.location);
+
+                //If I see a landscaper not on the wall, pick him up
+                if (targetLandscaper != null){
+                    pickupTargetLandscaper();
+                }
+
+                //If HQ sees a landscaper, go to help it
+                else if (helpDir != null){
+                    if (helpDir.size() != 0){
+                        nav.flyTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
                     }
                 }
             }
+           // BOOT
 
-            // HQ has seen a bot
-//            else if (helpDir.size() != 0) {
-//                nav.droneGoTo(hqLoc.add(helpDir.get(helpDir.size() - 1)));
-//            }   // Help dir doesnt do anything right now.
+           else if (onBootMission){
+                            // I need to boot this hot
+              if (rc.isCurrentlyHoldingUnit()) {
+                bootBot();
+              }
+                            // I see a bot that needs to be BOOTED
+              else if (targetBootBot != null) {
+                  pickUpBootBot();
+              }
+                            // HQ has seen a bot that needs to be BOOTED
+              }
 
 
-// STANDBY
-            // Setting Standby Location to constantly change
-            else if (hqLoc != null){
-                if (myLoc.distanceSquaredTo(hqLoc) <= 10 && myLoc.distanceSquaredTo(hqLoc) >= 8){
-                    for (Direction dir : Direction.allDirections()) {
-                        if (myLoc.add(dir).distanceSquaredTo(hqLoc) >= 8 && myLoc.add(dir).distanceSquaredTo(hqLoc) <= 10) {
-                            nav.droneGoTo(dir);
-                        } else if (myLoc.distanceSquaredTo(hqLoc) < 8) {
-                            nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
-                        } else if (myLoc.distanceSquaredTo(hqLoc) > 10) {
-                            nav.droneGoTo(myLoc.directionTo(hqLoc));
-                        }
-                    }
+            else {
+                // Standby if we are not on a mission
+                if (standbyLocation != null) {
+                    nav.flyTo(standbyLocation);
                 }
             }
         }
@@ -274,38 +180,34 @@ public class Drone extends Unit{
 
         //Mark the potential loc with dots
         for (MapLocation loc: potentialHQ){
-            rc.setIndicatorDot(loc,0,200,200);
+            rc.setIndicatorDot(loc,200,200,200);
         }
 
-        //If we are a drone with an even robot id (random number... gets called ~50% of the time) -cam
-        if (rc.getID()%2 == 0){ //Essentially makes half the drones swarm and half not
-            //if I do swarm
 
-            //Find the enemy hq
-            if(EHqLoc.x > 0 || EHqLoc.y > 0){
-                System.out.println("Found ENEMY HQ");
-                if (myLoc.distanceSquaredTo(EHqLoc) > 5){
-                    System.out.println("Going to ENEMY HQ:" + EHqLoc);
-                    nav.droneGoTo(myLoc.directionTo(EHqLoc));
-
-                } else{
-                    System.out.println("Standing my gound at ENEMY HQ");
-                    for (Direction dir: Util.directions){
-                        tryBuild(RobotType.NET_GUN,dir);
-                    }
-                    shouldMove = false;
-                }
-            }
-
-            if(myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > 5){
-                System.out.println("Going to a potential HQ:" + potentialHQ);
-                if(shouldMove)
-                    nav.droneGoTo(myLoc.directionTo(potentialHQ[hqToCheck]));
-                rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
+        //Find the enemy hq
+        if(EHqLoc.x > 0 || EHqLoc.y > 0){
+            // System.out.println("Found ENEMY HQ");
+            if (myLoc.distanceSquaredTo(EHqLoc) > 5){
+                // System.out.println("Going to ENEMY HQ:" + EHqLoc);
+                nav.swarm(myLoc.directionTo(EHqLoc),myLoc,EHqLoc);
             } else{
-                System.out.println("Nothing Here at potential HQ:" + potentialHQ);
-                hqToCheck += 1;
+                // System.out.println("Standing my gound at ENEMY HQ");
+                for (Direction dir: Util.directions){
+                    tryBuild(RobotType.NET_GUN,dir);
+                }
+                shouldMove = false;
             }
+        }
+
+
+        if(myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > 5){
+            // System.out.println("Going to a potential HQ:" + potentialHQ);
+            if(shouldMove)
+                nav.swarm(myLoc.directionTo(potentialHQ[hqToCheck]),myLoc,potentialHQ[hqToCheck]);
+            rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
+        } else{
+            // System.out.println("Nothing Here at potential HQ:" + potentialHQ);
+            hqToCheck += 1;
         }
 
     }
@@ -366,4 +268,118 @@ public class Drone extends Unit{
     }
 
 
+    public void getLandscaperToWall() throws GameActionException{
+        for (Direction dir: Util.directions){
+            if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2){
+                if (rc.canDropUnit(dir)){
+                    rc.dropUnit(dir);
+                    targetLandscaper = null;
+                    onHelpMission = false;
+                    helpDir = null;
+                    findANewBot = true;
+                }
+            }
+        }
+        //Good fuzzy nav
+        if (!nav.tryFly(myLoc.directionTo(hqLoc))){
+            nav.tryFly(Util.randomDirection());
+        }
+    }
+
+    public void pickupTargetLandscaper() throws GameActionException{
+        if (hqLoc != null){
+            // System.out.println("My target landscaper is " + targetLandscaper.location.distanceSquaredTo(hqLoc) + " away from hq");
+            // System.out.println("Target id: #" + targetLandscaper.ID);
+            if (myLoc.distanceSquaredTo(targetLandscaper.location) < 3){ // If target is close
+                if (targetLandscaper.location.distanceSquaredTo(hqLoc) > 2) { // if target not on wall
+                    if (rc.canPickUpUnit(targetLandscaper.ID)) {
+                        rc.pickUpUnit(targetLandscaper.ID);
+                        // System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
+                    }
+                }
+                // Target is on wall, mission accomplished
+                else{
+                    targetLandscaper = null;
+                    onHelpMission = false;
+                }
+            } else{ //target out of range, going in for the rescue
+                nav.flyTo(targetLandscaper.location);
+            }
+        } else {
+            nav.flyTo(targetLandscaper.location);
+        }
+    }
+
+    public void pickupEnemy() throws GameActionException{
+        // And I'm there
+        if (myLoc.distanceSquaredTo(targetEnemy.location) <= 2) {
+            //And the bot is not on the wall
+            if (targetEnemy.location.distanceSquaredTo(hqLoc) > 3)
+                if (rc.canPickUpUnit(targetEnemy.ID)) {
+                    rc.pickUpUnit(targetEnemy.ID);
+                } else {
+                    // System.out.println("Can't pickup Landscape #" + targetEnemy.ID);
+                }
+        }
+        // If I'm not close enough get closer
+        else {
+            nav.flyTo(targetEnemy.location);
+        }
+    }
+
+    public void disposeOfScum() throws GameActionException{
+        if (rc.isCurrentlyHoldingUnit()){
+            for (Direction dir: Util.directions){
+                if (rc.senseFlooding(myLoc.add(dir))){
+                    rc.dropUnit(dir);
+                    targetEnemy = null;
+                    onMission = false;
+                    enemyDir = null;
+                } else{
+                    if (waterLocation.size() != 0){
+                        nav.flyTo(waterLocation.get(waterLocation.size()-1));
+                    } else{
+                        nav.flyTo(Util.randomDirection());
+                    }
+                }
+            }
+        }
+    }
+
+    public void bootBot() throws GameActionException{
+      for (Direction dir : Util.directions) {
+          if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2) {
+              if (rc.canDropUnit(dir)) {
+                  rc.dropUnit(dir);
+                  onBootMission = false;
+                  bootDir = null;
+                  findANewBootBot = true;
+                  nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+                  System.out.println("I dropped our booted miner somewhere!");
+                  targetBootBot = null;
+
+
+              }
+          } else {
+              nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+          }
+      }
+    }
+
+   public void pickUpBootBot() throws GameActionException{
+     // I am there
+     if (myLoc.distanceSquaredTo(targetBootBot.location) <= 2) {
+         if (rc.canPickUpUnit(targetBootBot.ID)) {
+             rc.pickUpUnit(targetBootBot.ID);
+             System.out.println("I picked this unit up to boot it: " + targetBootBot.ID);
+         } else {
+             System.out.println("I cant pick up unit to boot it: " + targetBootBot.ID);
+         }
+     }
+     // I'm not there yet
+     else {
+         nav.droneGoTo(targetBootBot.location);
+         System.out.println("I'm going to the boot bot");
+     }
+   }
 }

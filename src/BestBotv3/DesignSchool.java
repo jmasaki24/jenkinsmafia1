@@ -7,6 +7,9 @@ import battlecode.common.*;
 public class DesignSchool extends Building {
     private static MapLocation hqLoc;
 
+    private final int landscaperLimit = 9;
+    private int numLandscapers = 0;
+
     public DesignSchool(RobotController r) {
         super(r);
     }
@@ -14,12 +17,18 @@ public class DesignSchool extends Building {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         if (turnCount == 1){
-            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
+            // this happens in Miner.java instead. wasn't working here.
+//            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
         }
 
-        if (rc.getTeamSoup()>=(3*RobotType.LANDSCAPER.cost)){
-            for (Direction dir : Util.directions) {
-                tryBuild(RobotType.LANDSCAPER, dir);
+
+        if (numLandscapers < 8){
+            if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){
+                for (Direction dir : Util.directions) {
+                    if (tryBuild(RobotType.LANDSCAPER, dir)){
+                        numLandscapers++;
+                    }
+                }
             }
         }
     }
