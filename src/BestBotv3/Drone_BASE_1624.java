@@ -74,12 +74,39 @@ public class Drone extends Unit{
         if (onMission){
             if (hqLoc != null){
                 //if I have the scum, look for a place to dispose them
-                disposeOfScum();
-
+                if (rc.isCurrentlyHoldingUnit()){
+                    for (Direction dir: Util.directions){
+                        if (rc.senseFlooding(myLoc.add(dir))){
+                            rc.dropUnit(dir);
+                            targetEnemy = null;
+                            onMission = false;
+                            enemyDir = null;
+                        } else{
+                            if (waterLocation.size() != 0){
+                                nav.flyTo(waterLocation.get(waterLocation.size()-1));
+                            } else{
+                                nav.flyTo(Util.randomDirection());
+                            }
+                        }
+                    }
+                }
 
                 // If I see an enemy, go pick them up
-                if (targetEnemy != null) {
-                    pickupEnemy();
+                else if (targetEnemy != null) {
+                    // And I'm there
+                    if (myLoc.distanceSquaredTo(targetEnemy.location) <= 2) {
+                        //And the bot is not on the wall
+                        if (targetEnemy.location.distanceSquaredTo(hqLoc) > 3)
+                            if (rc.canPickUpUnit(targetEnemy.ID)) {
+                                rc.pickUpUnit(targetEnemy.ID);
+                            } else {
+                                // System.out.println("Can't pickup Landscape #" + targetEnemy.ID);
+                            }
+                    }
+                    // If I'm not close enough get closer
+                    else {
+                        nav.flyTo(targetEnemy.location);
+                    }
                 }
                 // HQ has seen an enemy bot
                 else if (enemyDir.size() != 0){
@@ -93,12 +120,46 @@ public class Drone extends Unit{
 
             // If drone is holding friendly landscaper, put him back on the wall
             if (rc.isCurrentlyHoldingUnit()){
-                getLandscaperToWall();
+                for (Direction dir: Util.directions){
+                    if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2){
+                        if (rc.canDropUnit(dir)){
+                            rc.dropUnit(dir);
+                            targetLandscaper = null;
+                            onHelpMission = false;
+                            helpDir = null;
+                            findANewBot = true;
+                        }
+                    }
+                }
+                //Good fuzzy nav
+                if (!nav.tryFly(myLoc.directionTo(hqLoc))){
+                    nav.tryFly(Util.randomDirection());
+                }
             }
 
             //If I see a landscaper not on the wall, pick him up
             if (targetLandscaper != null){
-                pickupTargetLandscaper();
+                if (hqLoc != null){
+                    // System.out.println("My target landscaper is " + targetLandscaper.location.distanceSquaredTo(hqLoc) + " away from hq");
+                    // System.out.println("Target id: #" + targetLandscaper.ID);
+                    if (myLoc.distanceSquaredTo(targetLandscaper.location) < 3){ // If target is close
+                        if (targetLandscaper.location.distanceSquaredTo(hqLoc) > 2) { // if target not on wall
+                            if (rc.canPickUpUnit(targetLandscaper.ID)) {
+                                rc.pickUpUnit(targetLandscaper.ID);
+                                // System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
+                            }
+                        }
+                        // Target is on wall, mission accomplished
+                        else{
+                            targetLandscaper = null;
+                            onHelpMission = false;
+                        }
+                    } else{ //target out of range, going in for the rescue
+                        nav.flyTo(targetLandscaper.location);
+                    }
+                } else {
+                    nav.flyTo(targetLandscaper.location);
+                }
             }
 
             //If HQ sees a landscaper, go to help it
@@ -194,83 +255,5 @@ public class Drone extends Unit{
             }
         }
         return nearbyEnemyRobots;
-    }
-
-    public void getLandscaperToWall() throws GameActionException{
-        for (Direction dir: Util.directions){
-            if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2){
-                if (rc.canDropUnit(dir)){
-                    rc.dropUnit(dir);
-                    targetLandscaper = null;
-                    onHelpMission = false;
-                    helpDir = null;
-                    findANewBot = true;
-                }
-            }
-        }
-        //Good fuzzy nav
-        if (!nav.tryFly(myLoc.directionTo(hqLoc))){
-            nav.tryFly(Util.randomDirection());
-        }
-    }
-
-    public void pickupTargetLandscaper() throws GameActionException{
-        if (hqLoc != null){
-            // System.out.println("My target landscaper is " + targetLandscaper.location.distanceSquaredTo(hqLoc) + " away from hq");
-            // System.out.println("Target id: #" + targetLandscaper.ID);
-            if (myLoc.distanceSquaredTo(targetLandscaper.location) < 3){ // If target is close
-                if (targetLandscaper.location.distanceSquaredTo(hqLoc) > 2) { // if target not on wall
-                    if (rc.canPickUpUnit(targetLandscaper.ID)) {
-                        rc.pickUpUnit(targetLandscaper.ID);
-                        // System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
-                    }
-                }
-                // Target is on wall, mission accomplished
-                else{
-                    targetLandscaper = null;
-                    onHelpMission = false;
-                }
-            } else{ //target out of range, going in for the rescue
-                nav.flyTo(targetLandscaper.location);
-            }
-        } else {
-            nav.flyTo(targetLandscaper.location);
-        }
-    }
-
-    public void pickupEnemy() throws GameActionException{
-        // And I'm there
-        if (myLoc.distanceSquaredTo(targetEnemy.location) <= 2) {
-            //And the bot is not on the wall
-            if (targetEnemy.location.distanceSquaredTo(hqLoc) > 3)
-                if (rc.canPickUpUnit(targetEnemy.ID)) {
-                    rc.pickUpUnit(targetEnemy.ID);
-                } else {
-                    // System.out.println("Can't pickup Landscape #" + targetEnemy.ID);
-                }
-        }
-        // If I'm not close enough get closer
-        else {
-            nav.flyTo(targetEnemy.location);
-        }
-    }
-
-    public void disposeOfScum() throws GameActionException{
-        if (rc.isCurrentlyHoldingUnit()){
-            for (Direction dir: Util.directions){
-                if (rc.senseFlooding(myLoc.add(dir))){
-                    rc.dropUnit(dir);
-                    targetEnemy = null;
-                    onMission = false;
-                    enemyDir = null;
-                } else{
-                    if (waterLocation.size() != 0){
-                        nav.flyTo(waterLocation.get(waterLocation.size()-1));
-                    } else{
-                        nav.flyTo(Util.randomDirection());
-                    }
-                }
-            }
-        }
     }
 }

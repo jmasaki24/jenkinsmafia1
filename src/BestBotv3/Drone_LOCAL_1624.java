@@ -76,7 +76,6 @@ public class Drone extends Unit{
                 //if I have the scum, look for a place to dispose them
                 disposeOfScum();
 
-
                 // If I see an enemy, go pick them up
                 if (targetEnemy != null) {
                     pickupEnemy();
