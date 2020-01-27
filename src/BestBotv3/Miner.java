@@ -196,7 +196,7 @@ public class Miner extends Unit {
                 }
             }
         } else if (designSchoolLocations.size() == 0) {
-            if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) < 13  && myLoc.distanceSquaredTo(hqLoc) >= 2) {
+            if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost + 5 && myLoc.distanceSquaredTo(hqLoc) < 13  && myLoc.distanceSquaredTo(hqLoc) >= 2) {
                 // System.out.println("No design schools yet, gotta build one");
                 if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
                     // System.out.println("built school");
@@ -235,17 +235,19 @@ public class Miner extends Unit {
     }
 
     void buildAVaporatorUpHigh() throws GameActionException {
-        int locX = myLoc.x - 1;
-        int locY = myLoc.y - 1;
+        int locX;
+        int locY;
         MapLocation checkThisMapLoc = myLoc;
 
         for (int i = 0; i <= 2; i++) {
-            locX += i;
+            locX = myLoc.x - 1 + i;
+            locY = myLoc.y - 1;
             for (int j = 0; j <= 2; j++) {
-                locY += j;
+                locY = myLoc.y - 1 + j;
                 checkThisMapLoc = new MapLocation(locX, locY);
+                System.out.println("check " + checkThisMapLoc);
                 if (rc.onTheMap(checkThisMapLoc) && rc.canSenseLocation(checkThisMapLoc)) {
-                    if (rc.senseElevation(checkThisMapLoc) > 8 && vaporatorLocations.size() < 20) {
+                    if (rc.senseElevation(checkThisMapLoc) >= 5 && vaporatorLocations.size() < 20) {
                         if (tryBuild(RobotType.VAPORATOR, myLoc.directionTo(checkThisMapLoc))) {
                             System.out.println("build vap " + checkThisMapLoc);
                             comms.broadcastBuildingCreation(RobotType.VAPORATOR, checkThisMapLoc);
@@ -266,7 +268,7 @@ public class Miner extends Unit {
                         && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
                         && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
                     System.out.println("trybuild refinery away from hq");
-                    if (tryBuild(RobotType.REFINERY, dir)) {
+                    if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 3 && tryBuild(RobotType.REFINERY, dir)) {
                         comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                         break;
                     }
@@ -280,7 +282,7 @@ public class Miner extends Unit {
             if (myLoc.distanceSquaredTo(closestRefinery) > DISTANCESQUARED_BETWEEN_REFINERIES) {
                 for (Direction dir : Util.directions) {
                     System.out.println("trybuild refinery, far away");
-                    if (tryBuild(RobotType.REFINERY, dir)) {
+                    if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 3 && tryBuild(RobotType.REFINERY, dir)) {
                         comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
                         break;
                     }

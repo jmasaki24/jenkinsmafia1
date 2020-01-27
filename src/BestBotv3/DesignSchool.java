@@ -22,12 +22,18 @@ public class DesignSchool extends Building {
 
         comms.updateBuildingLocations();
 
+        int buildLandscaperSoupLimit = RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost + 5;
+
+        // once we build a landscaper miners won't use hq as a refinery, so we should make sure we enough soup
+        //      to make a refinery once we make a landscaper. after that it's all good.
+        // + 5 is for broadcast stuff.
         if (Unit.refineryLocations.size() >= 1) {
-            System.out.println("two+ refineries");
+            System.out.println("one+ refineries");
+            buildLandscaperSoupLimit = RobotType.LANDSCAPER.cost + 5;
         }
 
         if (numLandscapers < 8){
-            if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){
+            if (rc.getTeamSoup() > buildLandscaperSoupLimit){
                 for (Direction dir : Util.directions) {
                     if (tryBuild(RobotType.LANDSCAPER, dir)){
                         numLandscapers++;
