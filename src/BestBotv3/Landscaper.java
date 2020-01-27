@@ -23,7 +23,7 @@ public class Landscaper extends Unit {
             Direction rand = Util.randomDirection();
             if (myLoc.add(rand).distanceSquaredTo(hqLoc) < 3){ //Only move in directions where you end up on the wall
                 System.out.println("Moving Random within distance of hq" + myLoc.add(rand).distanceSquaredTo(hqLoc));
-                nav.tryMove(rand);
+                randMoveIfNoDesignSchool(rand);
             }
         } else {
             System.out.println("Can't see hq");
@@ -60,6 +60,30 @@ public class Landscaper extends Unit {
 }
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
+
+    void randMoveIfNoDesignSchool(Direction rand) throws GameActionException {
+        RobotInfo[] nearbyRobots = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
+        boolean isThereADesignSchool = false;
+        int numLandscapersNearby = 0;
+        for (RobotInfo robot : nearbyRobots) {
+            if (robot.type.equals(RobotType.LANDSCAPER)) {
+                numLandscapersNearby++;
+            } else if (robot.type.equals(RobotType.DESIGN_SCHOOL)) {
+                isThereADesignSchool = true;
+                break;
+            }
+        }
+
+        // don't move so often!!! causes slower build -jm
+        if (Math.random() < 0.6) {
+            nav.tryMove(rand);
+        }
+
+//        if (isThereADesignSchool && numLandscapersNearby > 5) {
+//            System.out.println("i want to move!!");
+//            nav.tryMove(rand);
+//        }
+    }
 
     boolean DontDigTheWall() throws GameActionException {
         Direction randomDir = Util.randomDirection();
