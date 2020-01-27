@@ -2,15 +2,19 @@ package BestBotv3;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 public class Landscaper extends Unit {
 
     public Landscaper(RobotController r) {
         super(r);
     }
 
+    //Vars
+    MapLocation bestPlaceToBuildWall;
+
     public void takeTurn() throws GameActionException {
         super.takeTurn();
-
 
         // System.out.println(myLoc.x + " " + myLoc.y);
         if(rc.onTheMap(hqLoc)){
@@ -35,7 +39,6 @@ public class Landscaper extends Unit {
         }
 
         //DONT HAVE TO WAIT TO BUILD
-
         for (int i = 0; i < 8; i++){ //8 times per turn
             bestPlaceToBuildWall = null;
             // find best place to build
@@ -54,7 +57,7 @@ public class Landscaper extends Unit {
 //         otherwise try to get to the hq
 
 
-}
+    }
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
@@ -70,7 +73,6 @@ public class Landscaper extends Unit {
                 break;
             }
         }
-
 
         // don't move so often!!! causes slower build -jm
         if (Math.random() < 0.6) {
@@ -96,4 +98,21 @@ public class Landscaper extends Unit {
         }
         return false;
     }
+
+    void findBestPlaceToBuild() throws GameActionException {
+        if (hqLoc != null) {
+            int lowestElevation = 9999999;
+            for (Direction dir : Util.directions) {
+                MapLocation tileToCheck = hqLoc.add(dir);
+                if (myLoc.distanceSquaredTo(tileToCheck) < 2
+                        && rc.canDepositDirt(myLoc.directionTo(tileToCheck))) {
+                    if (rc.senseElevation(tileToCheck) < lowestElevation) {
+                        lowestElevation = rc.senseElevation(tileToCheck);
+                        bestPlaceToBuildWall = tileToCheck;
+                    }
+                }
+            }
+        }
+    }
 }
+
