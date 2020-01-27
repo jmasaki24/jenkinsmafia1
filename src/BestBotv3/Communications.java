@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class Communications {
     RobotController rc;
 
-    final int teamSecret = 13371337;
+    final int teamSecret = 444444444;
 
     final int HQID = 982;
     final int EHQID = 382;
@@ -62,7 +62,7 @@ public class Communications {
             for(Transaction tx : rc.getBlock(i)) {
                 int[] mess = tx.getMessage();
                 if(mess[0] == teamSecret && mess[1] == HQID){
-                     System.out.println("found hqLoc in chain");
+                    System.out.println("found hqLoc in chain");
                     return new MapLocation(mess[2], mess[3]);
                 }
             }
@@ -90,8 +90,8 @@ public class Communications {
         message[1] = ATTACKERID;
         message[2] = AttackerID; // ID of attacking bot
         message[3] = directionToNumber(dir); // direction number
-        if (rc.canSubmitTransaction(message, 3)) {
-            rc.submitTransaction(message, 3);
+        if (rc.canSubmitTransaction(message, 1)) {
+            rc.submitTransaction(message, 1);
         }
     }
     public void updateAttackerDir(ArrayList<Direction> enemyDir) throws GameActionException {
@@ -109,7 +109,7 @@ public class Communications {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == ATTACKERID){
-                 System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
+                System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
                 enemyDir.add(numberToDirection(mess[3]));
             }
         }
@@ -154,7 +154,6 @@ public class Communications {
         message[1] = WATERID;
         message[2] = loc.x; // x coord of HQ
         message[3] = loc.y; // y coord of HQ
-
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
             // System.out.println("new water!" + loc);
@@ -300,7 +299,6 @@ public class Communications {
             if (mess[0] == teamSecret && BuildingIDs.contains(mess[1])) {
                 // System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
-
                     case HQID:  // bruh findHQ is in Unit
                         break;
                     case EHQID:
