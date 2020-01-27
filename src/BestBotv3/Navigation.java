@@ -14,15 +14,16 @@ public class Navigation {
         rc = r;
     }
     
-    /**
-     * Attempts to move in a given direction.
-     *
-     * @param dir The intended direction of movement
-     * @return true if a move was performed
-     * @throws GameActionException
-     */
+    //Attempts to move in a given direction
     boolean tryMove(Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir)) && isOnMap(dir)) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
+    boolean tryFly(Direction dir) throws GameActionException {
+        if (rc.isReady() && rc.canMove(dir) && isOnMap(dir)) {
             rc.move(dir);
             return true;
         } else return false;
@@ -62,8 +63,38 @@ public class Navigation {
         return false;
     }
 
+    //Is a copy of goTo that ignores water
+    boolean flyTo(Direction dir) throws GameActionException {
+
+        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                dir.opposite(),
+        };
+
+        Direction moveToward = fuzzyNavDirectionsInOrder[0];
+        for (int i = 0; i < 8; i ++) {
+            moveToward = fuzzyNavDirectionsInOrder[i];
+            if (tryFly(moveToward)) {
+                return true;
+            }
+        }
+//
+//        for (Direction d : toTry){
+//            if(tryMove(d))
+//                return true;
+//        }
+        return false;
+    }
+
     // navigate towards a particular location
     boolean goTo(MapLocation destination) throws GameActionException {
         return goTo(rc.getLocation().directionTo(destination));
+    }
+
+    // still a copy of goTo but for flying
+    boolean flyTo(MapLocation destination) throws GameActionException {
+        return flyTo(rc.getLocation().directionTo(destination));
     }
 }

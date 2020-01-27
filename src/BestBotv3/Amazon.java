@@ -19,7 +19,20 @@ public class Amazon extends Building {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-        if (numDrones < 1) {
+        if (turnCount == 1) {
+            // I would love to do this, but instead we're just gonna broadcast from Miner atm. -jm
+//            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
+        }
+
+        if (numDrones < 2 && rc.getTeamSoup() > RobotType.REFINERY.cost) {
+            for (Direction dir : Util.directions) {
+                if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
+                    numDrones++;
+                }
+            }
+        }
+
+        if (rc.getTeamSoup() > ARBITRARY_SOUP_NUMBER_LMAO) {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;

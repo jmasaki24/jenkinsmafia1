@@ -8,6 +8,7 @@ public class Robot {
     RobotController rc;
     Communications comms;
     Navigation nav;
+    final int ARBITRARY_SOUP_NUMBER_LMAO = 750;
 
     int turnCount = 0;
     MapLocation myLoc;
@@ -22,7 +23,7 @@ public class Robot {
     public void takeTurn() throws GameActionException {
         turnCount += 1;
         myLoc = rc.getLocation();
-        comms.updateBuildingLocations();
+//        comms.updateBuildingLocations();
     }
 
     // THIS METHOD REQUIRES THAT THE ROBOT CAN SEE ALL TILES ADJACENT TO SOUP!!!!!!!!!!!!!!!!!!!!!!!!!!
