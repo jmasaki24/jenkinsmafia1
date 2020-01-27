@@ -24,7 +24,7 @@ public class Amazon extends Building {
 //            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
         }
 
-        if (numDrones < 2 && rc.getTeamSoup() > RobotType.REFINERY.cost) {
+        if ((numDrones < 2 && rc.getTeamSoup() > RobotType.DELIVERY_DRONE.cost) || rc.getTeamSoup() > (RobotType.DELIVERY_DRONE.cost + RobotType.REFINERY.cost + 30)) {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;

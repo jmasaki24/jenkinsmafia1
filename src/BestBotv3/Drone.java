@@ -30,89 +30,108 @@ public class Drone extends Unit{
         super(r);
     }
 
+    boolean onStrike = false;
     boolean onMission = false;
     boolean onHelpMission = false;
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
-
     boolean findANewBot = false;
+    boolean iBroadcastedWaterLoc = false;
 
 
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
+        onStrike = rc.getRoundNum() > 1447;
 
         // Water Locations isnt updated right now
-        // comms.updateWaterLocations(waterLocation);
-
-        // goToEHQ works, but first we need a defensive drone.
-        // gotoEHQ();
-
-        // Enemy Detection
-        RobotInfo[] nearbyEnemies = getNearbyEnemies();
-
-        //Landscaper Detection
-        RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
-
-        // Setting Standby Location
-
-        if (standbyLocation == null) {
-            if (hqLoc != null){
-                standbyLocation = hqLoc;
-            }
-        }
-
-        //State your Mission:
-        if (onMission){
-            System.out.println("I am getting rid of the enemy!");
-        }
-        if (onHelpMission){
-            System.out.println("I'm helping to build the wall!");
-        }
-
-        // If my task is to remove the enemy
-        if (onMission){
-            if (hqLoc != null){
-                //if I have the scum, look for a place to dispose them
-                disposeOfScum();
-
-
-                // If I see an enemy, go pick them up
-                if (targetEnemy != null) {
-                    pickupEnemy();
-                }
-                // HQ has seen an enemy bot
-                else if (enemyDir.size() != 0){
-                    nav.flyTo(hqLoc.add(enemyDir.get(0))); // Goes to enemies
+        if (!iBroadcastedWaterLoc) {
+            for (Direction dir : Util.directions) {
+                if (rc.canSenseLocation(myLoc.add(dir))) {
+                    if (rc.senseFlooding(myLoc.add(dir))) {
+                        comms.broadcastWaterLocation(myLoc.add(dir));
+                        iBroadcastedWaterLoc = true;
+                    }
                 }
             }
         }
 
-        //If I'm helping landscapers:
-        else if (onHelpMission){
-
-            // If drone is holding friendly landscaper, put him back on the wall
-            if (rc.isCurrentlyHoldingUnit()){
-                getLandscaperToWall();
+        //If we can swarm
+        if (onStrike){
+            System.out.println("Going to EHQ");
+            goToEHQ();
+            getNearbyEnemies();
+            if (targetEnemy != null){
+                pickupEnemy();
             }
+            disposeOfScum();
+        } else{
+            // Enemy Detection
+            RobotInfo[] nearbyEnemies = getNearbyEnemies();
 
-            //If I see a landscaper not on the wall, pick him up
-            if (targetLandscaper != null){
-                pickupTargetLandscaper();
-            }
+            //Landscaper Detection
+            RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
-            //If HQ sees a landscaper, go to help it
-            else if (helpDir != null){
-                if (helpDir.size() != 0){
-                    nav.flyTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
+            // Setting Standby Location
+
+            if (standbyLocation == null) {
+                if (hqLoc != null){
+                    standbyLocation = hqLoc;
                 }
             }
-        }
-        else {
-            // Standby if we are not on a mission
-            if (standbyLocation != null) {
-                nav.flyTo(standbyLocation);
+
+            //State your Mission:
+            if (onMission){
+                System.out.println("I am getting rid of the enemy!");
+            }
+            if (onHelpMission){
+                System.out.println("I'm helping to build the wall!");
+            }
+
+            // If my task is to remove the enemy
+            if (onMission){
+                if (hqLoc != null){
+                    //if I have the scum, look for a place to dispose them
+                    disposeOfScum();
+
+
+                    // If I see an enemy, go pick them up
+                    if (targetEnemy != null) {
+                        pickupEnemy();
+                    }
+                    // HQ has seen an enemy bot
+                    else if (enemyDir.size() != 0){
+                        nav.flyTo(hqLoc.add(enemyDir.get(0))); // Goes to enemies
+                    }
+                }
+            }
+
+            //If I'm helping landscapers:
+            else if (onHelpMission){
+
+                // If drone is holding friendly landscaper, put him back on the wall
+                if (rc.isCurrentlyHoldingUnit()){
+                    getLandscaperToWall();
+                }
+
+                //If I see a landscaper not on the wall, pick him up
+                if (targetLandscaper != null){
+                    pickupTargetLandscaper();
+                }
+
+                //If HQ sees a landscaper, go to help it
+                else if (helpDir != null){
+                    if (helpDir.size() != 0){
+                        nav.flyTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
+                    }
+                }
+            }
+            else {
+                // Standby if we are not on a mission
+                if (standbyLocation != null) {
+                    nav.flyTo(standbyLocation);
+                }
             }
         }
     }
@@ -132,37 +151,32 @@ public class Drone extends Unit{
 
         //Mark the potential loc with dots
         for (MapLocation loc: potentialHQ){
-            rc.setIndicatorDot(loc,0,200,200);
+            rc.setIndicatorDot(loc,200,200,200);
         }
 
-        //If we are a drone with an even robot id (random number... gets called ~50% of the time) -cam
-        if (rc.getID()%2 == 0){ //Essentially makes half the drones swarm and half not
-            //if I do swarm
-
-            //Find the enemy hq
-            if(EHqLoc.x > 0 || EHqLoc.y > 0){
-                // System.out.println("Found ENEMY HQ");
-                if (myLoc.distanceSquaredTo(EHqLoc) > 5){
-                    // System.out.println("Going to ENEMY HQ:" + EHqLoc);
-                    nav.tryFly(myLoc.directionTo(EHqLoc));
-                } else{
-                    // System.out.println("Standing my gound at ENEMY HQ");
-                    for (Direction dir: Util.directions){
-                        tryBuild(RobotType.NET_GUN,dir);
-                    }
-                    shouldMove = false;
-                }
-            }
-
-            if(myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > 5){
-                // System.out.println("Going to a potential HQ:" + potentialHQ);
-                if(shouldMove)
-                    nav.tryFly(myLoc.directionTo(potentialHQ[hqToCheck]));
-                rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
+        //Find the enemy hq
+        if(EHqLoc.x > 0 || EHqLoc.y > 0){
+            // System.out.println("Found ENEMY HQ");
+            if (myLoc.distanceSquaredTo(EHqLoc) > 5){
+                // System.out.println("Going to ENEMY HQ:" + EHqLoc);
+                nav.swarm(myLoc.directionTo(EHqLoc),myLoc,EHqLoc);
             } else{
-                // System.out.println("Nothing Here at potential HQ:" + potentialHQ);
-                hqToCheck += 1;
+                // System.out.println("Standing my gound at ENEMY HQ");
+                for (Direction dir: Util.directions){
+                    tryBuild(RobotType.NET_GUN,dir);
+                }
+                shouldMove = false;
             }
+        }
+
+        if(myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > 5){
+            // System.out.println("Going to a potential HQ:" + potentialHQ);
+            if(shouldMove)
+                nav.swarm(myLoc.directionTo(potentialHQ[hqToCheck]),myLoc,potentialHQ[hqToCheck]);
+            rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
+        } else{
+            // System.out.println("Nothing Here at potential HQ:" + potentialHQ);
+            hqToCheck += 1;
         }
 
     }

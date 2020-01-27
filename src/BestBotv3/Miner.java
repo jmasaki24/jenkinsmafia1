@@ -335,7 +335,6 @@ public class Miner extends Unit {
         // System.out.println("Trying to go: " + rc.getLocation().directionTo(nextPlace));
         if (nextPlace != rc.getLocation()) {
             minerGoTo(rc.getLocation().directionTo(nextPlace));
-
         } else {
             minerGoTo(Util.randomDirection());
         }

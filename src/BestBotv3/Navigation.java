@@ -1,9 +1,6 @@
 package BestBotv3;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public class Navigation {
     RobotController rc;
@@ -65,7 +62,6 @@ public class Navigation {
 
     //Is a copy of goTo that ignores water
     boolean flyTo(Direction dir) throws GameActionException {
-
         // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
         Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
                 dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
@@ -85,6 +81,36 @@ public class Navigation {
 //            if(tryMove(d))
 //                return true;
 //        }
+        return false;
+    }
+
+    boolean swarm(Direction dir, MapLocation myLoc, MapLocation eHQ) throws GameActionException {
+        if (myLoc.add(dir).distanceSquaredTo(eHQ) > RobotType.NET_GUN.sensorRadiusSquared){
+
+            // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+            Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+                    dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                    dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                    dir.opposite(),
+            };
+
+            Direction moveToward = fuzzyNavDirectionsInOrder[0];
+            for (int i = 0; i < 8; i ++) {
+                moveToward = fuzzyNavDirectionsInOrder[i];
+                if (tryFly(moveToward)) {
+                    return true;
+                }
+            }
+//
+//        for (Direction d : toTry){
+//            if(tryMove(d))
+//                return true;
+//        }
+        } else {
+            if (rc.getRoundNum() % 300 < 6){ //Charge for 6 turns every 300 turns
+                tryFly(myLoc.directionTo(eHQ));
+            }
+        }
         return false;
     }
 
