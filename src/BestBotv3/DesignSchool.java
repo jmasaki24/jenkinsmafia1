@@ -6,7 +6,6 @@ import battlecode.common.*;
 
 public class DesignSchool extends Building {
     private static MapLocation hqLoc;
-
     private final int landscaperLimit = 9;
     private int numLandscapers = 0;
 
@@ -20,7 +19,6 @@ public class DesignSchool extends Building {
             // this happens in Miner.java instead. wasn't working here.
 //            comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc);
         }
-
 
         if (numLandscapers < 8){
             if (rc.getTeamSoup() > RobotType.LANDSCAPER.cost + RobotType.REFINERY.cost){
