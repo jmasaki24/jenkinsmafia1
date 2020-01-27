@@ -14,7 +14,6 @@ import java.util.Map;
  */
 
 public class HQ extends Shooter {
-
     //HQ variables
     public int numMiners = 0;
     public final int MINER_LIMIT = 4;
@@ -91,7 +90,6 @@ public class HQ extends Shooter {
         }
 
 
-
 //        if (!seeDesignSchool) {
 //            if (rc.getTeamSoup() > RobotType.DESIGN_SCHOOL.cost + RobotType.MINER.cost) {
 //                tryBuild(RobotType.MINER, Direction.SOUTHWEST);
@@ -100,7 +98,6 @@ public class HQ extends Shooter {
 //        if (seeDesignSchool && rc.getRoundNum() > 300){
 //            for (Direction dir: Util.directions){
 //                tryBuild(RobotType.MINER,Util.randomDirection());
-//                numMiners++;
 //            }
 //        }
     }
