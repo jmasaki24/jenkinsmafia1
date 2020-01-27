@@ -297,22 +297,22 @@ public class Miner extends Unit {
 
     public void minerGoToNearestSoup() throws GameActionException {
 
-        public void goToNearestSoup () throws GameActionException {
-            MapLocation nearestSoupLoc = findClosestSoup();
+        MapLocation nearestSoupLoc = findClosestSoup();
 
-            // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible
-            // if a tile adjacent to soup is not flooded, it is accessible
-            // if we can see around soupLoc, check if accessible
+        // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible
+        // if a tile adjacent to soup is not flooded, it is accessible
+        // if we can see around soupLoc, check if accessible
 //        if (myLoc.distanceSquaredTo(nearestSoupLoc) < 20) {
 //            while(!isSoupAccessible(nearestSoupLoc)) {
 //                nearestSoupLoc = findClosestSoup();
 //            }
 //        }
-            // System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
+        // System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
 
-            rc.setIndicatorLine(myLoc, nearestSoupLoc, 255, 0, 255);
-            nav.goTo(nearestSoupLoc);
-        }
+        rc.setIndicatorLine(rc.getLocation(), nearestSoupLoc, 255, 0, 255);
+        minerGoTo(nearestSoupLoc);
+
+    }
 
         public void searchForSoup () throws GameActionException {
 
