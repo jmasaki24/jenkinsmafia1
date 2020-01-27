@@ -19,7 +19,6 @@ public class Amazon extends Building {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
-
         if (turnCount == 1) {
             // I would love to do this, but instead we're just gonna broadcast from Miner atm. -jm
 //            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
