@@ -46,6 +46,7 @@ public class Drone extends Unit{
     boolean findANewBootBot = false;
 
 
+
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
@@ -63,11 +64,11 @@ public class Drone extends Unit{
             }
         }
 
+
         //If we can swarm
         if (onStrike){
             System.out.println("Going to EHQ");
             goToEHQ();
-            getNearbyEnemies();
             if (targetEnemy != null){
                 pickupEnemy();
             }
@@ -75,12 +76,6 @@ public class Drone extends Unit{
         } else{
             // Enemy Detection
             RobotInfo[] nearbyEnemies = getNearbyEnemies();
-            getNearbyBootMiners();
-
-            else if (onBootMission){
-                System.out.println("I am on a BOOT mission");
-            }
-
 
             //Landscaper Detection
             RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
