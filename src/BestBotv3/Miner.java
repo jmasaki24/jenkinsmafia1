@@ -212,16 +212,15 @@ public class Miner extends Unit {
 
     void tryDepositAndMineAllDirections() throws GameActionException {
         // TODO: 1/26/2020 Which do we want to use? Limit*0.8 or limit-7 -mz
-        if (rc.getSoupCarrying() > 0.8 * RobotType.MINER.soupLimit) {
-            if (rc.getSoupCarrying() >= RobotType.MINER.soupLimit - 7) {
-                for (Direction dir : Util.directions) {
-                    if (rc.canDepositSoup(dir)) {
-                        rc.depositSoup(dir, rc.getSoupCarrying());
-                        // System.out.println("Deposited soup into refinery");
-                    }
+        if (rc.getSoupCarrying() >= RobotType.MINER.soupLimit - 7) {
+            for (Direction dir : Util.directions) {
+                if (rc.canDepositSoup(dir)) {
+                    rc.depositSoup(dir, rc.getSoupCarrying());
+                    // System.out.println("Deposited soup into refinery");
                 }
             }
         }
+
         // then, try to mine soup in all directions
         for (Direction dir : Util.directions) {
             if (tryMine(dir)) {
