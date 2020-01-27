@@ -50,7 +50,10 @@ public class Drone extends Unit{
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
-        onStrike = rc.getRoundNum() > 1447;
+        comms.updateWaterLocations(waterLocation);
+        comms.updateBuildingLocations();
+        // Commented out below to make it never go on a strike.
+        //onStrike = rc.getRoundNum() > 1447;
 
         // Water Locations isnt updated right now
         if (!iBroadcastedWaterLoc) {
@@ -74,7 +77,12 @@ public class Drone extends Unit{
                 pickupEnemy();
             }
             disposeOfScum();
-        } else{
+        }
+        else if (blockBuilt.size() != 0){
+             formABlock();
+             System.out.println("Forming a block");
+        }
+        else{
             // Enemy Detection
             RobotInfo[] nearbyEnemies = getNearbyEnemies();
 
@@ -153,10 +161,14 @@ public class Drone extends Unit{
               }
 
 
-            else {
+            else if (blockBuilt.size() != 0){
+                System.out.println("Forming a block");
+            }
+           else {
                 // Standby if we are not on a mission
                 if (standbyLocation != null) {
                     nav.flyTo(standbyLocation);
+                    System.out.println("Standing by");
                 }
             }
         }
@@ -377,4 +389,22 @@ public class Drone extends Unit{
          System.out.println("I'm going to the boot bot");
      }
    }
+    public void formABlock() throws GameActionException{
+        if (myLoc.distanceSquaredTo(hqLoc) == 8) {
+            for (Direction dir : Direction.cardinalDirections()){
+                if (myLoc.add(dir).distanceSquaredTo(hqLoc) < 8){
+                    nav.tryFly(dir);
+                } else{
+                    System.out.println("I am blocking");
+                }
+            }
+        } else if (myLoc.distanceSquaredTo(hqLoc) > 7) {
+            nav.flyTo(hqLoc);
+        } else if (myLoc.distanceSquaredTo(hqLoc) < 4){
+            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+        }  else {
+            System.out.println("I am blocking");
+        }
+
+    }
 }

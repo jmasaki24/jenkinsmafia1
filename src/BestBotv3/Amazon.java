@@ -1,9 +1,8 @@
 package BestBotv3;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
+
+import java.util.ArrayList;
 
 //Todo: set a hard limit of landscapers to make
 //Todo: Create Broadcast Design School Creation
@@ -24,6 +23,10 @@ public class Amazon extends Building {
 //            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
         }
 
+        if (numDrones >= 12){
+            comms.broadcastBuildingCreation(RobotType.COW, myLoc);
+            System.out.println("Block!");
+        }
         if ((numDrones < 2 && rc.getTeamSoup() > RobotType.DELIVERY_DRONE.cost) || rc.getTeamSoup() > (RobotType.DELIVERY_DRONE.cost + RobotType.REFINERY.cost + 30)) {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {

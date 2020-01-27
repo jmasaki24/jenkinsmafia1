@@ -16,6 +16,8 @@ public class Unit extends Robot {
     public static ArrayList<MapLocation> designSchoolLocations = new ArrayList<>();
     public static ArrayList<MapLocation> refineryLocations = new ArrayList<>();
     public static ArrayList<MapLocation> vaporatorLocations = new ArrayList<>();
+    public static ArrayList<MapLocation> blockBuilt = new ArrayList<>();
+
 
 
 

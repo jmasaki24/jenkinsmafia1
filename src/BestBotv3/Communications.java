@@ -18,8 +18,9 @@ public class Communications {
     final int DESIGNSCHOOLID = 202;
     final int REFINERYID = 303;
     final int VAPORATORID = 404;
+    final int BLOCKID = 1;
 
-    final ArrayList<Integer> BuildingIDs = new ArrayList<Integer>(Arrays.asList(HQID,EHQID,AMAZONID,DESIGNSCHOOLID,REFINERYID,VAPORATORID));
+    final ArrayList<Integer> BuildingIDs = new ArrayList<Integer>(Arrays.asList(HQID,EHQID,AMAZONID,DESIGNSCHOOLID,REFINERYID,VAPORATORID, BLOCKID));
 
     final int SOUPID = 312;
     final int WATERID = 820;
@@ -224,7 +225,7 @@ public class Communications {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
-            // case COW:                     SENTID = 1;                break;
+            case COW:                        SENTID = BLOCKID;                break;
             // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
@@ -252,7 +253,7 @@ public class Communications {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
-            // case COW:                     SENTID = 1;                break;
+            case COW:                        SENTID = 1;                break;
             // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
@@ -316,6 +317,8 @@ public class Communications {
                     case VAPORATORID:
                         buildingLocations = Unit.vaporatorLocations;
                         break;
+                    case BLOCKID:
+                        buildingLocations = Unit.blockBuilt;
                     default:
                         break;
                 }
@@ -323,9 +326,9 @@ public class Communications {
                 if (buildingLocations != null){
                     if (!buildingLocations.contains(new MapLocation(mess[2], mess[3]))) {
                         buildingLocations.add(new MapLocation(mess[2], mess[3]));
-                        // System.out.println("New building. Type: " + mess[1] + ".");
+                         System.out.println("New building. Type: " + mess[1] + ".");
                     } else {
-                        // System.out.println("Already seen this building. Type " + mess[1]);
+                         System.out.println("Already seen this building. Type " + mess[1]);
                     }
                 }
 

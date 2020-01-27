@@ -200,15 +200,15 @@ public class Miner extends Unit {
                 }
             }
         } else if (designSchoolLocations.size() == 0) {
-            if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost && myLoc.distanceSquaredTo(hqLoc) < 13  && myLoc.distanceSquaredTo(hqLoc) >= 2) {
-                // System.out.println("No design schools yet, gotta build one");
+            if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost + 5 && myLoc.distanceSquaredTo(hqLoc) < 13  && myLoc.distanceSquaredTo(hqLoc) >= 2) {
+                System.out.println("No design schools yet, gotta build one");
                 if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
 
-                    // System.out.println("built school");
+                    System.out.println("built school");
                     comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             } else {
-                // System.out.println("There are no design schools, but we dont have enough money to make one");
+                 System.out.println("There are no design schools, but we dont have enough money to make one");
             }
         } else {
             // funcAfterBuildSchool();
