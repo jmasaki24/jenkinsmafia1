@@ -39,20 +39,19 @@ public class Landscaper extends Unit {
         }
 
         //DONT HAVE TO WAIT TO BUILD
-        if (turnCount > 0) {
-            for (int i = 0; i < 8; i++){ //8 times per turn
-                bestPlaceToBuildWall = null;
-                // find best place to build
-                findBestPlaceToBuild();
+        for (int i = 0; i < 8; i++){ //8 times per turn
+            bestPlaceToBuildWall = null;
+            // find best place to build
+            findBestPlaceToBuild();
 
-                // build the wall
-                if (bestPlaceToBuildWall != null) {
-                    rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
-                    rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
-                    // System.out.println("building a wall");
-                }
+            // build the wall
+            if (bestPlaceToBuildWall != null) {
+                rc.depositDirt(myLoc.directionTo(bestPlaceToBuildWall));
+                rc.setIndicatorDot(bestPlaceToBuildWall, 0, 255, 0);
+                // System.out.println("building a wall");
             }
         }
+
 
         System.out.print(hqLoc);
 //         otherwise try to get to the hq
