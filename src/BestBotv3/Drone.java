@@ -349,14 +349,14 @@ public class Drone extends Unit{
                   onBootMission = false;
                   bootDir = null;
                   findANewBootBot = true;
-                  nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+                  nav.flyTo(myLoc.directionTo(hqLoc).opposite());
                   System.out.println("I dropped our booted miner somewhere!");
                   targetBootBot = null;
 
 
               }
           } else {
-              nav.droneGoTo(myLoc.directionTo(hqLoc).opposite());
+              nav.flyTo(myLoc.directionTo(hqLoc).opposite());
           }
       }
     }
@@ -373,7 +373,7 @@ public class Drone extends Unit{
      }
      // I'm not there yet
      else {
-         nav.droneGoTo(targetBootBot.location);
+         nav.flyTo(targetBootBot.location);
          System.out.println("I'm going to the boot bot");
      }
    }

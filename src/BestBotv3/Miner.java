@@ -297,238 +297,237 @@ public class Miner extends Unit {
 
     public void minerGoToNearestSoup() throws GameActionException {
 
-    public void goToNearestSoup() throws GameActionException {
-        MapLocation nearestSoupLoc = findClosestSoup();
+        public void goToNearestSoup () throws GameActionException {
+            MapLocation nearestSoupLoc = findClosestSoup();
 
-        // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible
-        // if a tile adjacent to soup is not flooded, it is accessible
-        // if we can see around soupLoc, check if accessible
+            // TODO: 1/20/2020 make miner sense soup, and add to soupLocations if said sensed soup is accessible
+            // if a tile adjacent to soup is not flooded, it is accessible
+            // if we can see around soupLoc, check if accessible
 //        if (myLoc.distanceSquaredTo(nearestSoupLoc) < 20) {
 //            while(!isSoupAccessible(nearestSoupLoc)) {
 //                nearestSoupLoc = findClosestSoup();
 //            }
 //        }
-        // System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
+            // System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
 
-        rc.setIndicatorLine(myLoc, nearestSoupLoc, 255, 0, 255);
-        nav.goTo(nearestSoupLoc);
-    }
+            rc.setIndicatorLine(myLoc, nearestSoupLoc, 255, 0, 255);
+            nav.goTo(nearestSoupLoc);
+        }
 
-    public void searchForSoup() throws GameActionException {
+        public void searchForSoup () throws GameActionException {
 
-        MapLocation[] nearbySoup = rc.senseNearbySoup();
-        if (nearbySoup.length > 0) {
-            MapLocation closestSoup = nearbySoup[0];
-            for (MapLocation soupLoc : nearbySoup) {
-                if (myLoc.distanceSquaredTo(soupLoc) < myLoc.distanceSquaredTo(closestSoup)) {
-                    closestSoup = soupLoc;
+            MapLocation[] nearbySoup = rc.senseNearbySoup();
+            if (nearbySoup.length > 0) {
+                MapLocation closestSoup = nearbySoup[0];
+                for (MapLocation soupLoc : nearbySoup) {
+                    if (myLoc.distanceSquaredTo(soupLoc) < myLoc.distanceSquaredTo(closestSoup)) {
+                        closestSoup = soupLoc;
+                    }
+                }
+                minerGoTo(closestSoup);
+            }
+
+            // System.out.println("I'm searching for soup, moving away from other miners");
+            RobotInfo[] robots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
+            MapLocation nextPlace = myLoc;
+            for (RobotInfo robot : robots) {
+                if (robot.type == RobotType.MINER) {
+                    nextPlace = nextPlace.add(myLoc.directionTo(robot.location).opposite());
                 }
             }
-            minerGoTo(closestSoup);
-        }
+            if (robots.length == 0) {
+                nextPlace.add(Util.randomDirection());
+            }
 
-        // System.out.println("I'm searching for soup, moving away from other miners");
-        RobotInfo[] robots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
-        MapLocation nextPlace = myLoc;
-        for (RobotInfo robot : robots) {
-            if (robot.type == RobotType.MINER) {
-                nextPlace = nextPlace.add(myLoc.directionTo(robot.location).opposite());
+            // System.out.println("Trying to go: " + rc.getLocation().directionTo(nextPlace));
+            if (nextPlace != rc.getLocation()) {
+                minerGoTo(rc.getLocation().directionTo(nextPlace));
+            } else {
+                nav.goTo(Util.randomDirection());
             }
         }
-        if (robots.length == 0) {
-            nextPlace.add(Util.randomDirection());
-        }
 
-        // System.out.println("Trying to go: " + rc.getLocation().directionTo(nextPlace));
-        if (nextPlace != rc.getLocation()) {
-            minerGoTo(rc.getLocation().directionTo(nextPlace));
-        } else {
-            nav.goTo(Util.randomDirection());
-        }
-    }
-
-    // ------------------------------------------------------------------------------------------------------------ //
-    // ----------------------------------------- HELPER METHODS --------------------------------------------------- //
+        // ------------------------------------------------------------------------------------------------------------ //
+        // ----------------------------------------- HELPER METHODS --------------------------------------------------- //
 
 
-    // MAKE SURE SOUPLOCATIONS.SIZE > 0 WHEN USING THIS METHOD
-    public MapLocation findClosestSoup() throws GameActionException {
-        MapLocation nearestSoupLoc = soupLocations.get(0);
+        // MAKE SURE SOUPLOCATIONS.SIZE > 0 WHEN USING THIS METHOD
+        public MapLocation findClosestSoup () throws GameActionException {
+            MapLocation nearestSoupLoc = soupLocations.get(0);
 
-        // Find Closest Soup Location if theres more than 1
-        if (soupLocations.size() > 0) { // This might be fixed because intelij thinks that its always greater than 0, not really sure. - Matt 1/21
-            for (MapLocation loc : soupLocations) {
-                if (myLoc.distanceSquaredTo(loc) < myLoc.distanceSquaredTo(nearestSoupLoc)) {
-                    nearestSoupLoc = loc;
+            // Find Closest Soup Location if theres more than 1
+            if (soupLocations.size() > 0) { // This might be fixed because intelij thinks that its always greater than 0, not really sure. - Matt 1/21
+                for (MapLocation loc : soupLocations) {
+                    if (myLoc.distanceSquaredTo(loc) < myLoc.distanceSquaredTo(nearestSoupLoc)) {
+                        nearestSoupLoc = loc;
+                    }
                 }
             }
+            return nearestSoupLoc;
         }
-        return nearestSoupLoc;
-    }
 
-    // MAKE SURE REFINERYLOCATIONS.SIZE > 0 WHEN USING THIS METHOD
-    public MapLocation findClosestRefinery() throws GameActionException {
-        MapLocation closestRefineryLoc = refineryLocations.get(0);
+        // MAKE SURE REFINERYLOCATIONS.SIZE > 0 WHEN USING THIS METHOD
+        public MapLocation findClosestRefinery () throws GameActionException {
+            MapLocation closestRefineryLoc = refineryLocations.get(0);
 
-        //Find Closest Refinery if there's more than 1
-        if (refineryLocations.size() > 0) {
-            for (MapLocation refinery : refineryLocations) {
-                if (myLoc.distanceSquaredTo(refinery) < myLoc.distanceSquaredTo(closestRefineryLoc)) {
-                    closestRefineryLoc = refinery;
+            //Find Closest Refinery if there's more than 1
+            if (refineryLocations.size() > 0) {
+                for (MapLocation refinery : refineryLocations) {
+                    if (myLoc.distanceSquaredTo(refinery) < myLoc.distanceSquaredTo(closestRefineryLoc)) {
+                        closestRefineryLoc = refinery;
+                    }
                 }
             }
+            return closestRefineryLoc;
         }
-        return closestRefineryLoc;
-    }
 
 
-    /**
-     * Attempts to mine soup in a given direction.
-     *
-     * @param dir The intended direction of mining
-     * @return true if a move was performed
-     * @throws GameActionException
-     */
-    boolean tryMine(Direction dir) throws GameActionException {
-        if (rc.isReady() && rc.canMineSoup(dir)) {
-            rc.mineSoup(dir);
-            return true;
-        } else return false;
-    }
+        /**
+         * Attempts to mine soup in a given direction.
+         *
+         * @param dir The intended direction of mining
+         * @return true if a move was performed
+         * @throws GameActionException
+         */
+        boolean tryMine (Direction dir) throws GameActionException {
+            if (rc.isReady() && rc.canMineSoup(dir)) {
+                rc.mineSoup(dir);
+                return true;
+            } else return false;
+        }
 
-    /**
-     * Attempts to refine soup in a given direction.
-     *
-     * @param dir The intended direction of refining
-     * @return true if a move was performed
-     * @throws GameActionException
-     */
-    boolean tryRefine(Direction dir) throws GameActionException {
-        if (rc.isReady() && rc.canDepositSoup(dir)) {
-            rc.depositSoup(dir, rc.getSoupCarrying());
-            return true;
-        } else return false;
-    }
+        /**
+         * Attempts to refine soup in a given direction.
+         *
+         * @param dir The intended direction of refining
+         * @return true if a move was performed
+         * @throws GameActionException
+         */
+        boolean tryRefine (Direction dir) throws GameActionException {
+            if (rc.isReady() && rc.canDepositSoup(dir)) {
+                rc.depositSoup(dir, rc.getSoupCarrying());
+                return true;
+            } else return false;
+        }
 
-    void checkIfSoupGone(MapLocation loc) throws GameActionException {
-        if (soupLocations.size() > 0) {
+        void checkIfSoupGone (MapLocation loc) throws GameActionException {
+            if (soupLocations.size() > 0) {
 
-            // System.out.println("check soup" + loc);
+                // System.out.println("check soup" + loc);
 //            MapLocation targetSoupLoc = soupLocations.get(0);
-            if (rc.canSenseLocation(loc)
-                    && rc.senseSoup(loc) == 0) {
-                // System.out.println("soup at " + loc + "is gone");
-                soupLocations.remove(loc);
-            } /*else {
+                if (rc.canSenseLocation(loc)
+                        && rc.senseSoup(loc) == 0) {
+                    // System.out.println("soup at " + loc + "is gone");
+                    soupLocations.remove(loc);
+                } /*else {
                 if (myLoc.distanceSquaredTo(loc) < 20 *//*&& !isSoupAccessible(loc)*//*) {
                     // System.out.println("soup at " + loc + "is gone");
                     soupLocations.remove(loc);
                 }
             }*/
+            }
         }
-    }
 
-    void checkIfRefineryGone(MapLocation loc) throws GameActionException {
-        if (refineryLocations.size() > 0) {
-            if (rc.canSenseLocation(loc)) {
-                RobotInfo refinery = rc.senseRobotAtLocation(loc);
-                // NullPointerException if the only refinery gets destroyed
-                if (refinery != null && !rc.senseRobotAtLocation(loc).type.equals(RobotType.REFINERY)
-                        && !rc.senseRobotAtLocation(loc).type.equals(RobotType.HQ)) {
-                    // System.out.println("refinery at " + loc + "is gone");
-                    refineryLocations.remove(loc);
+        void checkIfRefineryGone (MapLocation loc) throws GameActionException {
+            if (refineryLocations.size() > 0) {
+                if (rc.canSenseLocation(loc)) {
+                    RobotInfo refinery = rc.senseRobotAtLocation(loc);
+                    // NullPointerException if the only refinery gets destroyed
+                    if (refinery != null && !rc.senseRobotAtLocation(loc).type.equals(RobotType.REFINERY)
+                            && !rc.senseRobotAtLocation(loc).type.equals(RobotType.HQ)) {
+                        // System.out.println("refinery at " + loc + "is gone");
+                        refineryLocations.remove(loc);
+                    }
                 }
             }
         }
-    }
 
 
-    // fuzzy nav, except it won't go to a place it has visited in the last ten rounds
-    boolean minerGoTo(Direction dir) throws GameActionException {
+        // fuzzy nav, except it won't go to a place it has visited in the last ten rounds
+        boolean minerGoTo (Direction dir) throws GameActionException {
 
-        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
-        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
-                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
-                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
-                dir.opposite(),
-        };
+            // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+            Direction[] fuzzyNavDirectionsInOrder = {dir, dir.rotateLeft(), dir.rotateRight(),
+                    dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                    dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                    dir.opposite(),
+            };
 
-        MapLocation moveTowardLocation = myLoc;
-        boolean shouldIMoveThere = true;
-        Direction moveToward = fuzzyNavDirectionsInOrder[0];
-        for (int i = 0; i < 8; i ++) {
-            moveToward = fuzzyNavDirectionsInOrder[i];
-            moveTowardLocation = myLoc.add(moveToward);
+            MapLocation moveTowardLocation = myLoc;
+            boolean shouldIMoveThere = true;
+            Direction moveToward = fuzzyNavDirectionsInOrder[0];
+            for (int i = 0; i < 8; i++) {
+                moveToward = fuzzyNavDirectionsInOrder[i];
+                moveTowardLocation = myLoc.add(moveToward);
 
-            for (int j = 0; j < recentlyVisitedLocations.length; j++) {
-                if (moveTowardLocation.equals(recentlyVisitedLocations[j])) {
-                    shouldIMoveThere = false;
-                    break;
+                for (int j = 0; j < recentlyVisitedLocations.length; j++) {
+                    if (moveTowardLocation.equals(recentlyVisitedLocations[j])) {
+                        shouldIMoveThere = false;
+                        break;
+                    }
+                }
+
+                // System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
+
+                if (shouldIMoveThere) {
+                    if (nav.tryMove(moveToward)) {
+                        return true;
+                    }
                 }
             }
-
-            // System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
-
-            if (shouldIMoveThere) {
-                if (nav.tryMove(moveToward)) {
-                    return true;
-                }
-            }
-        }
 //
 //        for (Direction d : toTry){
 //            if(tryMove(d))
 //                return true;
 //        }
-        return false;
-    }
-
-    // navigate towards a particular location
-    boolean minerGoTo(MapLocation destination) throws GameActionException {
-        return minerGoTo(rc.getLocation().directionTo(destination));
-    }
-
-    void funcAfterBuildSchool() throws GameActionException {
-        // System.out.println("There are design schools");
-        boolean landscapersNearby = false;
-        RobotInfo[] nearbyTeammates = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
-        if (nearbyTeammates.length > 0) {
-            for (RobotInfo bot : nearbyTeammates) {
-                if (bot.type.equals(RobotType.LANDSCAPER)) {
-                    landscapersNearby = true;
-                    break;
-                }
-            }
+            return false;
         }
 
-        if (landscapersNearby) {
-            if (!hqRemovedFromRefineryLocations) {
-                // System.out.println("remove hq from refineries");
-                refineryLocations.remove(hqLoc);
-                hqRemovedFromRefineryLocations = true;
-            }
-            // need to build refinery ASAP
-            if (refineryLocations.size() == 0) {
-                // System.out.println("need to build refinery asap");
-                buildRefineryIfAppropriate();
-            } else if (myLoc.distanceSquaredTo(findClosestRefinery()) > DISTANCESQUARED_BETWEEN_REFINERIES) {
-                for (Direction dir: Util.directions) {
-                    if (!dir.equals(myLoc.directionTo(hqLoc))
-                            && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
-                            && !dir.equals(myLoc.directionTo(hqLoc).rotateRight()) ) {
-                        if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 5 && tryBuild(RobotType.REFINERY, dir)) {
-                            comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
-                        }
+        // navigate towards a particular location
+        boolean minerGoTo (MapLocation destination) throws GameActionException {
+            return minerGoTo(rc.getLocation().directionTo(destination));
+        }
+
+        void funcAfterBuildSchool () throws GameActionException {
+            // System.out.println("There are design schools");
+            boolean landscapersNearby = false;
+            RobotInfo[] nearbyTeammates = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
+            if (nearbyTeammates.length > 0) {
+                for (RobotInfo bot : nearbyTeammates) {
+                    if (bot.type.equals(RobotType.LANDSCAPER)) {
+                        landscapersNearby = true;
+                        break;
                     }
                 }
             }
 
-            // : 1/20/2020 gotta try and make it move away from HQ
-            if (myLoc.distanceSquaredTo(hqLoc) < 6) {
+            if (landscapersNearby) {
+                if (!hqRemovedFromRefineryLocations) {
+                    // System.out.println("remove hq from refineries");
+                    refineryLocations.remove(hqLoc);
+                    hqRemovedFromRefineryLocations = true;
+                }
+                // need to build refinery ASAP
+                if (refineryLocations.size() == 0) {
+                    // System.out.println("need to build refinery asap");
+                    buildRefineryIfAppropriate();
+                } else if (myLoc.distanceSquaredTo(findClosestRefinery()) > DISTANCESQUARED_BETWEEN_REFINERIES) {
+                    for (Direction dir : Util.directions) {
+                        if (!dir.equals(myLoc.directionTo(hqLoc))
+                                && !dir.equals(myLoc.directionTo(hqLoc).rotateLeft())
+                                && !dir.equals(myLoc.directionTo(hqLoc).rotateRight())) {
+                            if (rc.getTeamSoup() >= RobotType.REFINERY.cost + 5 && tryBuild(RobotType.REFINERY, dir)) {
+                                comms.broadcastBuildingCreation(RobotType.REFINERY, myLoc.add(dir));
+                            }
+                        }
+                    }
+                }
+
+                // : 1/20/2020 gotta try and make it move away from HQ
+                if (myLoc.distanceSquaredTo(hqLoc) < 6) {
 //                    runAwayyyyyy();
+                }
             }
         }
-    }
-
 
 }
