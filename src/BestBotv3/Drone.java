@@ -224,26 +224,21 @@ public class Drone extends Unit{
         return nearbyEnemyRobots;
     }
 
-    public void getNearbyLandscapers(){
+    public RobotInfo[] getNearbyLandscapers(){
         RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
         for (RobotInfo robot : nearbyLandscapers) {
-            if (robot.type.equals(RobotType.LANDSCAPER)){
-                // If its a landscaper on our team
-
+            if ((robot.type.equals(RobotType.LANDSCAPER))){
                 if (hqLoc != null){
-                    // If we do know where the HQ is, dont move the robots that are in the right place
                     if (robot.location.distanceSquaredTo(hqLoc) > 2){
+                        // If its on opponent team
+                        targetLandscaper = robot;
                         onHelpMission = true;
-                        targetHelpBot = robot;
                         break;
                     }
-                } else {
-                    // If we dont know where the HQ is, just dont bother.
-                    onHelpMission = false;
-                    targetHelpBot = null;
                 }
             }
         }
+        return nearbyLandscapers;
     }
 
     public void getNearbyBootMiners(){
