@@ -8,7 +8,7 @@ public class Robot {
     RobotController rc;
     Communications comms;
     Navigation nav;
-    final int ARBITRARY_SOUP_NUMBER_LMAO = 750;
+    final int ARBITRARY_SOUP_NUMBER_LMAO = 650;
 
     int turnCount = 0;
     MapLocation myLoc;
