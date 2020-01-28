@@ -112,9 +112,6 @@ public class HQ extends Shooter {
     }
 
 
-
-
-
     // go from top row to bottom row, left to right
     void broadcastNearbyWaterLocations() throws GameActionException {
         int checkThisX = myLoc.x;

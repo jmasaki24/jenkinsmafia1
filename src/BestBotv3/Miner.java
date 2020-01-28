@@ -203,7 +203,7 @@ public class Miner extends Unit {
                     comms.broadcastBuildingCreation(RobotType.DESIGN_SCHOOL, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             } else {
-                // System.out.println("There are no design schools, but we dont have enough money to make one");
+                 System.out.println("not enough money to make school");
             }
         } else {
             // funcAfterBuildSchool();
@@ -211,7 +211,6 @@ public class Miner extends Unit {
     }
 
     void tryDepositAndMineAllDirections() throws GameActionException {
-        // TODO: 1/26/2020 Which do we want to use? Limit*0.8 or limit-7 -mz
         if (rc.getSoupCarrying() >= RobotType.MINER.soupLimit - 7) {
             for (Direction dir : Util.directions) {
                 if (rc.canDepositSoup(dir)) {
@@ -237,11 +236,10 @@ public class Miner extends Unit {
     void buildAVaporatorUpHigh() throws GameActionException {
         int locX;
         int locY;
-        MapLocation checkThisMapLoc = myLoc;
+        MapLocation checkThisMapLoc;
 
         for (int i = 0; i <= 2; i++) {
             locX = myLoc.x - 1 + i;
-            locY = myLoc.y - 1;
             for (int j = 0; j <= 2; j++) {
                 locY = myLoc.y - 1 + j;
                 checkThisMapLoc = new MapLocation(locX, locY);
@@ -383,7 +381,7 @@ public class Miner extends Unit {
      *
      * @param dir The intended direction of mining
      * @return true if a move was performed
-     * @throws GameActionException
+     * @throws GameActionException if there is an exception.
      */
     boolean tryMine(Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canMineSoup(dir)) {
@@ -397,7 +395,7 @@ public class Miner extends Unit {
      *
      * @param dir The intended direction of refining
      * @return true if a move was performed
-     * @throws GameActionException
+     * @throws GameActionException if there is an exception.
      */
     boolean tryRefine(Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canDepositSoup(dir)) {
@@ -447,15 +445,15 @@ public class Miner extends Unit {
                 dir.opposite(),
         };
 
-        MapLocation moveTowardLocation = myLoc;
-        Direction moveToward = fuzzyNavDirectionsInOrder[0];
+        MapLocation moveTowardLocation;
+        Direction moveToward;
         for (int i = 0; i < 8; i ++) {
             boolean shouldIMoveThere = true;
             moveToward = fuzzyNavDirectionsInOrder[i];
             moveTowardLocation = myLoc.add(moveToward);
 
-            for (int j = 0; j < recentlyVisitedLocations.length; j++) {
-                if (moveTowardLocation.equals(recentlyVisitedLocations[j])) {
+            for (MapLocation recentlyVisitedLocation : recentlyVisitedLocations) {
+                if (moveTowardLocation.equals(recentlyVisitedLocation)) {
                     System.out.println("recently visited " + moveTowardLocation);
                     shouldIMoveThere = false;
                     break;
@@ -521,7 +519,7 @@ public class Miner extends Unit {
 
             // : 1/20/2020 gotta try and make it move away from HQ
             if (myLoc.distanceSquaredTo(hqLoc) < 6) {
-//                    runAwayyyyyy();
+                    runAwayFromHQ();
             }
         }
     }
