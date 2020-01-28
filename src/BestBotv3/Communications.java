@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class Communications {
     RobotController rc;
 
-    final int teamSecret = 444444444;
+    final int teamSecret = -817293710;
 
     final int HQID = 982;
     final int EHQID = 382;
