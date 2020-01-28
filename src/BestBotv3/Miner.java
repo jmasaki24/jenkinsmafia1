@@ -76,6 +76,8 @@ public class Miner extends Unit {
 
         buildAmazonAndSchoolIfAppropriate();
 
+        senseEnemyDrones();
+
         tryDepositAndMineAllDirections();
 
         //the following is just for fun :) -jm
@@ -158,7 +160,6 @@ public class Miner extends Unit {
         }
     }
 
-    // basically, goes in the direction of the center of the map
     void checkForLandscapersNearby() throws GameActionException {
         RobotInfo[] nearbyTeammates = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam());
         if (nearbyTeammates.length > 0) {
@@ -173,6 +174,7 @@ public class Miner extends Unit {
         }
     }
 
+    // basically, goes in the direction of the center of the map
     void runAwayFromHQ() throws GameActionException {
         System.out.println("Run awayyyyyyyy");
 
@@ -210,6 +212,22 @@ public class Miner extends Unit {
         }
     }
 
+    void senseEnemyDrones() throws GameActionException {
+        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.MINER.sensorRadiusSquared, rc.getTeam().opponent());
+        if (nearbyEnemyRobots.length > 0) {
+            System.out.println("sense enemy drones");
+            for (RobotInfo bot : nearbyEnemyRobots) {
+                if (bot.type.equals(RobotType.DELIVERY_DRONE) && myLoc.distanceSquaredTo(bot.location) <= 8) {
+                    if (!myLoc.directionTo(hqLoc).equals(myLoc.directionTo(bot.location))) {
+                        minerGoTo(hqLoc);
+                    } else { // maybe this should be opposite. idk.
+                        minerGoTo(myLoc.directionTo(bot.location).rotateLeft().rotateLeft());
+                    }
+                }
+            }
+        }
+    }
+
     void tryDepositAndMineAllDirections() throws GameActionException {
         if (rc.getSoupCarrying() >= RobotType.MINER.soupLimit - 7) {
             for (Direction dir : Util.directions) {
@@ -219,7 +237,6 @@ public class Miner extends Unit {
                 }
             }
         }
-
         // then, try to mine soup in all directions
         for (Direction dir : Util.directions) {
             if (tryMine(dir)) {
