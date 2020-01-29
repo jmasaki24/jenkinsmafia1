@@ -48,16 +48,18 @@ public class Drone extends Unit{
     boolean findANewBot = false;
 
     boolean specificdrone = false;
+    RobotInfo targetMinerAtHQ = null;
+
 
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
 
-        if(justCreated == true){ //get duty from block chain because it's just created!
+
+        if(turnCount == 1){ //get duty from block chain because it's just created!
             System.out.println("round num passing in" + (rc.getRoundNum()-1));
             duty = comms.getDroneDuty(rc.getRoundNum() - 1); //updated from amazon previous round
-            justCreated = false; //dont go looking for duty again
         }
 
         //runs specialization method
@@ -71,6 +73,10 @@ public class Drone extends Unit{
         else if(duty == ATTACK){ //attack --> maybe call gotoEHQ???
             System.out.println("letss gooo offense");
         }
+
+        /*if(rc.isCurrentlyHoldingUnit() == false){
+            moveMinerAwayFromHQ();
+        }*/
 
         // Water Locations isnt updated right now
         // comms.updateWaterLocations(waterLocation);
@@ -102,15 +108,16 @@ public class Drone extends Unit{
 //        if (specificdrone) {
 //            nav.flyTo(new MapLocation(31, 16));
 //        }
+        if(rc.isCurrentlyHoldingUnit() == false){
+            // Enemy Detection
+            RobotInfo[] nearbyEnemies = getNearbyEnemies();
 
-        // Enemy Detection
-        RobotInfo[] nearbyEnemies = getNearbyEnemies();
-
-        //Landscaper Detection
-        RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
+            //Landscaper Detection
+            RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
+        }
 
         //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
-        if(onMission == false && onHelpMission == false){
+        if(onMission == false && onHelpMission == false && targetMinerAtHQ == null && !rc.isCurrentlyHoldingUnit()){
             //finding cows near HQ
             getNearbyCows();
         }
@@ -236,13 +243,17 @@ public class Drone extends Unit{
             pickupTargetMiner();
        }
 
-       if(rc.isCurrentlyHoldingUnit()){
+       if(rc.isCurrentlyHoldingUnit() && soupLoc == null){
             findHighSoup();
        }
 
        if(soupLoc != null){
            if(rc.getLocation().distanceSquaredTo(soupLoc) < 5){
-               rc.dropUnit(Util.randomDirection());
+               if(rc.isCurrentlyHoldingUnit()){
+                   if(rc.canDropUnit(Util.randomDirection())){
+                       rc.dropUnit(Util.randomDirection());
+                   }
+               }
            }
            else{
                nav.flyTo(soupLoc);
@@ -264,11 +275,13 @@ public class Drone extends Unit{
     public void findHighSoup() throws GameActionException{
         MapLocation[] soups = rc.senseNearbySoup();
         for(MapLocation m: soups){
-            if(rc.senseElevation(m) > 3){ //hardcoded at 3, not sure what to change it to
+            int soupContent = rc.senseSoup(m);
+            if(rc.senseElevation(m) > 2 && soupContent > 50){ //hardcoded at 3, not sure what to change it to
                 soupLoc = m; //target soup location to move to
                 break;
             }
         }
+        nav.flyTo(Util.randomDirection());
     }
 
     public RobotInfo[] getNearbyLandscapers(){
@@ -306,12 +319,13 @@ public class Drone extends Unit{
             return;
         }
         //don't care, not near HQ
-        if(!myLoc.isWithinDistanceSquared(hqLoc, rc.getCurrentSensorRadiusSquared())){
+        /*if(!myLoc.isWithinDistanceSquared(hqLoc, rc.getCurrentSensorRadiusSquared())){
             return;
-        }
+        }*/
         RobotInfo[] nearbyCows = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared);
         for(RobotInfo robot: nearbyCows){
             if(robot.type.equals(RobotType.COW)){
+                System.out.println("I sense cow");
                 onMission = true;
                 targetEnemy = robot;
                 break;
@@ -346,7 +360,7 @@ public class Drone extends Unit{
                 if (targetLandscaper.location.distanceSquaredTo(hqLoc) > 2) { // if target not on wall
                     if (rc.canPickUpUnit(targetLandscaper.ID)) {
                         rc.pickUpUnit(targetLandscaper.ID);
-                        // System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
+                        System.out.println("I picked up a landscaper! #" + targetLandscaper.ID);
                     }
                 }
                 // Target is on wall, mission accomplished
@@ -408,4 +422,40 @@ public class Drone extends Unit{
             nav.flyTo(targetMiner.location); //fly to location
         }
     }
+
+
+    //not working properly yet
+    /*public void moveMinerAwayFromHQ() throws GameActionException{
+        if(hqLoc != null){
+            if(rc.canSenseLocation(hqLoc)){
+                RobotInfo[] miners = rc.senseNearbyRobots(-1, rc.getTeam());
+                for(RobotInfo r: miners){
+                    if(r.getType() == RobotType.MINER){
+                        if(r.getLocation().distanceSquaredTo(hqLoc) < 3 && rc.senseSoup(r.getLocation()) < 5){
+                            targetMinerAtHQ = r;
+                            onMission = false;
+                            onHelpMission = false;
+                            if(rc.canPickUpUnit(targetMinerAtHQ.ID)){
+                                rc.pickUpUnit(targetMinerAtHQ.ID);
+                                System.out.println("moving away from hq with miner");
+                            }
+                            findHighSoup();
+                            if(soupLoc != null){
+                                if(rc.getLocation().distanceSquaredTo(soupLoc) < 5){
+                                    if(rc.isCurrentlyHoldingUnit()){
+                                        rc.dropUnit(Util.randomDirection());
+                                        targetMinerAtHQ = null;
+                                    }
+                                }
+                                else{
+                                    nav.flyTo(soupLoc);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }*/
 }

@@ -2,6 +2,7 @@ package BestBotv3;
 
 import battlecode.common.*;
 
+
 //Todo: set a hard limit of landscapers to make
 //Todo: Create Broadcast Design School Creation
 
@@ -13,6 +14,8 @@ public class Amazon extends Building {
     private int MINEHELP = 3;
     private int ATTACK = 5;
 
+    private int droneID;
+
     public Amazon(RobotController r) {
         super(r);
     }
@@ -20,6 +23,14 @@ public class Amazon extends Building {
     int numDrones = 0;
     public void takeTurn() throws GameActionException {
         super.takeTurn();
+
+        RobotInfo[] newDrones = rc.senseNearbyRobots(3, rc.getTeam());
+        for(RobotInfo r: newDrones){
+            if(r.getType() == RobotType.DELIVERY_DRONE){
+                droneID = r.getID();
+
+            }
+        }
 
         if (turnCount == 1) {
             // I would love to do this, but instead we're just gonna broadcast from Miner atm. -jm
@@ -67,6 +78,7 @@ public class Amazon extends Building {
         else{
             typeOfDrone = ATTACK;
         }
+
 
         comms.broadcastTypeOfDrone(typeOfDrone, rc.getRoundNum());
 
