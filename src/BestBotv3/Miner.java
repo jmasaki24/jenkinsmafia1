@@ -414,12 +414,10 @@ public class Miner extends Unit {
                     && rc.senseSoup(loc) == 0) {
                 // System.out.println("soup at " + loc + "is gone");
                 soupLocations.remove(loc);
-            } /*else {
-                if (myLoc.distanceSquaredTo(loc) < 20 *//*&& !isSoupAccessible(loc)*//*) {
-                    // System.out.println("soup at " + loc + "is gone");
-                    soupLocations.remove(loc);
-                }
-            }*/
+            } else if (myLoc.distanceSquaredTo(loc) < 20 && !isSoupInMoat(loc)) {
+                System.out.println("soup at " + loc + "is MOAT'D!");
+                soupLocations.remove(loc);
+            }
         }
     }
 

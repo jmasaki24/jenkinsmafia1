@@ -37,6 +37,22 @@ public class Robot {
     }
 
     // THIS METHOD REQUIRES THAT THE ROBOT CAN SEE ALL TILES ADJACENT TO SOUP!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // if a tile adjacent to soup exists and is not flooded, it is accessible
+    boolean isSoupInMoat(MapLocation soupLoc) throws GameActionException {
+        for (int i = 0; i<8; i++){
+            if (rc.onTheMap(soupLoc.add(Util.directions[i]))) {
+                surroundingLocs.add(soupLoc.add(Util.directions[i]));
+            }
+        }
+
+        boolean isAccessible = false;
+
+
+
+        return isAccessible;
+    }
+
+    // THIS METHOD REQUIRES THAT THE ROBOT CAN SEE ALL TILES ADJACENT TO SOUP!!!!!!!!!!!!!!!!!!!!!!!!!!
     // this method could be done MUCH MUCH better, I think. sorry in advance.
     // if a tile adjacent to soup is not flooded, it is accessible
     // returns true if soup is accessible 
