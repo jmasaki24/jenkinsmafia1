@@ -37,9 +37,9 @@ public class HQ extends Shooter {
         }
 
         //Every 3 turns repeat messages.
-        if (turnCount > 3 && turnCount % 3 == 2) {
-            comms.jamEnemyComms();
-        }
+//        if (turnCount > 3 && turnCount % 3 == 2) {
+//            comms.jamEnemyComms();
+//        }
 
         if (numMiners < MINER_LIMIT && rc.getTeamSoup() > RobotType.MINER.cost + 2) {
             if (numMiners < 2) {
