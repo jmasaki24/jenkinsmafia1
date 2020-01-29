@@ -462,7 +462,10 @@ public class Miner extends Unit {
                 }
             }
 
-             System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
+            if (!shouldIMoveThere) { // reduce number of prints
+                System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
+
+            }
 
             if (shouldIMoveThere) {
                 if (nav.tryMove(moveToward)) {

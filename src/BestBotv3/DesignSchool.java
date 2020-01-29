@@ -37,7 +37,12 @@ public class DesignSchool extends Building {
                 for (Direction dir : Util.directions) {
                     if (tryBuild(RobotType.LANDSCAPER, dir)){
                         numLandscapers++;
-                        broadcastUnitCreation(RobotType.LANDSCAPER);
+                        RobotInfo justCreatedBot = rc.senseRobotAtLocation(myLoc.add(dir));
+                        if (justCreatedBot != null) {
+                            broadcastUnitCreation(justCreatedBot);
+                        } else {
+                            System.out.println("NULL EXCEPTION! nuts!");
+                        }
                     }
                 }
             }

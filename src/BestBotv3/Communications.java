@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class Communications {
     RobotController rc;
 
-    final int teamSecret = -817293710;
+    final int teamSecret = -817280;
 
     final int HQID = 982;
     final int EHQID = 382;
@@ -88,14 +88,15 @@ public class Communications {
 //        return null;
 //    }
 
-
-// ATTACKER COMMUNICATION
+// ------------------------------------------------------------------------------------------------ //
+// ------------------------------------ ATTACKER COMMUNICATION ------------------------------------ //
     public void broadcastAttackerInfo(int AttackerID, Direction dir) throws GameActionException {
         int[] message = new int[7];
         message[0] = teamSecret;
-        message[1] = ATTACKERID;
+        message[1] = ATTACKERID; // id for updateAttackerDir
         message[2] = AttackerID; // ID of attacking bot
         message[3] = directionToNumber(dir); // direction number
+        message[4] = message[0] + message[1] + message[2] + message[3];
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
         }
@@ -114,7 +115,7 @@ public class Communications {
     public void getAttackersInBlock(ArrayList<Direction> enemyDir, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if(mess[0] == teamSecret && mess[1] == ATTACKERID){
+            if(mess[0] == teamSecret && mess[1] == ATTACKERID && (mess[4] == mess[0] + mess[1] + mess[2] + mess[3])) {
                  System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
                 enemyDir.add(numberToDirection(mess[3]));
             }
@@ -152,14 +153,15 @@ public class Communications {
         return type;
     }
 
-
-// WATER COMMUNICATION
+// ------------------------------------------------------------------------------------------------ //
+// ------------------------------------ WATER COMMUNICATION ------------------------------------ //
     public void broadcastWaterLocation(MapLocation loc ) throws GameActionException {
         int[] message = new int[7];
         message[0] = teamSecret;
         message[1] = WATERID;
         message[2] = loc.x; // x coord of HQ
         message[3] = loc.y; // y coord of HQ
+        message[4] = message[0] + message[1] + message[2] + message[3];
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
             // System.out.println("new water!" + loc);
@@ -180,7 +182,7 @@ public class Communications {
     public ArrayList<MapLocation> getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if(mess[0] == teamSecret && mess[1] == WATERID){
+            if(mess[0] == teamSecret && mess[1] == WATERID && (mess[4] == mess[0] + mess[1] + mess[2] + mess[3])){
                 // TODO: don't add duplicate locations
                 // System.out.println("heard water at [" + mess[2] + ", " + mess[3] + "]");
                 waterLocations.add(new MapLocation(mess[2], mess[3]));
@@ -189,14 +191,15 @@ public class Communications {
         return waterLocations;
     }
 
-
-// SOUP COMMUNICATION     // TODO 1/19/2020 should this be in Unit? or Miner??
+// ------------------------------------------------------------------------------------------------ //
+// ------------------------------------ SOUP COMMUNICATION ------------------------------------ //
     public void broadcastSoupLocation(MapLocation loc ) throws GameActionException {
         int[] message = new int[7];
         message[0] = teamSecret;
         message[1] = SOUPID;
         message[2] = loc.x; // x coord of HQ
         message[3] = loc.y; // y coord of HQ
+        message[4] = message[0] + message[1] + message[2] + message[3];
         if (!Unit.soupLocations.contains(new MapLocation (loc.x, loc.y)) && rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
             // System.out.println("new soup!" + loc);
@@ -216,7 +219,7 @@ public class Communications {
     public void getSoupLocInBlock(ArrayList<MapLocation> soupLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if(mess[0] == teamSecret && mess[1] == SOUPID){
+            if(mess[0] == teamSecret && mess[1] == SOUPID  && (mess[4] == mess[0] + mess[1] + mess[2] + mess[3])){
                 if (!Unit.soupLocations.contains(new MapLocation (mess[2], mess[3]))) {
                     // System.out.println("heard NEW soup at [" + mess[2] + ", " + mess[3] + "]");
                     soupLocations.add(new MapLocation(mess[2], mess[3]));
@@ -225,8 +228,8 @@ public class Communications {
         }
     }
 
-
-// BUILDING COMMUNICATION
+// ------------------------------------------------------------------------------------------------ //
+// ------------------------------------ BUILDING COMMUNICATION ------------------------------------ //
     // One default if its on our team
     public void broadcastBuildingCreation(RobotType type, MapLocation loc) throws GameActionException {
         // System.out.println("broadcast building creation");
@@ -246,6 +249,7 @@ public class Communications {
         message[1] = SENTID;
         message[2] = loc.x; // x coord of unit
         message[3] = loc.y; // y coord of unit
+        message[4] = message[0] + message[1] + message[2] + message[3];
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
             // System.out.println("new building! type: " + SENTID + "Location:" + loc);
@@ -296,6 +300,7 @@ public class Communications {
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
             case HQ:                         SENTID = HQID;             break;
+            case NET_GUN:                    SENTID = NETGUNID;         break;
             case REFINERY:                   SENTID = REFINERYID;       break;
             case VAPORATOR:                  SENTID = VAPORATORID;      break;
             default:                         SENTID = 0;                break;
@@ -309,6 +314,7 @@ public class Communications {
         message[1] = SENTID;
         message[2] = loc.x; // x coord of unit
         message[3] = loc.y; // y coord of unit
+        message[4] = message[0] + message[1] + message[2] + message[3];
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
             // System.out.println("new building! type: " + SENTID + "Location:" + loc);
@@ -332,7 +338,7 @@ public class Communications {
         ArrayList<MapLocation> buildingLocations = null;
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if (mess[0] == teamSecret && BuildingIDs.contains(mess[1])) {
+            if (mess[0] == teamSecret && BuildingIDs.contains(mess[1])  && (mess[4] == mess[0] + mess[1] + mess[2] + mess[3])) {
                 // System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch(mess[1]){
                     case HQID:  // bruh findHQ is in Unit
@@ -405,8 +411,8 @@ public class Communications {
         }
     }
 
-
-
+// ------------------------------------------------------------------------------------------------ //
+// ------------------------------------ OTHER STUFF ------------------------------------ //
 
     public void jamEnemyComms() throws GameActionException {
         boolean sentMessage = false;
