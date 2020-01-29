@@ -159,18 +159,19 @@ public class Communications {
             // System.out.println("new water!" + loc);
         }
     }
-    public void updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
+    public ArrayList<MapLocation> updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
         // if its just been created, go through all of the blocks and transactions to find soup
         if (RobotPlayer.turnCount == 1) {
             // System.out.println("turncount 1 in updatewaterloc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
-                getWaterLocInBlock(waterLocations, i);
+                waterLocations = getWaterLocInBlock(waterLocations, i);
             }
         } else {
-            getWaterLocInBlock(waterLocations, rc.getRoundNum() - 1);
+            waterLocations = getWaterLocInBlock(waterLocations, rc.getRoundNum() - 1);
         }
+        return waterLocations;
     }
-    public void getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
+    public ArrayList<MapLocation> getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == WATERID){
@@ -179,6 +180,7 @@ public class Communications {
                 waterLocations.add(new MapLocation(mess[2], mess[3]));
             }
         }
+        return waterLocations;
     }
 
 

@@ -35,7 +35,7 @@ public class Drone extends Unit{
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
     //boolean onCowMission = false;
-
+    boolean iBroadcastedWaterLoc = false;
     boolean findANewBot = false;
 
 
@@ -43,12 +43,19 @@ public class Drone extends Unit{
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
+        waterLocation = comms.updateWaterLocations(waterLocation);
 
-        // Water Locations isnt updated right now
-        // comms.updateWaterLocations(waterLocation);
-
-        // goToEHQ works, but first we need a defensive drone.
-        // gotoEHQ();
+        //If we have water, get water locs
+        if (!iBroadcastedWaterLoc) {
+            for (Direction dir : Util.directions) {
+                if (rc.canSenseLocation(myLoc.add(dir))) {
+                    if (rc.senseFlooding(myLoc.add(dir))) {
+                        comms.broadcastWaterLocation(myLoc.add(dir));
+                        iBroadcastedWaterLoc = true;
+                    }
+                }
+            }
+        }
 
         // Enemy Detection
         RobotInfo[] nearbyEnemies = getNearbyEnemies();
