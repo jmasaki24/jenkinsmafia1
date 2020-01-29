@@ -1,4 +1,4 @@
-package BestBotv3;
+package DroneWall;
 import battlecode.common.*;
 
 import java.util.ArrayList;
@@ -16,6 +16,8 @@ public class Unit extends Robot {
     public static ArrayList<MapLocation> designSchoolLocations = new ArrayList<>();
     public static ArrayList<MapLocation> refineryLocations = new ArrayList<>();
     public static ArrayList<MapLocation> vaporatorLocations = new ArrayList<>();
+    public static ArrayList<MapLocation> blockBuilt = new ArrayList<>();
+
 
 
 
@@ -61,7 +63,7 @@ public class Unit extends Robot {
             }
             if (EHqLoc.x < 0 || EHqLoc.y < 0) {
                 // if still null, search the blockchain
-                EHqLoc = comms.getEHqLocFromBlockchain();
+                // System.out.println("Ehq loc still null");
             }
         }
     }

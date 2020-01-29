@@ -1,4 +1,4 @@
-package BestBotv3;
+package DroneWall;
 
 import battlecode.common.*;
 
@@ -10,7 +10,7 @@ public class Navigation {
     public Navigation(RobotController r) {
         rc = r;
     }
-    
+
     //Attempts to move in a given direction
     boolean tryMove(Direction dir) throws GameActionException {
         if (rc.isReady() && rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir)) && isOnMap(dir)) {
@@ -84,16 +84,34 @@ public class Navigation {
         return false;
     }
 
-    void swarm(Direction dir, MapLocation myLoc, MapLocation eHQ) throws GameActionException {
-        if (rc.getLocation().add(dir).distanceSquaredTo(eHQ) > RobotType.NET_GUN.sensorRadiusSquared + 1){
-            System.out.println("Swarming EHQ");
-            flyTo(dir);
+    boolean swarm(Direction dir, MapLocation myLoc, MapLocation eHQ) throws GameActionException {
+        if (myLoc.add(dir).distanceSquaredTo(eHQ) > RobotType.NET_GUN.sensorRadiusSquared){
+
+            // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+            Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+                    dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                    dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                    dir.opposite(),
+            };
+
+            Direction moveToward = fuzzyNavDirectionsInOrder[0];
+            for (int i = 0; i < 8; i ++) {
+                moveToward = fuzzyNavDirectionsInOrder[i];
+                if (tryFly(moveToward)) {
+                    return true;
+                }
+            }
+//
+//        for (Direction d : toTry){
+//            if(tryMove(d))
+//                return true;
+//        }
         } else {
-            if (rc.getRoundNum() % 300 < 15){ //Charge for 15 turns every 300 turns
-                System.out.println("Charging for round: " + (rc.getRoundNum() % 300) + "/15");
-                flyTo(myLoc.directionTo(eHQ));
+            if (rc.getRoundNum() % 300 < 6){ //Charge for 6 turns every 300 turns
+                tryFly(myLoc.directionTo(eHQ));
             }
         }
+        return false;
     }
 
     // navigate towards a particular location

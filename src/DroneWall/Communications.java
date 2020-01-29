@@ -1,16 +1,15 @@
-package BestBotv3;
+package DroneWall;
 
 import battlecode.common.*;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 
 public class Communications {
     RobotController rc;
 
-    final int teamSecret = 345633223;
+    final int teamSecret = 444444444;
 
     final int HQID = 982;
     final int EHQID = 382;
@@ -19,8 +18,9 @@ public class Communications {
     final int DESIGNSCHOOLID = 202;
     final int REFINERYID = 303;
     final int VAPORATORID = 404;
+    final int BLOCKID = 1;
 
-    final ArrayList<Integer> BuildingIDs = new ArrayList<Integer>(Arrays.asList(HQID,EHQID,AMAZONID,DESIGNSCHOOLID,REFINERYID,VAPORATORID));
+    final ArrayList<Integer> BuildingIDs = new ArrayList<Integer>(Arrays.asList(HQID,EHQID,AMAZONID,DESIGNSCHOOLID,REFINERYID,VAPORATORID, BLOCKID));
 
     final int SOUPID = 312;
     final int WATERID = 820;
@@ -63,29 +63,28 @@ public class Communications {
             for(Transaction tx : rc.getBlock(i)) {
                 int[] mess = tx.getMessage();
                 if(mess[0] == teamSecret && mess[1] == HQID){
-                     System.out.println("found hqLoc in chain");
+                    System.out.println("found hqLoc in chain");
                     return new MapLocation(mess[2], mess[3]);
                 }
             }
         }
         return null;
     }
+//
+//    public MapLocation getEHqLocFromBlockchain() throws GameActionException {
+//        for (int i = 1; i < rc.getRoundNum(); i++){
+//            for(Transaction tx : rc.getBlock(i)) {
+//                int[] mess = tx.getMessage();
+//                if(mess[0] == teamSecret && mess[1] == EHQID){
+//                    return new MapLocation(mess[2], mess[3]);
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
-    public MapLocation getEHqLocFromBlockchain() throws GameActionException {
-        for (int i = 1; i < rc.getRoundNum(); i++){
-            for(Transaction tx : rc.getBlock(i)) {
-                int[] mess = tx.getMessage();
-                if(mess[0] == teamSecret && mess[1] == EHQID){
-                    System.out.println("Found EHQ in the chain");
-                    return new MapLocation(mess[2], mess[3]);
-                }
-            }
-        }
-        return new MapLocation(-3,-3);
-    }
 
-
-// ATTACKER COMMUNICATION
+    // ATTACKER COMMUNICATION
     public void broadcastAttackerInfo(int AttackerID, Direction dir) throws GameActionException {
         int[] message = new int[7];
         message[0] = teamSecret;
@@ -111,7 +110,7 @@ public class Communications {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == ATTACKERID){
-                 System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
+                System.out.println("Theres an attacker with ID of " + mess[2] + ", and a direction from HQ of " + mess[3] + "!!!!");
                 enemyDir.add(numberToDirection(mess[3]));
             }
         }
@@ -149,7 +148,7 @@ public class Communications {
     }
 
 
-// WATER COMMUNICATION
+    // WATER COMMUNICATION
     public void broadcastWaterLocation(MapLocation loc ) throws GameActionException {
         int[] message = new int[7];
         message[0] = teamSecret;
@@ -161,19 +160,18 @@ public class Communications {
             // System.out.println("new water!" + loc);
         }
     }
-    public ArrayList<MapLocation> updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
+    public void updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
         // if its just been created, go through all of the blocks and transactions to find soup
         if (RobotPlayer.turnCount == 1) {
             // System.out.println("turncount 1 in updatewaterloc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
-                waterLocations = getWaterLocInBlock(waterLocations, i);
+                getWaterLocInBlock(waterLocations, i);
             }
         } else {
-            waterLocations = getWaterLocInBlock(waterLocations, rc.getRoundNum() - 1);
+            getWaterLocInBlock(waterLocations, rc.getRoundNum() - 1);
         }
-        return waterLocations;
     }
-    public ArrayList<MapLocation> getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
+    public void getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == WATERID){
@@ -182,11 +180,10 @@ public class Communications {
                 waterLocations.add(new MapLocation(mess[2], mess[3]));
             }
         }
-        return waterLocations;
     }
 
 
-// SOUP COMMUNICATION     // TODO 1/19/2020 should this be in Unit? or Miner??
+    // SOUP COMMUNICATION     // TODO 1/19/2020 should this be in Unit? or Miner??
     public void broadcastSoupLocation(MapLocation loc ) throws GameActionException {
         int[] message = new int[7];
         message[0] = teamSecret;
@@ -222,13 +219,13 @@ public class Communications {
     }
 
 
-// BUILDING COMMUNICATION
+    // BUILDING COMMUNICATION
     // One default if its on our team
     public void broadcastBuildingCreation(RobotType type, MapLocation loc) throws GameActionException {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
-            // case COW:                     SENTID = 1;                break;
+            case COW:                        SENTID = BLOCKID;                break;
             // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
@@ -238,7 +235,7 @@ public class Communications {
             // case NET_GUN:                 SENTID = 8;                break;
             case REFINERY:                   SENTID = REFINERYID;       break;
             case VAPORATOR:                  SENTID = VAPORATORID;      break;
-            default:                         SENTID = EHQID;            break;
+            default:                         SENTID = 0;                break;
         }
 
         int[] message = new int[7];
@@ -256,7 +253,7 @@ public class Communications {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
-            // case COW:                     SENTID = 1;                break;
+            case COW:                        SENTID = 1;                break;
             // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
@@ -320,6 +317,8 @@ public class Communications {
                     case VAPORATORID:
                         buildingLocations = Unit.vaporatorLocations;
                         break;
+                    case BLOCKID:
+                        buildingLocations = Unit.blockBuilt;
                     default:
                         break;
                 }
@@ -327,9 +326,9 @@ public class Communications {
                 if (buildingLocations != null){
                     if (!buildingLocations.contains(new MapLocation(mess[2], mess[3]))) {
                         buildingLocations.add(new MapLocation(mess[2], mess[3]));
-                        // System.out.println("New building. Type: " + mess[1] + ".");
+                         System.out.println("New building. Type: " + mess[1] + ".");
                     } else {
-                        // System.out.println("Already seen this building. Type " + mess[1]);
+                         System.out.println("Already seen this building. Type " + mess[1]);
                     }
                 }
 
@@ -368,10 +367,10 @@ public class Communications {
 //                    default:
 //                        // System.out.println("idk?!?");
 //                        break;
-                }
-
             }
+
         }
+    }
 
 
     public void jamEnemyComms() throws GameActionException {

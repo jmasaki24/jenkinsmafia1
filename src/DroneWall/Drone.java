@@ -1,4 +1,4 @@
-package BestBotv3;
+package DroneWall;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 // so our defensive drone has a few states
 // 1. not doing anything. go near standbyLocation
-// 2. sees a target (i.e. has a targetEnemy). go to targetEnemy's location
+// 2. sees a target (i.e. has a targetEnemyBot). go to targetEnemyBot's location
 // 3. is carrying a bot. go to water?
 // 4. Sees a landscaper that needs help
 // 5. Drops landscaper off on wall
@@ -22,6 +22,7 @@ public class Drone extends Unit{
     MapLocation standbyLocation;
     public ArrayList<Direction> enemyDir = new ArrayList<>();
     public ArrayList<Direction> helpDir = new ArrayList<>();
+    public ArrayList<Direction> bootDir = new ArrayList<>();
     public ArrayList<MapLocation> waterLocation = new ArrayList<>();
 
 
@@ -33,20 +34,28 @@ public class Drone extends Unit{
     boolean onStrike = false;
     boolean onMission = false;
     boolean onHelpMission = false;
+    boolean onBootMission = false;
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
+    RobotInfo targetBootBot = null;
     boolean findANewBot = false;
     boolean iBroadcastedWaterLoc = false;
+
+    boolean findANewEnemyBot = false;
+    boolean findANewHelpBot = false;
+    boolean findANewBootBot = false;
 
 
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
-        waterLocation = comms.updateWaterLocations(waterLocation);
-        onStrike = rc.getRoundNum() > 1447;
+        comms.updateWaterLocations(waterLocation);
+        comms.updateBuildingLocations();
+        // Commented out below to make it never go on a strike.
+        //onStrike = rc.getRoundNum() > 1447;
 
-        //If we have water, get water locs
+        // Water Locations isnt updated right now
         if (!iBroadcastedWaterLoc) {
             for (Direction dir : Util.directions) {
                 if (rc.canSenseLocation(myLoc.add(dir))) {
@@ -58,6 +67,7 @@ public class Drone extends Unit{
             }
         }
 
+
         //If we can swarm
         if (onStrike){
             System.out.println("Going to EHQ");
@@ -67,7 +77,12 @@ public class Drone extends Unit{
                 pickupEnemy();
             }
             disposeOfScum();
-        } else{
+        }
+        else if (blockBuilt.size() != 0){
+             formABlock();
+             System.out.println("Forming a block");
+        }
+        else{
             // Enemy Detection
             RobotInfo[] nearbyEnemies = getNearbyEnemies();
 
@@ -89,7 +104,10 @@ public class Drone extends Unit{
             if (onHelpMission){
                 System.out.println("I'm helping to build the wall!");
             }
-
+            if (onBootMission){
+                System.out.println("I'm booting!");
+            }
+            
             // If my task is to remove the enemy
             if (onMission){
                 if (hqLoc != null){
@@ -128,14 +146,35 @@ public class Drone extends Unit{
                     }
                 }
             }
-            else {
+           // BOOT
+
+           else if (onBootMission){
+                            // I need to boot this hot
+              if (rc.isCurrentlyHoldingUnit()) {
+                bootBot();
+              }
+                            // I see a bot that needs to be BOOTED
+              else if (targetBootBot != null) {
+                  pickUpBootBot();
+              }
+                            // HQ has seen a bot that needs to be BOOTED
+              }
+
+
+            else if (blockBuilt.size() != 0){
+                System.out.println("Forming a block");
+            }
+           else {
                 // Standby if we are not on a mission
                 if (standbyLocation != null) {
                     nav.flyTo(standbyLocation);
+                    System.out.println("Standing by");
                 }
             }
         }
     }
+
+
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     public void goToEHQ() throws GameActionException {
@@ -143,36 +182,58 @@ public class Drone extends Unit{
         shouldMove = true;
 
         //Determine if we know enemy HQ Location
-        findHQ();
         findEHQ();
 
-        if (hqLoc != null) {
-            //Define every potential EHQ location
-            potentialHQ = new MapLocation[]{new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (hqLoc.y) - 1),
-                    new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (rc.getMapHeight() - hqLoc.y) - 1),
-                    new MapLocation((hqLoc.x) - 1, (rc.getMapHeight() - hqLoc.y) - 1)};
+        //Define every potential EHQ location
+        MapLocation[] potentialHQ = new MapLocation[] {new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (hqLoc.y) - 1),
+                new MapLocation((rc.getMapWidth() - hqLoc.x) - 1, (rc.getMapHeight() - hqLoc.y) - 1),
+                new MapLocation((hqLoc.x) - 1                   , (rc.getMapHeight() - hqLoc.y) - 1)};
 
-            //Mark the potential loc with dots
-            for (MapLocation loc : potentialHQ) {
-                rc.setIndicatorDot(loc, 200, 200, 200);
-            }
+        //Mark the potential loc with dots
+        for (MapLocation loc: potentialHQ){
+            rc.setIndicatorDot(loc,200,200,200);
+        }
 
-            //Find the enemy hq
-            if (EHqLoc.x > 0 && EHqLoc.y > 0) {
-                // System.out.println("Found ENEMY HQ");
-                nav.swarm(rc.getLocation().directionTo(EHqLoc), myLoc, EHqLoc);
-            } else {
-                if (myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > RobotType.DELIVERY_DRONE.sensorRadiusSquared) {
-                    System.out.println("Going to a potential HQ:" + potentialHQ[hqToCheck]);
-                    if (shouldMove)
-                        nav.swarm(myLoc.directionTo(potentialHQ[hqToCheck]), myLoc, potentialHQ[hqToCheck]);
-                    rc.setIndicatorLine(rc.getLocation(), potentialHQ[hqToCheck], 0, 230, 0);
-                } else {
-                    System.out.println("Nothing Here at potential HQ:" + potentialHQ);
-                    hqToCheck += 1;
+
+        //Find the enemy hq
+        if(EHqLoc.x > 0 || EHqLoc.y > 0){
+            // System.out.println("Found ENEMY HQ");
+            if (myLoc.distanceSquaredTo(EHqLoc) > 5){
+                // System.out.println("Going to ENEMY HQ:" + EHqLoc);
+                nav.swarm(myLoc.directionTo(EHqLoc),myLoc,EHqLoc);
+            } else{
+                // System.out.println("Standing my gound at ENEMY HQ");
+                for (Direction dir: Util.directions){
+                    tryBuild(RobotType.NET_GUN,dir);
                 }
+                shouldMove = false;
             }
         }
+
+
+        if(myLoc.distanceSquaredTo(potentialHQ[hqToCheck]) > 5){
+            // System.out.println("Going to a potential HQ:" + potentialHQ);
+            if(shouldMove)
+                nav.swarm(myLoc.directionTo(potentialHQ[hqToCheck]),myLoc,potentialHQ[hqToCheck]);
+            rc.setIndicatorLine(myLoc,potentialHQ[hqToCheck],0,230,0);
+        } else{
+            // System.out.println("Nothing Here at potential HQ:" + potentialHQ);
+            hqToCheck += 1;
+        }
+
+    }
+
+    public RobotInfo[] getNearbyEnemies(){
+        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
+        for (RobotInfo robot : nearbyEnemyRobots) {
+            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
+                // If its on opponent team
+                onMission = true;
+                targetEnemy = robot;
+                break;
+            }
+        }
+        return nearbyEnemyRobots;
     }
 
     public RobotInfo[] getNearbyLandscapers(){
@@ -192,18 +253,27 @@ public class Drone extends Unit{
         return nearbyLandscapers;
     }
 
-    public RobotInfo[] getNearbyEnemies(){
-        RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
-        for (RobotInfo robot : nearbyEnemyRobots) {
-            if ((robot.type.equals(RobotType.MINER) || robot.type.equals(RobotType.LANDSCAPER))){
-                // If its on opponent team
-                onMission = true;
-                targetEnemy = robot;
-                break;
+    public void getNearbyBootMiners(){
+        RobotInfo[] nearbyBootMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : nearbyBootMiners) {
+            if (robot.type.equals(RobotType.MINER)){
+                // If its a miner on our team
+                if (hqLoc != null){
+                    // Only go for the robots that are too close to the HQ
+                    if (robot.location.distanceSquaredTo(hqLoc) <= 2){
+                        onBootMission = true;
+                        targetBootBot = robot;
+                        break;
+                    } else{
+                        targetBootBot = null;
+                    }
+                } else{
+                    targetBootBot = null;
+                }
             }
         }
-        return nearbyEnemyRobots;
     }
+
 
     public void getLandscaperToWall() throws GameActionException{
         for (Direction dir: Util.directions){
@@ -267,20 +337,74 @@ public class Drone extends Unit{
     public void disposeOfScum() throws GameActionException{
         if (rc.isCurrentlyHoldingUnit()){
             for (Direction dir: Util.directions){
-                if (rc.senseFlooding(rc.getLocation().add(dir))){
+                if (rc.senseFlooding(myLoc.add(dir))){
                     rc.dropUnit(dir);
                     targetEnemy = null;
                     onMission = false;
                     enemyDir = null;
                 } else{
                     if (waterLocation.size() != 0){
-                        nav.flyTo(waterLocation.get(waterLocation.size()-1).add(dir));
+                        nav.flyTo(waterLocation.get(waterLocation.size()-1));
                     } else{
-                        waterLocation = comms.updateWaterLocations(waterLocation);
                         nav.flyTo(Util.randomDirection());
                     }
                 }
             }
         }
+    }
+
+    public void bootBot() throws GameActionException{
+      for (Direction dir : Util.directions) {
+          if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2) {
+              if (rc.canDropUnit(dir)) {
+                  rc.dropUnit(dir);
+                  onBootMission = false;
+                  bootDir = null;
+                  findANewBootBot = true;
+                  nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+                  System.out.println("I dropped our booted miner somewhere!");
+                  targetBootBot = null;
+
+
+              }
+          } else {
+              nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+          }
+      }
+    }
+
+   public void pickUpBootBot() throws GameActionException{
+     // I am there
+     if (myLoc.distanceSquaredTo(targetBootBot.location) <= 2) {
+         if (rc.canPickUpUnit(targetBootBot.ID)) {
+             rc.pickUpUnit(targetBootBot.ID);
+             System.out.println("I picked this unit up to boot it: " + targetBootBot.ID);
+         } else {
+             System.out.println("I cant pick up unit to boot it: " + targetBootBot.ID);
+         }
+     }
+     // I'm not there yet
+     else {
+         nav.flyTo(targetBootBot.location);
+         System.out.println("I'm going to the boot bot");
+     }
+   }
+    public void formABlock() throws GameActionException{
+        if (myLoc.distanceSquaredTo(hqLoc) == 8) {
+            for (Direction dir : Direction.cardinalDirections()){
+                if (myLoc.add(dir).distanceSquaredTo(hqLoc) < 8){
+                    nav.tryFly(dir);
+                } else{
+                    System.out.println("I am blocking");
+                }
+            }
+        } else if (myLoc.distanceSquaredTo(hqLoc) > 7) {
+            nav.flyTo(hqLoc);
+        } else if (myLoc.distanceSquaredTo(hqLoc) < 4){
+            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+        }  else {
+            System.out.println("I am blocking");
+        }
+
     }
 }
