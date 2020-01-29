@@ -38,7 +38,7 @@ public class Drone extends Unit{
     boolean iBroadcastedWaterLoc = false;
     boolean findANewBot = false;
 
-    boolean specificdrone = false;
+    boolean flyMiner = false;
 
 
     public void takeTurn() throws GameActionException {
@@ -59,15 +59,15 @@ public class Drone extends Unit{
         }
 
         // EXAMPLE of how to use drones_ids_us
-//        if (turnCount == 1) {
-//            if (drones_ids_us.size() == 2) {
-//                specificdrone = true;
-//            }
-//        }
-//
-//        if (specificdrone) {
-//            nav.flyTo(new MapLocation(31, 16));
-//        }
+        if (turnCount == 1) {
+            if (drones_ids_us.size() == 3) {
+                flyMiner = true;
+            }
+        }
+
+        if (flyMiner) {
+            nav.flyTo(new MapLocation(31, 16));
+        }
 
         // Enemy Detection
         RobotInfo[] nearbyEnemies = getNearbyEnemies();
@@ -192,6 +192,8 @@ public class Drone extends Unit{
         }
 
     }
+
+    
 
     public RobotInfo[] getNearbyLandscapers(){
         RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
