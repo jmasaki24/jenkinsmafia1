@@ -1,4 +1,4 @@
-package BestBotv3;
+package usqualbot;
 
 import battlecode.common.*;
 
@@ -23,12 +23,7 @@ public class Drone extends Unit{
     public ArrayList<Direction> enemyDir = new ArrayList<>();
     public ArrayList<Direction> helpDir = new ArrayList<>();
     public ArrayList<MapLocation> waterLocation = new ArrayList<>();
-    boolean justCreated = true;
-    int duty = 0;
 
-    private int DEFENSE = 1;
-    private int MINEHELP = 3;
-    private int ATTACK = 5;
 
 
     public Drone(RobotController r) {
@@ -40,11 +35,6 @@ public class Drone extends Unit{
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
 
-    RobotInfo targetMiner = null;
-    MapLocation soupLoc = null;
-
-    //boolean onCowMission = false;
-    boolean iBroadcastedWaterLoc = false;
     boolean findANewBot = false;
 
 
@@ -53,43 +43,11 @@ public class Drone extends Unit{
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
 
-        if(justCreated == true){ //get duty from block chain because it's just created!
-            System.out.println("round num passing in" + (rc.getRoundNum()-1));
-            duty = comms.getDroneDuty(rc.getRoundNum() - 1); //updated from amazon previous round
-            justCreated = false; //dont go looking for duty again
-        }
-
-        //runs specialization method
-        if(duty == DEFENSE){
-            System.out.println("YOO im on defense"); //im guessing continue in this method if its on defense
-        }
-        else if(duty == MINEHELP){
-            System.out.println("Time to help those miners get the soup");
-            getMinersToHigherSoup(); //help move miner to higher soup
-        }
-        else if(duty == ATTACK){ //attack --> maybe call gotoEHQ???
-            System.out.println("letss gooo offense");
-        }
-
         // Water Locations isnt updated right now
         // comms.updateWaterLocations(waterLocation);
 
         // goToEHQ works, but first we need a defensive drone.
         // gotoEHQ();
-
-        waterLocation = comms.updateWaterLocations(waterLocation);
-
-        //If we have water, get water locs
-        if (!iBroadcastedWaterLoc) {
-            for (Direction dir : Util.directions) {
-                if (rc.canSenseLocation(myLoc.add(dir))) {
-                    if (rc.senseFlooding(myLoc.add(dir))) {
-                        comms.broadcastWaterLocation(myLoc.add(dir));
-                        iBroadcastedWaterLoc = true;
-                    }
-                }
-            }
-        }
 
         // Enemy Detection
         RobotInfo[] nearbyEnemies = getNearbyEnemies();
@@ -97,20 +55,12 @@ public class Drone extends Unit{
         //Landscaper Detection
         RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
-        //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
-        if(onMission == false && onHelpMission == false){
-            //finding cows near HQ
-            getNearbyCows();
-        }
-
         // Setting Standby Location
         if (standbyLocation == null) {
             if (hqLoc != null){
                 standbyLocation = hqLoc;
             }
         }
-
-
 
         //State your Mission:
         if (onMission){
@@ -129,7 +79,6 @@ public class Drone extends Unit{
 
                 // If I see an enemy, go pick them up
                 if (targetEnemy != null) {
-                    System.out.println("drone" + targetEnemy.location);
                     pickupEnemy();
                 }
                 // HQ has seen an enemy bot
@@ -217,48 +166,6 @@ public class Drone extends Unit{
 
     }
 
-    public void getMinersToHigherSoup() throws GameActionException{
-       RobotInfo[] nearbyMiners = getNearbyMiners(); //check if miners are nearby
-
-       if(targetMiner != null){ //pick up miner
-            pickupTargetMiner();
-       }
-
-       if(rc.isCurrentlyHoldingUnit()){
-            findHighSoup();
-       }
-
-       if(soupLoc != null){
-           if(rc.getLocation().distanceSquaredTo(soupLoc) < 5){
-               rc.dropUnit(Util.randomDirection());
-           }
-           else{
-               nav.flyTo(soupLoc);
-           }
-       }
-    }
-
-    public RobotInfo[] getNearbyMiners(){
-        RobotInfo[] nearbyMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
-        for(RobotInfo robot: nearbyMiners){
-            if(robot.type.equals(RobotType.MINER)){
-                targetMiner = robot; //will try to pick this guy up
-                break;
-            }
-        }
-        return nearbyMiners;
-    }
-
-    public void findHighSoup() throws GameActionException{
-        MapLocation[] soups = rc.senseNearbySoup();
-        for(MapLocation m: soups){
-            if(rc.senseElevation(m) > 3){ //hardcoded at 3, not sure what to change it to
-                soupLoc = m; //target soup location to move to
-                break;
-            }
-        }
-    }
-
     public RobotInfo[] getNearbyLandscapers(){
         RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
         for (RobotInfo robot : nearbyLandscapers) {
@@ -287,25 +194,6 @@ public class Drone extends Unit{
             }
         }
         return nearbyEnemyRobots;
-    }
-
-    public void getNearbyCows(){
-        if(hqLoc == null){
-            return;
-        }
-        //don't care, not near HQ
-        if(!myLoc.isWithinDistanceSquared(hqLoc, rc.getCurrentSensorRadiusSquared())){
-            return;
-        }
-        RobotInfo[] nearbyCows = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared);
-        for(RobotInfo robot: nearbyCows){
-            if(robot.type.equals(RobotType.COW)){
-                onMission = true;
-                targetEnemy = robot;
-                break;
-            }
-        }
-
     }
 
     public void getLandscaperToWall() throws GameActionException{
@@ -383,17 +271,6 @@ public class Drone extends Unit{
                     }
                 }
             }
-        }
-    }
-
-    public void pickupTargetMiner() throws GameActionException {
-        if(myLoc.distanceSquaredTo(targetMiner.location) < 3){ //if its close then pick itup
-            if(rc.canPickUpUnit(targetMiner.ID)){
-                rc.pickUpUnit(targetMiner.ID);
-            }
-        }
-        else{
-            nav.flyTo(targetMiner.location); //fly to location
         }
     }
 }

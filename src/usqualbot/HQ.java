@@ -1,10 +1,8 @@
-package BestBotv3;
+package usqualbot;
 
 import battlecode.common.*;
 
 import java.rmi.MarshalledObject;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Map;
 /*
  * FIRST FEW ROUNDS STRATEGY
@@ -30,9 +28,27 @@ public class HQ extends Shooter {
 
         // on first turn send nearbySoupLocations
         if (turnCount == 1) {
-            broadcastNearbySoupLocations();
-        } else if (turnCount == 30) {
-            // wait until 30th turn to send nearby water locations cuz who knows how much soup we'll have
+            comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
+            // System.out.println("I broadcasted my location");
+            MapLocation[] nearbySoupLocations = rc.senseNearbySoup();
+            if (nearbySoupLocations.length > 0) {
+                for (MapLocation nearbySoup : nearbySoupLocations) {
+                    // System.out.println("hq sees soup " + nearbySoup);
+                    // TODO: 1/19/2020 if the soup is surrounded by water or elevated land, miner will be fucked
+                    if (numSoupNearby < 10) { // don't want to spend all the soup broadcasting locs
+                        if (myLoc.distanceSquaredTo(nearbySoup) < 32 /*&& isSoupAccessible(nearbySoup)*/) {
+                            comms.broadcastSoupLocation(nearbySoup);
+                            numSoupNearby++;
+                        } else {
+                            numSoupNearby++;
+                        }
+                    }
+                }
+            }
+        }
+
+        // wait until 30th turn to send nearby water locations cuz who knows how much soup we'll have
+        else if (turnCount == 30) {
             broadcastNearbyWaterLocations();
         }
 
@@ -45,7 +61,6 @@ public class HQ extends Shooter {
             for (Direction dir : Util.directions)
                 if (tryBuild(RobotType.MINER, dir)) {
                     numMiners++;
-                    broadcastUnitCreation(RobotType.MINER);
                 }
         }
 
@@ -89,32 +104,6 @@ public class HQ extends Shooter {
 
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
-
-    void broadcastNearbySoupLocations() throws GameActionException {
-        comms.broadcastBuildingCreation(RobotType.HQ, myLoc);
-        // System.out.println("I broadcasted my location");
-        MapLocation[] nearbySoupLocations = rc.senseNearbySoup(13);
-        // TODO: 1/19/2020 if the soup is surrounded by water or elevated land, miner will be fucked
-        ArrayList<MapLocation> soupInHQRadius = new ArrayList<MapLocation>(Arrays.asList(nearbySoupLocations));
-        for (MapLocation soupLoc : soupInHQRadius) {
-            comms.broadcastSoupLocation(soupLoc);
-        }
-
-        if (soupInHQRadius.size() < 10) {
-            MapLocation[] moreSoupLocations = rc.senseNearbySoup(29);
-            ArrayList<MapLocation> moreSoupInRadius = new ArrayList<MapLocation>();
-            for (MapLocation soupLoc: moreSoupLocations) {
-                if (!soupInHQRadius.contains(soupLoc)) {
-                    soupInHQRadius.add(soupLoc);
-                    comms.broadcastSoupLocation(soupLoc);
-                }
-            }
-        }
-    }
-
-
-
-
 
     // go from top row to bottom row, left to right
     void broadcastNearbyWaterLocations() throws GameActionException {

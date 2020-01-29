@@ -1,4 +1,4 @@
-package BestBotv3;
+package usqualbot;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -10,11 +10,6 @@ import battlecode.common.RobotType;
 
 public class Amazon extends Building {
     private boolean shouldMakeBuilders;
-    private int typeOfDrone = 0;
-
-    private int DEFENSE = 1;
-    private int MINEHELP = 3;
-    private int ATTACK = 5;
 
     public Amazon(RobotController r) {
         super(r);
@@ -33,11 +28,6 @@ public class Amazon extends Building {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
-
-                    System.out.println("hi " + numDrones);
-
-                    broadcastUnitCreation(RobotType.DELIVERY_DRONE);
-
                 }
             }
         }
@@ -46,25 +36,9 @@ public class Amazon extends Building {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
-                    broadcastUnitCreation(RobotType.DELIVERY_DRONE);
                 }
             }
         }
-
-        if(numDrones == 1 || numDrones == 2){
-            typeOfDrone = DEFENSE;
-        }
-        else if(numDrones == 3){
-            typeOfDrone = MINEHELP;
-        }
-        else if(numDrones < 30){
-            typeOfDrone = DEFENSE;
-        }
-        else{
-            typeOfDrone = ATTACK;
-        }
-
-        comms.broadcastTypeOfDrone(typeOfDrone, rc.getRoundNum());
 
 //        if (rc.getTeamSoup()>=(6*RobotType.DELIVERY_DRONE.cost)){
 //            shouldMakeBuilders = true;

@@ -1,4 +1,4 @@
-package BestBotv3;
+package usqualbot;
 
 import battlecode.common.*;
 
@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class Communications {
     RobotController rc;
 
-    final int teamSecret = -817293710;
+    final int teamSecret = 444444444;
 
     final int HQID = 982;
     final int EHQID = 382;
@@ -18,18 +18,12 @@ public class Communications {
     final int DESIGNSCHOOLID = 202;
     final int REFINERYID = 303;
     final int VAPORATORID = 404;
-    final int NETGUNID = 505;
 
     final ArrayList<Integer> BuildingIDs = new ArrayList<Integer>(Arrays.asList(HQID,EHQID,AMAZONID,DESIGNSCHOOLID,REFINERYID,VAPORATORID));
 
     final int SOUPID = 312;
     final int WATERID = 820;
-    final int ATTACKERID = 555;
-
-    final int DRONEDUTY = 345;
-    final int DRONEDEFENSE = 12;
-    final int DRONEHELPMINER = 30;
-    final int DRONEATTACK = 450;
+    final int ATTACKERID = 505;
 
     int[] lastSpoofedMessage;
 
@@ -165,19 +159,18 @@ public class Communications {
             // System.out.println("new water!" + loc);
         }
     }
-    public ArrayList<MapLocation> updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
+    public void updateWaterLocations(ArrayList<MapLocation> waterLocations) throws GameActionException {
         // if its just been created, go through all of the blocks and transactions to find soup
         if (RobotPlayer.turnCount == 1) {
             // System.out.println("turncount 1 in updatewaterloc");
             for (int i = 1; i < rc.getRoundNum(); i++) {
-                waterLocations = getWaterLocInBlock(waterLocations, i);
+                getWaterLocInBlock(waterLocations, i);
             }
         } else {
-            waterLocations = getWaterLocInBlock(waterLocations, rc.getRoundNum() - 1);
+            getWaterLocInBlock(waterLocations, rc.getRoundNum() - 1);
         }
-        return waterLocations;
     }
-    public ArrayList<MapLocation> getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
+    public void getWaterLocInBlock(ArrayList<MapLocation> waterLocations, int roundNum) throws GameActionException {
         for(Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == WATERID){
@@ -186,7 +179,6 @@ public class Communications {
                 waterLocations.add(new MapLocation(mess[2], mess[3]));
             }
         }
-        return waterLocations;
     }
 
 
@@ -232,10 +224,14 @@ public class Communications {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
+            // case COW:                     SENTID = 1;                break;
+            // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
             case HQ:                         SENTID = HQID;             break;
-            case NET_GUN:                    SENTID = NETGUNID;         break;
+            // case LANDSCAPER:              SENTID = 6;                break;
+            // case MINER:                   SENTID = 7;                break;
+            // case NET_GUN:                 SENTID = 8;                break;
             case REFINERY:                   SENTID = REFINERYID;       break;
             case VAPORATOR:                  SENTID = VAPORATORID;      break;
             default:                         SENTID = 0;                break;
@@ -251,51 +247,19 @@ public class Communications {
             // System.out.println("new building! type: " + SENTID + "Location:" + loc);
         }
     }
-
-    //amazon broadcasts the type of drone it just made in the previous round
-    public void broadcastTypeOfDrone(int numOfDrones, int roundNum) throws GameActionException{
-        int SENTID = 0;
-        switch(numOfDrones){
-            case 1:             SENTID = DRONEDEFENSE; break; //defensive drones
-            case 3:             SENTID = DRONEHELPMINER; break; //transport drone
-            case 5:             SENTID = DRONEATTACK; break; //attacking drones
-        }
-
-        int[] message = new int[7];
-        message[0] = teamSecret;
-        message[1] = DRONEDUTY;
-        message[2] = roundNum;
-        message[3] = SENTID;
-
-        if (rc.canSubmitTransaction(message, 1)) {
-            rc.submitTransaction(message, 1);
-        }
-    }
-
-    //drones that are just created trying to access their role
-    public int getDroneDuty(int roundNum) throws GameActionException{
-        for(Transaction tx: rc.getBlock(roundNum)){
-            int[] mess = tx.getMessage();
-            if(mess[0] == teamSecret && mess[1] == DRONEDUTY && mess[2] == roundNum){
-                switch(mess[3]){
-                    case DRONEDEFENSE: return 1;
-                    case DRONEHELPMINER: return 3;
-                    case DRONEATTACK: return 5;
-                }
-            }
-        }
-        return 0;
-    }
-
-
     // Other for potential enemies/enemy HQ that is team specific
     public void broadcastBuildingCreation(RobotType type, MapLocation loc, Team team) throws GameActionException {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
+            // case COW:                     SENTID = 1;                break;
+            // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
             case HQ:                         SENTID = HQID;             break;
+            // case LANDSCAPER:              SENTID = 6;                break;
+            // case MINER:                   SENTID = 7;                break;
+            // case NET_GUN:                 SENTID = 8;                break;
             case REFINERY:                   SENTID = REFINERYID;       break;
             case VAPORATOR:                  SENTID = VAPORATORID;      break;
             default:                         SENTID = 0;                break;
@@ -400,12 +364,10 @@ public class Communications {
 //                    default:
 //                        // System.out.println("idk?!?");
 //                        break;
+                }
+
             }
-
         }
-    }
-
-
 
 
     public void jamEnemyComms() throws GameActionException {
