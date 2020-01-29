@@ -106,7 +106,9 @@ public class Navigation {
                     rc.move(randomDir);
                 }
             } else {
-                rc.move(dirToTarget);
+                if (rc.canMove(dirToTarget)){
+                    rc.move(dirToTarget);
+                }
             }
         } else{
             if (rc.canMove(closestDir)) {
