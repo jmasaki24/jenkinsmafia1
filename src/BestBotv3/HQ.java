@@ -42,16 +42,11 @@ public class HQ extends Shooter {
         }
 
         if (numMiners < MINER_LIMIT && rc.getTeamSoup() > RobotType.MINER.cost + 2) {
-            for (Direction dir : Util.directions)
-                if (tryBuild(RobotType.MINER, dir)) {
-                    numMiners++;
-                    RobotInfo justCreatedBot = rc.senseRobotAtLocation(myLoc.add(dir));
-                    if (justCreatedBot != null) {
-                        broadcastUnitCreation(justCreatedBot);
-                    } else {
-                        System.out.println("NULL EXCEPTION! nuts!");
-                    }
-                }
+            if (numMiners < 2) {
+                buildAndBroadcastMiners();
+            } else if (drones_ids_us.size() >= 1) {
+                buildAndBroadcastMiners();
+            }
         }
 
         // just cuz :)
@@ -117,7 +112,19 @@ public class HQ extends Shooter {
         }
     }
 
-
+    void buildAndBroadcastMiners() throws GameActionException {
+        for (Direction dir : Util.directions) {
+            if (tryBuild(RobotType.MINER, dir)) {
+                numMiners++;
+                RobotInfo justCreatedBot = rc.senseRobotAtLocation(myLoc.add(dir));
+                if (justCreatedBot != null) {
+                    broadcastUnitCreation(justCreatedBot);
+                } else {
+                    System.out.println("NULL EXCEPTION! nuts!");
+                }
+            }
+        }
+    }
 
 
 
