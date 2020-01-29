@@ -28,6 +28,7 @@ public class Amazon extends Building {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
+                    broadcastUnitCreation(RobotType.DELIVERY_DRONE);
                 }
             }
         }
@@ -36,6 +37,7 @@ public class Amazon extends Building {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
+                    broadcastUnitCreation(RobotType.DELIVERY_DRONE);
                 }
             }
         }

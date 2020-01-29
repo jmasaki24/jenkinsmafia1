@@ -45,6 +45,7 @@ public class HQ extends Shooter {
             for (Direction dir : Util.directions)
                 if (tryBuild(RobotType.MINER, dir)) {
                     numMiners++;
+                    broadcastUnitCreation(RobotType.MINER);
                 }
         }
 

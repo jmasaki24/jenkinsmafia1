@@ -18,12 +18,13 @@ public class Communications {
     final int DESIGNSCHOOLID = 202;
     final int REFINERYID = 303;
     final int VAPORATORID = 404;
+    final int NETGUNID = 505;
 
     final ArrayList<Integer> BuildingIDs = new ArrayList<Integer>(Arrays.asList(HQID,EHQID,AMAZONID,DESIGNSCHOOLID,REFINERYID,VAPORATORID));
 
     final int SOUPID = 312;
     final int WATERID = 820;
-    final int ATTACKERID = 505;
+    final int ATTACKERID = 555;
 
     int[] lastSpoofedMessage;
 
@@ -224,14 +225,10 @@ public class Communications {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
-            // case COW:                     SENTID = 1;                break;
-            // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
             case HQ:                         SENTID = HQID;             break;
-            // case LANDSCAPER:              SENTID = 6;                break;
-            // case MINER:                   SENTID = 7;                break;
-            // case NET_GUN:                 SENTID = 8;                break;
+            case NET_GUN:                    SENTID = NETGUNID;         break;
             case REFINERY:                   SENTID = REFINERYID;       break;
             case VAPORATOR:                  SENTID = VAPORATORID;      break;
             default:                         SENTID = 0;                break;
@@ -252,14 +249,9 @@ public class Communications {
         // System.out.println("broadcast building creation");
         int SENTID;
         switch (type) {
-            // case COW:                     SENTID = 1;                break;
-            // case DELIVERY_DRONE:          SENTID = 2;                break;
             case FULFILLMENT_CENTER:         SENTID = AMAZONID;         break;
             case DESIGN_SCHOOL:              SENTID = DESIGNSCHOOLID;   break;
             case HQ:                         SENTID = HQID;             break;
-            // case LANDSCAPER:              SENTID = 6;                break;
-            // case MINER:                   SENTID = 7;                break;
-            // case NET_GUN:                 SENTID = 8;                break;
             case REFINERY:                   SENTID = REFINERYID;       break;
             case VAPORATOR:                  SENTID = VAPORATORID;      break;
             default:                         SENTID = 0;                break;
@@ -364,10 +356,12 @@ public class Communications {
 //                    default:
 //                        // System.out.println("idk?!?");
 //                        break;
-                }
-
             }
+
         }
+    }
+
+
 
 
     public void jamEnemyComms() throws GameActionException {
