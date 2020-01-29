@@ -57,7 +57,7 @@ public class Drone extends Unit{
         RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
         //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
-        if(onMission == false){
+        if(onMission == false && onHelpMission == false){
             //finding cows near HQ
             getNearbyCows();
         }
