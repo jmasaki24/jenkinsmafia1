@@ -23,7 +23,8 @@ public class Drone extends Unit{
     public ArrayList<Direction> enemyDir = new ArrayList<>();
     public ArrayList<Direction> helpDir = new ArrayList<>();
     public ArrayList<MapLocation> waterLocation = new ArrayList<>();
-
+    boolean justCreated = true;
+    int duty = 0;
 
 
     public Drone(RobotController r) {
@@ -35,6 +36,9 @@ public class Drone extends Unit{
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
 
+    RobotInfo targetMiner = null;
+    MapLocation soupLoc = null;
+
     boolean findANewBot = false;
 
 
@@ -42,6 +46,26 @@ public class Drone extends Unit{
     public void takeTurn() throws GameActionException {
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
+
+        if(justCreated == true){ //get duty from block chain
+            System.out.println("round num passing in" + (rc.getRoundNum()-1));
+            duty = comms.getDroneDuty(rc.getRoundNum() - 1); //updated from amazon previous round
+            justCreated = false;
+        }
+
+        if(duty == 1){
+            System.out.println("YOO im on defense");
+        }
+        else if(duty == 3){
+            System.out.println("Time to help those miners get the soup");
+            getMinersToHigherSoup();
+        }
+        else if(duty == 4){
+            System.out.println("DEFENSE PRT2");
+        }
+        else if(duty == 5){
+            System.out.println("letss gooo offense");
+        }
 
         // Water Locations isnt updated right now
         // comms.updateWaterLocations(waterLocation);
@@ -61,6 +85,8 @@ public class Drone extends Unit{
                 standbyLocation = hqLoc;
             }
         }
+
+
 
         //State your Mission:
         if (onMission){
@@ -165,6 +191,50 @@ public class Drone extends Unit{
         }
 
     }
+
+    public RobotInfo[] getNearbyMiners(){
+        RobotInfo[] nearbyMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for(RobotInfo robot: nearbyMiners){
+            if(robot.type.equals(RobotType.MINER)){
+                targetMiner = robot;
+                break;
+            }
+        }
+        return nearbyMiners;
+    }
+
+    public void getMinersToHigherSoup() throws GameActionException{
+       RobotInfo[] nearbyMiners = getNearbyMiners();
+
+       if(targetMiner != null){
+            pickupTargetMiner();
+       }
+
+       if(rc.isCurrentlyHoldingUnit()){
+            findHighSoup();
+       }
+
+       if(soupLoc != null){
+           if(rc.getLocation().distanceSquaredTo(soupLoc) < 5){
+               rc.dropUnit(Util.randomDirection());
+           }
+           else{
+               nav.flyTo(soupLoc);
+           }
+       }
+
+    }
+
+    public void findHighSoup() throws GameActionException{
+        MapLocation[] soups = rc.senseNearbySoup();
+        for(MapLocation m: soups){
+            if(rc.senseElevation(m) > 3){
+                soupLoc = m;
+                break;
+            }
+        }
+    }
+
 
     public RobotInfo[] getNearbyLandscapers(){
         RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
@@ -271,6 +341,17 @@ public class Drone extends Unit{
                     }
                 }
             }
+        }
+    }
+
+    public void pickupTargetMiner() throws GameActionException {
+        if(myLoc.distanceSquaredTo(targetMiner.location) < 3){
+            if(rc.canPickUpUnit(targetMiner.ID)){
+                rc.pickUpUnit(targetMiner.ID);
+            }
+        }
+        else{
+            nav.flyTo(targetMiner.location);
         }
     }
 }

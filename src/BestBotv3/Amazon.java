@@ -10,6 +10,7 @@ import battlecode.common.RobotType;
 
 public class Amazon extends Building {
     private boolean shouldMakeBuilders;
+    private int typeOfDrone = 0;
 
     public Amazon(RobotController r) {
         super(r);
@@ -28,6 +29,8 @@ public class Amazon extends Building {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
+                    System.out.println("hi " + numDrones);
+
                 }
             }
         }
@@ -39,6 +42,21 @@ public class Amazon extends Building {
                 }
             }
         }
+
+        if(numDrones == 1 || numDrones == 2){
+            typeOfDrone = 1;
+        }
+        else if(numDrones == 3){
+            typeOfDrone = 3;
+        }
+        else if(numDrones < 30){
+            typeOfDrone = 4;
+        }
+        else{
+            typeOfDrone = 5;
+        }
+
+        comms.broadcastTypeOfDrone(typeOfDrone, rc.getRoundNum());
 
 //        if (rc.getTeamSoup()>=(6*RobotType.DELIVERY_DRONE.cost)){
 //            shouldMakeBuilders = true;
