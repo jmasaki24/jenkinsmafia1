@@ -195,7 +195,7 @@ public class Miner extends Unit {
                     comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             }
-        } else if (designSchoolLocations.size() == 0) {
+        } else if (designSchoolLocations.size() == 0 && drones_ids_us.size() >= 2) {
             if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost + 5 && myLoc.distanceSquaredTo(hqLoc) < 13  && myLoc.distanceSquaredTo(hqLoc) >= 2) {
                 // System.out.println("No design schools yet, gotta build one");
                 if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
