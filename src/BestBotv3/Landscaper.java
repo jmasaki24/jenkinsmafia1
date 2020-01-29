@@ -56,9 +56,10 @@ public class Landscaper extends Unit {
 
 
         System.out.print(hqLoc);
-//         otherwise try to get to the hq
-
-
+//      otherwise try to get to the hq
+        if (rc.canMove(myLoc.directionTo(hqLoc))){
+            rc.move(myLoc.directionTo(hqLoc));
+        }
 }
 
     // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
