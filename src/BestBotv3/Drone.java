@@ -34,6 +34,7 @@ public class Drone extends Unit{
     boolean onHelpMission = false;
     boolean onBootMission = false;
     boolean onCowMission = false;
+    boolean onBlockMission = false;
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
     RobotInfo targetBootBot = null;
@@ -42,6 +43,8 @@ public class Drone extends Unit{
     boolean findANewBot = false;
 
     boolean specificdrone = false;
+
+    int numWallLandscapers = 0;
 
 
     public void takeTurn() throws GameActionException {
@@ -91,8 +94,16 @@ public class Drone extends Unit{
             }
         }
 
+        checkIfBlock();
+
+
+
+
+
         //State your Mission:
-        if (onMission){
+        if (onBlockMission){
+            System.out.println("BLOCK MISSION");
+        } else if (onMission){
             System.out.println("I am getting rid of the enemy!");
         }
         else if (onHelpMission){
@@ -106,7 +117,10 @@ public class Drone extends Unit{
         }
 
         // If my task is to remove the enemy
-        if (onMission){
+        if (onBlockMission){
+            formABlock();
+        }
+        else if (onMission){
             if (hqLoc != null){
                 //if I have the scum, look for a place to dispose them
                 disposeOfScum();
@@ -338,6 +352,8 @@ public class Drone extends Unit{
 
     }
 
+
+
     public void getLandscaperToWall() throws GameActionException{
         for (Direction dir: Util.directions){
             if (myLoc.add(dir).distanceSquaredTo(hqLoc) <= 2){
@@ -466,6 +482,41 @@ public class Drone extends Unit{
                     }
                 }
             }
+        }
+    }
+
+    public void formABlock() throws GameActionException{
+        if (myLoc.distanceSquaredTo(hqLoc) == 8) {
+            for (Direction dir : Direction.cardinalDirections()){
+                if (myLoc.add(dir).distanceSquaredTo(hqLoc) < 8){
+                    nav.tryFly(dir);
+                } else{
+                    System.out.println("I am blocking");
+                }
+            }
+        } else if (myLoc.distanceSquaredTo(hqLoc) > 7) {
+            nav.flyTo(hqLoc);
+        } else if (myLoc.distanceSquaredTo(hqLoc) < 4){
+            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+        }  else {
+            System.out.println("I am blocking");
+        }
+
+    }
+
+    public void checkIfBlock(){
+        RobotInfo[] wallLandscapers = rc.senseNearbyRobots(hqLoc, 2, rc.getTeam());
+        for (RobotInfo bot : wallLandscapers) {
+            if (bot.type.equals(RobotType.LANDSCAPER)) {
+                numWallLandscapers ++;
+            }
+        }
+
+        if (numWallLandscapers >= 8){
+            onBlockMission = true;
+            System.out.println(numWallLandscapers);
+        } else{
+            numWallLandscapers = 0;
         }
     }
 }
