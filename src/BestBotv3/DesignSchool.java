@@ -32,7 +32,7 @@ public class DesignSchool extends Building {
             buildLandscaperSoupLimit = RobotType.LANDSCAPER.cost + 5;
         }
 
-        if (numLandscapers < 8){
+        if (numLandscapers < 16 && landscapers_ids_us.size() < 16){
             if (rc.getTeamSoup() > buildLandscaperSoupLimit){
                 for (Direction dir : Util.directions) {
                     if (tryBuild(RobotType.LANDSCAPER, dir)){
