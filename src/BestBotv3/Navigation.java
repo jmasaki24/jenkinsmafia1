@@ -1,9 +1,6 @@
 package BestBotv3;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 import java.util.Map;
 
@@ -18,18 +15,12 @@ public class Navigation {
     }
     
     //Attempts to move in a given direction
-    boolean tryMove(Direction dir) throws GameActionException {
-        if (rc.isReady() && rc.canMove(dir) && !rc.senseFlooding(rc.getLocation().add(dir)) && isOnMap(dir)) {
-            rc.move(dir);
-            return true;
-        } else return false;
+    void tryMove(Direction dir) throws GameActionException {
+        bugPath(dir);
     }
 
-    boolean tryFly(Direction dir) throws GameActionException {
-        if (rc.isReady() && rc.canMove(dir) && isOnMap(dir)) {
-            rc.move(dir);
-            return true;
-        } else return false;
+    void tryFly(Direction dir) throws GameActionException {
+        bugPath(dir);
     }
 
     boolean isOnMap(Direction dir){
@@ -42,28 +33,8 @@ public class Navigation {
     }
 
     // tries to move in the general direction of dir
-    boolean goTo(Direction dir) throws GameActionException {
-
-        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
-        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
-                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
-                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
-                dir.opposite(),
-        };
-
-        Direction moveToward = fuzzyNavDirectionsInOrder[0];
-        for (int i = 0; i < 8; i ++) {
-            moveToward = fuzzyNavDirectionsInOrder[i];
-            if (tryMove(moveToward)) {
-                return true;
-            }
-        }
-//
-//        for (Direction d : toTry){
-//            if(tryMove(d))
-//                return true;
-//        }
-        return false;
+    void goTo(Direction dir) throws GameActionException {
+        bugPath(dir);
     }
 
     void bugPath(MapLocation target) throws GameActionException {
@@ -87,71 +58,104 @@ public class Navigation {
         Direction closestDir = Direction.CENTER;
 
         for (Direction dis: Util.directions){
-            if (rc.canMove(dis)){
-                MapLocation potentialLoc = myLoc.add(dis);
-                if (closest < potentialLoc.distanceSquaredTo(target)){
-                    closest = potentialLoc.distanceSquaredTo(target);
-                    closestDir = dis;
+            if (rc.getType() != RobotType.DELIVERY_DRONE) {
+                if (rc.canMove(dis) && !rc.senseFlooding(myLoc.add(dis))){
+                    MapLocation potentialLoc = myLoc.add(dis);
+                    if (closest < potentialLoc.distanceSquaredTo(target)){
+                        closest = potentialLoc.distanceSquaredTo(target);
+                        closestDir = dis;
+                    }
+                }
+            } else {
+                if (rc.canMove(dis)){
+                    MapLocation potentialLoc = myLoc.add(dis);
+                    if (closest < potentialLoc.distanceSquaredTo(target)){
+                        closest = potentialLoc.distanceSquaredTo(target);
+                        closestDir = dis;
+                    }
                 }
             }
+
         }
         if (closest > closestIveEverBeen){
             Direction dirToTarget = myLoc.directionTo(target);
-            if (rc.canMove(dirToTarget)){
-                rc.move(dirToTarget);
-            } else {
-                int count = 0;
-                while(!rc.canMove(dirToTarget) && count <= 8){
-                    dirToTarget = dirToTarget.rotateRight();
-                    count++;
+            if (rc.getType() != RobotType.DELIVERY_DRONE) {
+                if (rc.canMove(dirToTarget) && !rc.senseFlooding(myLoc.add(dirToTarget))) {
+                    rc.move(dirToTarget);
                 }
-                if (dirToTarget == myLoc.directionTo(target)){
-                    Direction randomDir = Util.randomDirection();
-                    if (rc.canMove(randomDir)){
-                        rc.move(randomDir);
-                    }
-                } else {
+            } else {
+                if (rc.canMove(dirToTarget)){
                     rc.move(dirToTarget);
                 }
             }
+            int count = 0;
+            if (rc.getType() != RobotType.DELIVERY_DRONE) {
+                while ((!rc.canMove(dirToTarget) && count <= 8) && !rc.senseFlooding(myLoc.add(dirToTarget))) {
+                    dirToTarget = dirToTarget.rotateRight();
+                    count++;
+                }
+            } else {
+                while (!rc.canMove(dirToTarget) && count <= 8) {
+                    dirToTarget = dirToTarget.rotateRight();
+                    count++;
+                }
+            }
+            if (dirToTarget == myLoc.directionTo(target)){
+                Direction randomDir = Util.randomDirection();
+                if (rc.canMove(randomDir)){
+                    rc.move(randomDir);
+                }
+            } else {
+                rc.move(dirToTarget);
+            }
         } else{
-            if (rc.canMove(closestDir))
+            if (rc.canMove(closestDir)) {
                 rc.move(closestDir);
+            }
         }
     }
 
-    //Is a copy of goTo that ignores water
-    boolean flyTo(Direction dir) throws GameActionException {
+    void bugPath(Direction dir) throws GameActionException {
+        bugPath(rc.getLocation().add(dir));
+    }
 
-        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
-        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
-                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
-                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
-                dir.opposite(),
-        };
-
-        Direction moveToward = fuzzyNavDirectionsInOrder[0];
-        for (int i = 0; i < 8; i ++) {
-            moveToward = fuzzyNavDirectionsInOrder[i];
-            if (tryFly(moveToward)) {
-                return true;
-            }
-        }
+//    //Is a copy of goTo that ignores water
+//    boolean flyTo(Direction dir) throws GameActionException {
 //
-//        for (Direction d : toTry){
-//            if(tryMove(d))
+//        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+//        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+//                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+//                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+//                dir.opposite(),
+//        };
+//
+//        Direction moveToward = fuzzyNavDirectionsInOrder[0];
+//        for (int i = 0; i < 8; i ++) {
+//            moveToward = fuzzyNavDirectionsInOrder[i];
+//            if (tryFly(moveToward)) {
 //                return true;
+//            }
 //        }
-        return false;
+////
+////        for (Direction d : toTry){
+////            if(tryMove(d))
+////                return true;
+////        }
+//        return false;
+//    }
+
+    //Is a copy of goTo that ignores water
+    void flyTo(Direction dir) throws GameActionException {
+        bugPath(dir);
     }
 
     // navigate towards a particular location
-    boolean goTo(MapLocation destination) throws GameActionException {
-        return goTo(rc.getLocation().directionTo(destination));
+    void goTo(MapLocation destination) throws GameActionException {
+        bugPath(rc.getLocation().directionTo(destination));
     }
 
     // still a copy of goTo but for flying
-    boolean flyTo(MapLocation destination) throws GameActionException {
-        return flyTo(rc.getLocation().directionTo(destination));
+    void flyTo(MapLocation destination) throws GameActionException {
+        bugPath(rc.getLocation().directionTo(destination));
     }
 }
