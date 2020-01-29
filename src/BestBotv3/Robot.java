@@ -14,7 +14,7 @@ public class Robot {
     MapLocation myLoc;
 
 
-    final int teamSecret = -817293710;
+    final int teamSecret = -817280;
     final int MINERID = -887;
     final int DRONEID = -142;
     final int LANDSCAPERID = -242;
