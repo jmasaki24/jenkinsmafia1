@@ -1,9 +1,6 @@
 package BestBotv3;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 
 //Todo: set a hard limit of landscapers to make
 //Todo: Create Broadcast Design School Creation
@@ -24,11 +21,16 @@ public class Amazon extends Building {
 //            comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc);
         }
 
-        if (numDrones < 2 && rc.getTeamSoup() > RobotType.REFINERY.cost) {
+        if (numDrones < 2 && rc.getTeamSoup() > RobotType.DELIVERY_DRONE.cost + 2) {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
-                    broadcastUnitCreation(RobotType.DELIVERY_DRONE);
+                    RobotInfo justCreatedBot = rc.senseRobotAtLocation(myLoc.add(dir));
+                    if (justCreatedBot != null) {
+                        broadcastUnitCreation(justCreatedBot);
+                    } else {
+                        System.out.println("NULL EXCEPTION! nuts!");
+                    }
                 }
             }
         }
@@ -37,7 +39,12 @@ public class Amazon extends Building {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
-                    broadcastUnitCreation(RobotType.DELIVERY_DRONE);
+                    RobotInfo justCreatedBot = rc.senseRobotAtLocation(myLoc.add(dir));
+                    if (justCreatedBot != null) {
+                        broadcastUnitCreation(justCreatedBot);
+                    } else {
+                        System.out.println("NULL EXCEPTION! nuts!");
+                    }
                 }
             }
         }

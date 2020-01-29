@@ -14,16 +14,14 @@ public class Robot {
     MapLocation myLoc;
 
 
-    final int teamSecret = -817293710;
+    final int teamSecret = -817280;
     final int MINERID = -887;
     final int DRONEID = -142;
     final int LANDSCAPERID = -242;
 
-    int miners_total_num;
-    int landscaper_total_num;
-    int drones_total_num;
-
-
+    ArrayList<Integer> miners_ids_us = new ArrayList<Integer>();
+    ArrayList<Integer> landscapers_ids_us = new ArrayList<Integer>();
+    ArrayList<Integer> drones_ids_us = new ArrayList<Integer>();
 
     public Robot(RobotController r) {
         this.rc = r;
@@ -108,9 +106,9 @@ public class Robot {
         return false;
     }
 
-    void broadcastUnitCreation(RobotType type) throws GameActionException {
+    void broadcastUnitCreation(RobotInfo botInfo) throws GameActionException {
         int SENTID;
-        switch (type) {
+        switch (botInfo.type) {
             case COW:                     SENTID = 1;                break;
             case DELIVERY_DRONE:          SENTID = DRONEID;          break;
             case LANDSCAPER:              SENTID = LANDSCAPERID;     break;
@@ -121,7 +119,8 @@ public class Robot {
         int[] message = new int[7];
         message[0] = teamSecret;
         message[1] = SENTID;
-        message[2] = teamSecret + SENTID;
+        message[2] = botInfo.ID;
+        message[3] = message[0] + message[1] + message[2];
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
             // System.out.println("new building! type: " + SENTID + "Location:" + loc);
@@ -145,20 +144,26 @@ public class Robot {
     void getUnitCreationInBlock (int roundNum) throws GameActionException {
         for (Transaction tx : rc.getBlock(roundNum)) {
             int[] mess = tx.getMessage();
-            if (mess[0] == teamSecret && (mess[0] + mess[1] == mess[2])) {
+            if (mess[0] == teamSecret && (mess[0] + mess[1] + mess[2] == mess[3])) {
                 // System.out.print("Possible new building? Type: " + mess[1] + " at [" + mess[2] + ", " + mess[3] + "].");
                 switch (mess[1]) {
                     case MINERID:
-                        miners_total_num++;
-                        System.out.println("m_total: " + miners_total_num);
+                        if (!miners_ids_us.contains(mess[2])) {
+                            System.out.println("m_total: " + miners_ids_us.size());
+                            miners_ids_us.add(mess[2]);
+                        }
                         break;
                     case LANDSCAPERID:
-                        landscaper_total_num++;
-                        System.out.println("l_total: " + landscaper_total_num);
+                        if (!landscapers_ids_us.contains(mess[2])) {
+                            System.out.println("l_total: " + landscapers_ids_us.size());
+                            landscapers_ids_us.add(mess[2]);
+                        }
                         break;
                     case DRONEID:
-                        drones_total_num++;
-                        System.out.println("d_total: " + drones_total_num);
+                        if (!drones_ids_us.contains(mess[2])) {
+                            System.out.println("d_total: " + drones_ids_us.size());
+                            drones_ids_us.add(mess[2]);
+                        }
                         break;
                     default:
                         break;

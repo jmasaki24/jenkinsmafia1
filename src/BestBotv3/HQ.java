@@ -41,11 +41,16 @@ public class HQ extends Shooter {
             comms.jamEnemyComms();
         }
 
-        if (numMiners < MINER_LIMIT) {
+        if (numMiners < MINER_LIMIT && rc.getTeamSoup() > RobotType.MINER.cost + 2) {
             for (Direction dir : Util.directions)
                 if (tryBuild(RobotType.MINER, dir)) {
                     numMiners++;
-                    broadcastUnitCreation(RobotType.MINER);
+                    RobotInfo justCreatedBot = rc.senseRobotAtLocation(myLoc.add(dir));
+                    if (justCreatedBot != null) {
+                        broadcastUnitCreation(justCreatedBot);
+                    } else {
+                        System.out.println("NULL EXCEPTION! nuts!");
+                    }
                 }
         }
 
