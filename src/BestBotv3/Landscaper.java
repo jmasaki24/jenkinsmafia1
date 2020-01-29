@@ -2,7 +2,6 @@ package BestBotv3;
 
 import battlecode.common.*;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 public class Landscaper extends Unit {
@@ -13,73 +12,12 @@ public class Landscaper extends Unit {
 
     //Vars
     MapLocation bestPlaceToBuildWall;
-    boolean isSmallWallBuilder = false;
-    boolean isHashtagBuilder = false;
-
-    ArrayList<MapLocation> possibleDigLocations = new ArrayList<MapLocation>();
 
     public void takeTurn() throws GameActionException {
         super.takeTurn();
-        System.out.println("hqloc is " + hqLoc);
-        System.out.println("turncount " + turnCount);
-        if (turnCount == 1) {
-            if (landscapers_ids_us.size() <= 8 ) {
-                isSmallWallBuilder = true;
-            } else {
-                isHashtagBuilder = true;
-            }
-        }
-        if (myLoc.distanceSquaredTo(hqLoc) <= 2) {
-            isSmallWallBuilder = true;
-            isHashtagBuilder = false;
-        }
-
-        if (turnCount == 3) {
-            possibleDigLocations.add(new MapLocation(hqLoc.x - 2, hqLoc.y));
-            possibleDigLocations.add(new MapLocation(hqLoc.x, hqLoc.y + 2));
-            possibleDigLocations.add(new MapLocation(hqLoc.x + 2, hqLoc.y));
-            possibleDigLocations.add(new MapLocation(hqLoc.x, hqLoc.y - 2));
-            possibleDigLocations.removeIf(loc -> !rc.onTheMap(loc));
-            for (MapLocation loc: possibleDigLocations) {
-                System.out.println("dig: " + loc);
-            }
-        } else if (turnCount == 15) {
-            hashtagLocations.add(new MapLocation((hqLoc.x - 2), (hqLoc.y + 1)));
-            hashtagLocations.add(new MapLocation((hqLoc.x - 1), (hqLoc.y + 2)));
-            hashtagLocations.add(new MapLocation((hqLoc.x + 1), (hqLoc.y + 2)));
-            hashtagLocations.add(new MapLocation((hqLoc.x + 2), (hqLoc.y + 1)));
-            hashtagLocations.add(new MapLocation((hqLoc.x + 2), (hqLoc.y - 1)));
-            hashtagLocations.add(new MapLocation((hqLoc.x + 1), (hqLoc.y - 2)));
-            hashtagLocations.add(new MapLocation((hqLoc.x - 1), (hqLoc.y - 2)));
-            hashtagLocations.add(new MapLocation((hqLoc.x - 2), (hqLoc.y - 1)));
-            hashtagLocations.removeIf(loc -> !rc.onTheMap(loc));
-            for (MapLocation loc: possibleDigLocations) {
-                System.out.println("hshtg: " + loc);
-            }
-        }
-
 
         unburyHQ();
 
-        if (isSmallWallBuilder) {
-            doSmallWallBuilderStuff();
-        } else {
-            doHashtagWallBuilderStuff();
-        }
-
-
-
-
-        System.out.print(hqLoc);
-//      otherwise try to get to the hq
-        if (rc.canMove(myLoc.directionTo(hqLoc))){
-            rc.move(myLoc.directionTo(hqLoc));
-        }
-}
-
-    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
-
-    void doSmallWallBuilderStuff() throws GameActionException {
         // System.out.println(myLoc.x + " " + myLoc.y);
         if(rc.onTheMap(hqLoc)){
             System.out.println("Can See hq");
@@ -98,7 +36,7 @@ public class Landscaper extends Unit {
             //While we haven't digged, we should keep digging
             boolean digged = false;
             while(!digged){
-                digged = digInCardinalDirections();
+                digged = DontDigTheWall();
             }
         }
 
@@ -115,7 +53,16 @@ public class Landscaper extends Unit {
                 // System.out.println("building a wall");
             }
         }
-    }
+
+
+        System.out.print(hqLoc);
+//      otherwise try to get to the hq
+        if (rc.canMove(myLoc.directionTo(hqLoc))){
+            rc.move(myLoc.directionTo(hqLoc));
+        }
+}
+
+    // ----------------------------------------------- METHODS SECTION ---------------------------------------------- \\
 
     void randMoveIfNoDesignSchool(Direction rand) throws GameActionException {
         RobotInfo[] nearbyRobots = rc.senseNearbyRobots(RobotType.LANDSCAPER.sensorRadiusSquared, rc.getTeam());
@@ -141,57 +88,12 @@ public class Landscaper extends Unit {
 //        }
     }
 
-    ArrayList<MapLocation> hashtagLocations = new ArrayList<MapLocation>();
-    void doHashtagWallBuilderStuff() throws GameActionException {
-        for (MapLocation loc: hashtagLocations) {
-            if (rc.canSenseLocation(loc)) {
-                RobotInfo botmaybe = rc.senseRobotAtLocation(loc);
-                if (botmaybe != null && botmaybe.type.equals(RobotType.LANDSCAPER)) {
-                    hashtagLocations.remove(loc);
-                }
-            }
-        }
-
-        if (hashtagLocations.size() > 0) {
-            MapLocation closestHashLoc = hashtagLocations.get(0);
-            for (MapLocation loc: hashtagLocations) {
-                if (myLoc.distanceSquaredTo(closestHashLoc) > myLoc.distanceSquaredTo(loc)) {
-                    closestHashLoc = loc;
-                }
-            }
-
-            System.out.println("hshtg: " + closestHashLoc);
-            nav.goTo(closestHashLoc);
-        } else {
-            nav.goTo(hqLoc);
-        }
-
-    }
-
     void unburyHQ() throws GameActionException {
         if (hqLoc.distanceSquaredTo(myLoc) < 3){
             if (rc.canDigDirt(myLoc.directionTo(hqLoc))){
                 rc.digDirt(myLoc.directionTo(hqLoc));
             }
         }
-    }
-
-    // made to replace DontDigTheWall()
-    boolean digInCardinalDirections() throws GameActionException {
-        for (MapLocation digLoc : possibleDigLocations) {
-            if (myLoc.distanceSquaredTo(digLoc) <= 2) {
-                Direction dirToDigSpot = rc.getLocation().directionTo(digLoc);
-                if (rc.canDigDirt(dirToDigSpot)) {
-                    rc.digDirt(dirToDigSpot);
-                    rc.setIndicatorDot(myLoc.add(dirToDigSpot) ,0,0,250);
-                    return true;
-                }
-            }
-        }
-
-        return true;
-
-
     }
 
     boolean DontDigTheWall() throws GameActionException {
