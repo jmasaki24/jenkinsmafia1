@@ -34,6 +34,7 @@ public class Drone extends Unit{
     boolean onHelpMission = false;
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
+    //boolean onCowMission = false;
 
     boolean findANewBot = false;
 
@@ -54,6 +55,12 @@ public class Drone extends Unit{
 
         //Landscaper Detection
         RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
+
+        //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
+        if(onMission == false){
+            //finding cows near HQ
+            getNearbyCows();
+        }
 
         // Setting Standby Location
         if (standbyLocation == null) {
@@ -79,6 +86,7 @@ public class Drone extends Unit{
 
                 // If I see an enemy, go pick them up
                 if (targetEnemy != null) {
+                    System.out.println("drone" + targetEnemy.location);
                     pickupEnemy();
                 }
                 // HQ has seen an enemy bot
@@ -194,6 +202,25 @@ public class Drone extends Unit{
             }
         }
         return nearbyEnemyRobots;
+    }
+
+    public void getNearbyCows(){
+        if(hqLoc == null){
+            return;
+        }
+        //don't care, not near HQ
+        if(!myLoc.isWithinDistanceSquared(hqLoc, rc.getCurrentSensorRadiusSquared())){
+            return;
+        }
+        RobotInfo[] nearbyCows = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared);
+        for(RobotInfo robot: nearbyCows){
+            if(robot.type.equals(RobotType.COW)){
+                onMission = true;
+                targetEnemy = robot;
+                break;
+            }
+        }
+
     }
 
     public void getLandscaperToWall() throws GameActionException{
