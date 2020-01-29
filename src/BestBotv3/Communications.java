@@ -31,6 +31,9 @@ public class Communications {
     final int DRONEHELPMINER = 30;
     final int DRONEATTACK = 450;
 
+    final int NEEDHELPMINERS = 765;
+    final int IGOTU = 789;
+
     int[] lastSpoofedMessage;
 
 //    static final String[] messageType = {
@@ -289,6 +292,48 @@ public class Communications {
             }
         }
         return 0;
+    }
+
+    public void broadCastMinerHelpFromDrone() throws GameActionException{
+        int[] message = new int[7];
+        message[0] = teamSecret;
+        message[1] = NEEDHELPMINERS;
+
+        if (rc.canSubmitTransaction(message, 1)) {
+            rc.submitTransaction(message, 1);
+        }
+    }
+
+    public boolean getDronesCryForHelp(int roundNum) throws GameActionException{
+        for(Transaction tx: rc.getBlock(roundNum - 1)){
+            int[] mess = tx.getMessage();
+            if(mess[0] == teamSecret && mess[1] == NEEDHELPMINERS){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void broadcastMyLocationFromMiner(int x, int y) throws GameActionException{
+        int[] message = new int[7];
+        message[0] = teamSecret;
+        message[1] = IGOTU;
+        message[2] = x;
+        message[3] = y;
+    }
+
+    public MapLocation getMinerLocationForDrone(int roundNum) throws GameActionException{
+        MapLocation miner;
+        int x = -5, y =  -5;
+        for(Transaction tx: rc.getBlock(roundNum - 1)){
+            int[] mess = tx.getMessage();
+            if(mess[0] == teamSecret && mess[1] == DRONEDUTY){
+                x = mess[2];
+                y = mess[3];
+            }
+        }
+        miner = new MapLocation(x, y);
+        return miner;
     }
 
 

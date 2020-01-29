@@ -66,6 +66,10 @@ public class Miner extends Unit {
 
         tryCheckIfSoupOrRefineryIsGone();
 
+        if(comms.getDronesCryForHelp(rc.getRoundNum()) == true){
+            comms.broadcastMyLocationFromMiner(rc.getLocation().x, rc.getLocation().y);
+        }
+
         // if (near water()) { find higherGround }
 
         checkForLandscapersNearby();

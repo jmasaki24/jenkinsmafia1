@@ -30,6 +30,17 @@ public class Drone extends Unit{
     private int MINEHELP = 3;
     private int ATTACK = 5;
 
+    boolean checkUpperR = false;
+    boolean checkUpperL = false;
+    boolean checkBottomR = false;
+    boolean checkBottomL = false;
+
+    boolean gotFromBlock = false;
+
+    int fourthWidth = rc.getMapWidth()/4;
+    int threefourthWidth = rc.getMapWidth()*3/4;
+    int fourthHeight = rc.getMapHeight()/4;
+    int threefourthHeigh = rc.getMapHeight()*3/4;
 
     public Drone(RobotController r) {
         super(r);
@@ -50,6 +61,8 @@ public class Drone extends Unit{
     boolean specificdrone = false;
     RobotInfo targetMinerAtHQ = null;
 
+    boolean helperDrone = false;
+
 
 
     public void takeTurn() throws GameActionException {
@@ -65,10 +78,14 @@ public class Drone extends Unit{
         //runs specialization method
         if(duty == DEFENSE){
             System.out.println("YOO im on defense"); //im guessing continue in this method if its on defense
+            if(rc.getRoundNum() > 300 && rc.getRoundNum() < 350){
+                helperDrone = true;
+            }
         }
         else if(duty == MINEHELP){
             System.out.println("Time to help those miners get the soup");
-            getMinersToHigherSoup(); //help move miner to higher soup
+            //getMinersToHigherSoup(); //help move miner to higher soup
+            helperDrone = true;
         }
         else if(duty == ATTACK){ //attack --> maybe call gotoEHQ???
             System.out.println("letss gooo offense");
@@ -108,19 +125,22 @@ public class Drone extends Unit{
 //        if (specificdrone) {
 //            nav.flyTo(new MapLocation(31, 16));
 //        }
-        if(rc.isCurrentlyHoldingUnit() == false){
-            // Enemy Detection
-            RobotInfo[] nearbyEnemies = getNearbyEnemies();
+        if(!helperDrone){
+            if(rc.isCurrentlyHoldingUnit() == false){
+                // Enemy Detection
+                RobotInfo[] nearbyEnemies = getNearbyEnemies();
 
-            //Landscaper Detection
-            RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
+                //Landscaper Detection
+                RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
+            }
+
+            //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
+            if(onMission == false && onHelpMission == false && targetMinerAtHQ == null && !rc.isCurrentlyHoldingUnit()){
+                //finding cows near HQ
+                getNearbyCows();
+            }
         }
 
-        //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
-        if(onMission == false && onHelpMission == false && targetMinerAtHQ == null && !rc.isCurrentlyHoldingUnit()){
-            //finding cows near HQ
-            getNearbyCows();
-        }
 
         // Setting Standby Location
         if (standbyLocation == null) {
@@ -137,6 +157,9 @@ public class Drone extends Unit{
         }
         if (onHelpMission){
             System.out.println("I'm helping to build the wall!");
+        }
+        if(helperDrone){
+            System.out.println("moving miner");
         }
 
         // If my task is to remove the enemy
@@ -177,6 +200,9 @@ public class Drone extends Unit{
                     nav.flyTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
                 }
             }
+        }
+        else if(helperDrone){
+            getMinersToHigherSoup();
         }
         else {
             // Standby if we are not on a mission
@@ -237,21 +263,47 @@ public class Drone extends Unit{
     }
 
     public void getMinersToHigherSoup() throws GameActionException{
-       RobotInfo[] nearbyMiners = getNearbyMiners(); //check if miners are nearby
+        if(targetMiner == null){
+            MapLocation possibleMiner = comms.getMinerLocationForDrone(rc.getRoundNum());
+            if(possibleMiner.x > 0 && possibleMiner.y > 0){
+                nav.flyTo(possibleMiner);
+                gotFromBlock = true;
+            }
+        }
+        System.out.println("yo");
+       if(!rc.isCurrentlyHoldingUnit() && soupLoc == null){
+           System.out.println("pickup");
+           RobotInfo[] nearbyMiners = getNearbyMiners(); //check if miners are nearby
 
-       if(targetMiner != null){ //pick up miner
-            pickupTargetMiner();
+           if(targetMiner != null){ //pick up miner
+               pickupTargetMiner();
+           }
        }
 
        if(rc.isCurrentlyHoldingUnit() && soupLoc == null){
-            findHighSoup();
+           findHighSoup();
        }
 
        if(soupLoc != null){
-           if(rc.getLocation().distanceSquaredTo(soupLoc) < 5){
+           System.out.println("lets go get the soup");
+           if(rc.getLocation().distanceSquaredTo(soupLoc) < 3){
                if(rc.isCurrentlyHoldingUnit()){
-                   if(rc.canDropUnit(Util.randomDirection())){
-                       rc.dropUnit(Util.randomDirection());
+                   if(!rc.senseFlooding(rc.getLocation())){
+                       for(Direction d: Util.directions){
+                           if(rc.canDropUnit(d)){
+                               rc.dropUnit(d);
+                               soupLoc = null;
+                               targetMiner = null;
+                               onHelpMission = false;
+                               nav.flyTo(hqLoc);
+                           }
+                       }
+                   }
+                   else if(Math.random() > 0.25){
+                       nav.flyTo(rc.getLocation().translate(1, 0));
+                   }
+                   else{
+                       nav.flyTo(rc.getLocation().translate(0, 1));
                    }
                }
            }
@@ -261,27 +313,58 @@ public class Drone extends Unit{
        }
     }
 
-    public RobotInfo[] getNearbyMiners(){
+    public RobotInfo[] getNearbyMiners() throws GameActionException{
         RobotInfo[] nearbyMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
         for(RobotInfo robot: nearbyMiners){
             if(robot.type.equals(RobotType.MINER)){
                 targetMiner = robot; //will try to pick this guy up
-                break;
+                return nearbyMiners;
             }
         }
+        comms.broadCastMinerHelpFromDrone();
+        nav.flyTo(new MapLocation(15,15));
         return nearbyMiners;
     }
 
     public void findHighSoup() throws GameActionException{
+        System.out.println("123");
         MapLocation[] soups = rc.senseNearbySoup();
         for(MapLocation m: soups){
             int soupContent = rc.senseSoup(m);
-            if(rc.senseElevation(m) > 2 && soupContent > 50){ //hardcoded at 3, not sure what to change it to
+            if(rc.senseElevation(m) > 4 && soupContent > 100){ //hardcoded at 3, not sure what to change it to
                 soupLoc = m; //target soup location to move to
-                break;
+                System.out.println("345");
+                return;
             }
         }
-        nav.flyTo(Util.randomDirection());
+        System.out.println("234");
+        if(checkUpperL == false){
+            if(rc.getLocation().distanceSquaredTo(new MapLocation(fourthWidth, threefourthHeigh)) < 5){
+                checkUpperL = true;
+            }
+            nav.flyTo(new MapLocation(fourthWidth, threefourthHeigh));
+        }
+        else if(checkUpperR == false){
+            if(rc.getLocation().distanceSquaredTo(new MapLocation(threefourthWidth, threefourthHeigh)) < 5){
+                checkUpperR = true;
+            }
+            nav.flyTo(new MapLocation(threefourthWidth, threefourthHeigh));
+        }
+        else if(checkBottomR == false){
+            if(rc.getLocation().distanceSquaredTo(new MapLocation(threefourthWidth, fourthHeight)) < 5){
+                checkBottomR = true;
+            }
+            nav.flyTo(new MapLocation(threefourthWidth, fourthHeight));
+        }
+        else if(checkBottomL == false){
+            if(rc.getLocation().distanceSquaredTo(new MapLocation(fourthWidth, fourthHeight)) < 5){
+                checkBottomL = true;
+            }
+            nav.flyTo(new MapLocation(fourthWidth, fourthHeight));
+        }
+        else{
+            nav.flyTo(new MapLocation(15, 7));
+        }
     }
 
     public RobotInfo[] getNearbyLandscapers(){
