@@ -82,7 +82,7 @@ public class Drone extends Unit{
         getNearbyBootMiners();
 
         //finding cows near HQ
-        getNearbyCows();
+//        getNearbyCows();
 
         // Setting Standby Location
         if (standbyLocation == null) {
@@ -195,7 +195,7 @@ public class Drone extends Unit{
             }
         }
 
-        else if (onCowMission){
+     /*   else if (onCowMission){
             if (hqLoc != null){
                 //if I have the scum, look for a place to dispose them
                 disposeOfScumCow();
@@ -208,7 +208,7 @@ public class Drone extends Unit{
                 }
 
             }
-        }
+        }*/
         else {
             // Standby if we are not on a mission
             if (standbyLocation != null) {
