@@ -37,6 +37,7 @@ public class DesignSchool extends Building {
                 for (Direction dir : Util.directions) {
                     if (tryBuild(RobotType.LANDSCAPER, dir)){
                         numLandscapers++;
+                        broadcastUnitCreation(RobotType.LANDSCAPER);
                     }
                 }
             }
