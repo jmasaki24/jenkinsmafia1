@@ -426,9 +426,9 @@ public class Miner extends Unit {
             if (rc.canSenseLocation(loc)) {
                 RobotInfo refinery = rc.senseRobotAtLocation(loc);
                 // NullPointerException if the only refinery gets destroyed
-                if (refinery != null && !rc.senseRobotAtLocation(loc).type.equals(RobotType.REFINERY)
-                        && !rc.senseRobotAtLocation(loc).type.equals(RobotType.HQ)) {
-                    // System.out.println("refinery at " + loc + "is gone");
+                if (refinery == null || (!rc.senseRobotAtLocation(loc).type.equals(RobotType.REFINERY)
+                        && !rc.senseRobotAtLocation(loc).type.equals(RobotType.HQ))) {
+                     System.out.println("refinery at " + loc + "is gone");
                     refineryLocations.remove(loc);
                 }
             }

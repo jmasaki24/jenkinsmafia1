@@ -2,6 +2,7 @@ package BestBotv3;
 
 import battlecode.common.*;
 import java.util.ArrayList;
+import java.util.Map;
 
 
 public class Robot {
@@ -39,17 +40,21 @@ public class Robot {
     // THIS METHOD REQUIRES THAT THE ROBOT CAN SEE ALL TILES ADJACENT TO SOUP!!!!!!!!!!!!!!!!!!!!!!!!!!
     // if a tile adjacent to soup exists and is not flooded, it is accessible
     boolean isSoupInMoat(MapLocation soupLoc) throws GameActionException {
+        surroundingLocs = new ArrayList<MapLocation>();
+
         for (int i = 0; i<8; i++){
             if (rc.onTheMap(soupLoc.add(Util.directions[i]))) {
                 surroundingLocs.add(soupLoc.add(Util.directions[i]));
             }
         }
 
-        boolean isAccessible = false;
+        for (MapLocation loc: surroundingLocs) {
+            if (rc.canSenseLocation(loc) && !rc.senseFlooding(loc)) { // in theory should not need the canSense
+                return true;
+            }
+        }
 
-
-
-        return isAccessible;
+        return false;
     }
 
     // THIS METHOD REQUIRES THAT THE ROBOT CAN SEE ALL TILES ADJACENT TO SOUP!!!!!!!!!!!!!!!!!!!!!!!!!!
