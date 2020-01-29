@@ -154,11 +154,11 @@ public class Robot {
                         break;
                     case LANDSCAPERID:
                         landscaper_total_num++;
-                        System.out.println("m_total: " + landscaper_total_num);
+                        System.out.println("l_total: " + landscaper_total_num);
                         break;
                     case DRONEID:
                         drones_total_num++;
-                        System.out.println("m_total: " + drones_total_num);
+                        System.out.println("d_total: " + drones_total_num);
                         break;
                     default:
                         break;
