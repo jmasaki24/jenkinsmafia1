@@ -12,6 +12,10 @@ public class Amazon extends Building {
     private boolean shouldMakeBuilders;
     private int typeOfDrone = 0;
 
+    private int DEFENSE = 1;
+    private int MINEHELP = 3;
+    private int ATTACK = 5;
+
     public Amazon(RobotController r) {
         super(r);
     }
@@ -44,16 +48,16 @@ public class Amazon extends Building {
         }
 
         if(numDrones == 1 || numDrones == 2){
-            typeOfDrone = 1;
+            typeOfDrone = DEFENSE;
         }
         else if(numDrones == 3){
-            typeOfDrone = 3;
+            typeOfDrone = MINEHELP;
         }
         else if(numDrones < 30){
-            typeOfDrone = 4;
+            typeOfDrone = DEFENSE;
         }
         else{
-            typeOfDrone = 5;
+            typeOfDrone = ATTACK;
         }
 
         comms.broadcastTypeOfDrone(typeOfDrone, rc.getRoundNum());

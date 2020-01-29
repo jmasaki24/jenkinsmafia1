@@ -26,6 +26,9 @@ public class Communications {
     final int ATTACKERID = 505;
 
     final int DRONEDUTY = 345;
+    final int DRONEDEFENSE = 12;
+    final int DRONEHELPMINER = 30;
+    final int DRONEATTACK = 450;
 
     int[] lastSpoofedMessage;
 
@@ -250,13 +253,13 @@ public class Communications {
         }
     }
 
+    //amazon broadcasts the type of drone it just made in the previous round
     public void broadcastTypeOfDrone(int numOfDrones, int roundNum) throws GameActionException{
         int SENTID = 0;
         switch(numOfDrones){
-            case 1:             SENTID = 12; break; //defensive drones
-            case 3:             SENTID = 30; break; //transport drone
-            case 4:             SENTID = 450; break; //more defensive drones
-            case 5:             SENTID = 305; break; //attacking drones
+            case 1:             SENTID = DRONEDEFENSE; break; //defensive drones
+            case 3:             SENTID = DRONEHELPMINER; break; //transport drone
+            case 5:             SENTID = DRONEATTACK; break; //attacking drones
         }
 
         int[] message = new int[7];
@@ -264,23 +267,21 @@ public class Communications {
         message[1] = DRONEDUTY;
         message[2] = roundNum;
         message[3] = SENTID;
-        System.out.println(message.toString());
 
         if (rc.canSubmitTransaction(message, 1)) {
             rc.submitTransaction(message, 1);
-            // System.out.println("new building! type: " + SENTID + "Location:" + loc);
         }
     }
 
+    //drones that are just created trying to access their role
     public int getDroneDuty(int roundNum) throws GameActionException{
         for(Transaction tx: rc.getBlock(roundNum)){
             int[] mess = tx.getMessage();
             if(mess[0] == teamSecret && mess[1] == DRONEDUTY && mess[2] == roundNum){
                 switch(mess[3]){
-                    case 12: return 1;
-                    case 30: return 3;
-                    case 450: return 4;
-                    case 305: return 5;
+                    case DRONEDEFENSE: return 1;
+                    case DRONEHELPMINER: return 3;
+                    case DRONEATTACK: return 5;
                 }
             }
         }

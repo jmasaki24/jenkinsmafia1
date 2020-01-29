@@ -26,6 +26,10 @@ public class Drone extends Unit{
     boolean justCreated = true;
     int duty = 0;
 
+    private int DEFENSE = 1;
+    private int MINEHELP = 3;
+    private int ATTACK = 5;
+
 
     public Drone(RobotController r) {
         super(r);
@@ -47,23 +51,21 @@ public class Drone extends Unit{
         super.takeTurn();
         comms.updateAttackerDir(enemyDir);
 
-        if(justCreated == true){ //get duty from block chain
+        if(justCreated == true){ //get duty from block chain because it's just created!
             System.out.println("round num passing in" + (rc.getRoundNum()-1));
             duty = comms.getDroneDuty(rc.getRoundNum() - 1); //updated from amazon previous round
-            justCreated = false;
+            justCreated = false; //dont go looking for duty again
         }
 
-        if(duty == 1){
-            System.out.println("YOO im on defense");
+        //runs specialization method
+        if(duty == DEFENSE){
+            System.out.println("YOO im on defense"); //im guessing continue in this method if its on defense
         }
-        else if(duty == 3){
+        else if(duty == MINEHELP){
             System.out.println("Time to help those miners get the soup");
-            getMinersToHigherSoup();
+            getMinersToHigherSoup(); //help move miner to higher soup
         }
-        else if(duty == 4){
-            System.out.println("DEFENSE PRT2");
-        }
-        else if(duty == 5){
+        else if(duty == ATTACK){ //attack --> maybe call gotoEHQ???
             System.out.println("letss gooo offense");
         }
 
@@ -192,21 +194,10 @@ public class Drone extends Unit{
 
     }
 
-    public RobotInfo[] getNearbyMiners(){
-        RobotInfo[] nearbyMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
-        for(RobotInfo robot: nearbyMiners){
-            if(robot.type.equals(RobotType.MINER)){
-                targetMiner = robot;
-                break;
-            }
-        }
-        return nearbyMiners;
-    }
-
     public void getMinersToHigherSoup() throws GameActionException{
-       RobotInfo[] nearbyMiners = getNearbyMiners();
+       RobotInfo[] nearbyMiners = getNearbyMiners(); //check if miners are nearby
 
-       if(targetMiner != null){
+       if(targetMiner != null){ //pick up miner
             pickupTargetMiner();
        }
 
@@ -222,19 +213,28 @@ public class Drone extends Unit{
                nav.flyTo(soupLoc);
            }
        }
+    }
 
+    public RobotInfo[] getNearbyMiners(){
+        RobotInfo[] nearbyMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for(RobotInfo robot: nearbyMiners){
+            if(robot.type.equals(RobotType.MINER)){
+                targetMiner = robot; //will try to pick this guy up
+                break;
+            }
+        }
+        return nearbyMiners;
     }
 
     public void findHighSoup() throws GameActionException{
         MapLocation[] soups = rc.senseNearbySoup();
         for(MapLocation m: soups){
-            if(rc.senseElevation(m) > 3){
-                soupLoc = m;
+            if(rc.senseElevation(m) > 3){ //hardcoded at 3, not sure what to change it to
+                soupLoc = m; //target soup location to move to
                 break;
             }
         }
     }
-
 
     public RobotInfo[] getNearbyLandscapers(){
         RobotInfo[] nearbyLandscapers = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
@@ -345,13 +345,13 @@ public class Drone extends Unit{
     }
 
     public void pickupTargetMiner() throws GameActionException {
-        if(myLoc.distanceSquaredTo(targetMiner.location) < 3){
+        if(myLoc.distanceSquaredTo(targetMiner.location) < 3){ //if its close then pick itup
             if(rc.canPickUpUnit(targetMiner.ID)){
                 rc.pickUpUnit(targetMiner.ID);
             }
         }
         else{
-            nav.flyTo(targetMiner.location);
+            nav.flyTo(targetMiner.location); //fly to location
         }
     }
 }
