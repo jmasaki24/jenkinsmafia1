@@ -77,6 +77,9 @@ public class Drone extends Unit{
         //Landscaper Detection
         RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
+        // Boot Detection
+        getNearbyBootMiners();
+
         //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
         if(onMission == false && onHelpMission == false){
             //finding cows near HQ
@@ -97,6 +100,9 @@ public class Drone extends Unit{
         if (onHelpMission){
             System.out.println("I'm helping to build the wall!");
         }
+        if (onBootMission){
+            System.out.println("I'm BOOTING");
+        }
 
         // If my task is to remove the enemy
         if (onMission){
@@ -113,6 +119,58 @@ public class Drone extends Unit{
                 // HQ has seen an enemy bot
                 else if (enemyDir.size() != 0){
                     nav.flyTo(hqLoc.add(enemyDir.get(0))); // Goes to enemies
+                }
+            }
+        }
+
+
+        // BOOT
+        // If its holding a booted miner, can it get rid of it? If not, go away from HQ.
+        else if (onBootMission){
+            if (rc.isCurrentlyHoldingUnit()) {
+                for (Direction dir : Util.directions) {
+                    if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2 && !rc.senseFlooding(myLoc.add(dir))) {
+                        if (rc.canDropUnit(dir)) {
+                            rc.dropUnit(dir);
+                            targetBootBot = null;
+                            onBootMission = false;
+                            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+                            System.out.println("I dropped the miner on land!");
+                        } else{
+                            System.out.println("I cant boot it on the land");
+                        }
+                    } else if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2) {
+                        if (rc.canDropUnit(dir)) {
+                            rc.dropUnit(dir);
+                            targetBootBot = null;
+                            onBootMission = false;
+                            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+                            System.out.println("I dropped the miner in the water!");
+                        } else{
+                            System.out.println("I cant boot it in water");
+                        }
+                    }
+                    else {
+                        nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+                        System.out.println("moving away to boot");
+                    }
+                }
+            }
+            // I see a bot that needs to be BOOTED
+            else if (targetBootBot != null) {
+                // I am there
+                if (myLoc.distanceSquaredTo(targetBootBot.location) <= 2) {
+                    if (rc.canPickUpUnit(targetBootBot.ID)) {
+                        rc.pickUpUnit(targetBootBot.ID);
+                        //System.out.println("I picked this unit up: " + targetBootBot.ID);
+                    } else {
+                        System.out.println("I cant pick up unit: " + targetBootBot.ID);
+                    }
+                }
+                // I'm not there yet
+                else {
+                    nav.flyTo(targetBootBot.location);
+                    System.out.println("I'm going to the boot bot");
                 }
             }
         }
@@ -137,6 +195,7 @@ public class Drone extends Unit{
                 }
             }
         }
+
         else {
             // Standby if we are not on a mission
             if (standbyLocation != null) {
