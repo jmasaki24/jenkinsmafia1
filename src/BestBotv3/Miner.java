@@ -436,52 +436,49 @@ public class Miner extends Unit {
     }
 
     // fuzzy nav, except it won't go to a place it has visited in the last ten rounds
-//    boolean minerGoTo(Direction dir) throws GameActionException {
-//
-//        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
-//        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
-//                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
-//                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
-//                dir.opposite(),
-//        };
-//
-//        MapLocation moveTowardLocation = myLoc;
-//        Direction moveToward = fuzzyNavDirectionsInOrder[0];
-//        for (int i = 0; i < 8; i ++) {
-//            boolean shouldIMoveThere = true;
-//            moveToward = fuzzyNavDirectionsInOrder[i];
-//            moveTowardLocation = myLoc.add(moveToward);
-//
-//            for (int j = 0; j < recentlyVisitedLocations.length; j++) {
-//                if (moveTowardLocation.equals(recentlyVisitedLocations[j])) {
-//                    System.out.println("recently visited " + moveTowardLocation);
-//                    shouldIMoveThere = false;
-//                    break;
-//                }
-//            }
-//
-//            if (!shouldIMoveThere) { // reduce number of prints
-//                System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
-//
-//            }
-//
-//            if (shouldIMoveThere) {
-//                if (nav.tryMove(moveToward)) {
-//                    System.out.println("moved toward " + moveToward);
-//                    return true;
-//                }
-//            }
-//        }
-        boolean minerGoTo(Direction dir) throws  GameActionException {
-            nav.bugPath(dir);
-            return true;
+    boolean minerGoTo(Direction dir) throws GameActionException {
+
+        // if dir is north, order would be N, NW, NE, W, E, SW, SE, S
+        Direction[] fuzzyNavDirectionsInOrder = { dir, dir.rotateLeft(), dir.rotateRight(),
+                dir.rotateLeft().rotateLeft(), dir.rotateRight().rotateRight(),
+                dir.rotateLeft().rotateLeft().rotateLeft(), dir.rotateRight().rotateRight().rotateRight(),
+                dir.opposite(),
+        };
+
+        MapLocation moveTowardLocation = myLoc;
+        Direction moveToward = fuzzyNavDirectionsInOrder[0];
+        for (int i = 0; i < 8; i ++) {
+            boolean shouldIMoveThere = true;
+            moveToward = fuzzyNavDirectionsInOrder[i];
+            moveTowardLocation = myLoc.add(moveToward);
+
+            for (int j = 0; j < recentlyVisitedLocations.length; j++) {
+                if (moveTowardLocation.equals(recentlyVisitedLocations[j])) {
+                    System.out.println("recently visited " + moveTowardLocation);
+                    shouldIMoveThere = false;
+                    break;
+                }
+            }
+
+            if (!shouldIMoveThere) { // reduce number of prints
+                System.out.println("move " + fuzzyNavDirectionsInOrder[i] + "? " + shouldIMoveThere);
+
+            }
+
+            if (shouldIMoveThere) {
+                if (nav.tryMove(moveToward)) {
+                    System.out.println("moved toward " + moveToward);
+                    return true;
+                }
+            }
         }
 //
 //        for (Direction d : toTry){
 //            if(tryMove(d))
 //                return true;
 //        }
-   
+        return false;
+    }
 
     // navigate towards a particular location
     boolean minerGoTo(MapLocation destination) throws GameActionException {

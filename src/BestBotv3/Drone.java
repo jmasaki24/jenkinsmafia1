@@ -110,7 +110,7 @@ public class Drone extends Unit{
                 }
                 // HQ has seen an enemy bot
                 else if (enemyDir.size() != 0){
-                    nav.bugPath(hqLoc.add(enemyDir.get(0))); // Goes to enemies
+                    nav.flyTo(hqLoc.add(enemyDir.get(0))); // Goes to enemies
                 }
             }
         }
@@ -131,14 +131,14 @@ public class Drone extends Unit{
             //If HQ sees a landscaper, go to help it
             else if (helpDir != null){
                 if (helpDir.size() != 0){
-                    nav.bugPath(hqLoc.add(helpDir.get(helpDir.size()-1)));
+                    nav.flyTo(hqLoc.add(helpDir.get(helpDir.size()-1)));
                 }
             }
         }
         else {
             // Standby if we are not on a mission
             if (standbyLocation != null) {
-                nav.bugPath(standbyLocation);
+                nav.flyTo(standbyLocation);
             }
         }
     }
@@ -275,10 +275,10 @@ public class Drone extends Unit{
                     onHelpMission = false;
                 }
             } else{ //target out of range, going in for the rescue
-                nav.bugPath(targetLandscaper.location);
+                nav.flyTo(targetLandscaper.location);
             }
         } else {
-            nav.bugPath(targetLandscaper.location);
+            nav.flyTo(targetLandscaper.location);
         }
     }
 
@@ -295,7 +295,7 @@ public class Drone extends Unit{
         }
         // If I'm not close enough get closer
         else {
-            nav.bugPath(targetEnemy.location);
+            nav.flyTo(targetEnemy.location);
         }
     }
 
@@ -309,9 +309,9 @@ public class Drone extends Unit{
                     enemyDir = null;
                 } else{
                     if (waterLocation.size() != 0){
-                        nav.bugPath(waterLocation.get(waterLocation.size()-1));
+                        nav.flyTo(waterLocation.get(waterLocation.size()-1));
                     } else{
-                        nav.bugPath(Util.randomDirection());
+                        nav.flyTo(Util.randomDirection());
                     }
                 }
             }
