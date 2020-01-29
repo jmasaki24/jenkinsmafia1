@@ -16,6 +16,8 @@ public class Landscaper extends Unit {
     public void takeTurn() throws GameActionException {
         super.takeTurn();
 
+        unburyHQ();
+
         // System.out.println(myLoc.x + " " + myLoc.y);
         if(rc.onTheMap(hqLoc)){
             System.out.println("Can See hq");
@@ -83,6 +85,14 @@ public class Landscaper extends Unit {
 //            System.out.println("i want to move!!");
 //            nav.tryMove(rand);
 //        }
+    }
+
+    void unburyHQ() throws GameActionException {
+        if (hqLoc.distanceSquaredTo(myLoc) < 3){
+            if (rc.canDigDirt(myLoc.directionTo(hqLoc))){
+                rc.digDirt(myLoc.directionTo(hqLoc));
+            }
+        }
     }
 
     boolean DontDigTheWall() throws GameActionException {
