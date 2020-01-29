@@ -195,7 +195,7 @@ public class Miner extends Unit {
                     comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
                 }
             }
-        } else if (designSchoolLocations.size() == 0) {
+        } else if (designSchoolLocations.size() == 0 && drones_ids_us.size() >= 2) {
             if (rc.getTeamSoup() >= RobotType.DESIGN_SCHOOL.cost + 5 && myLoc.distanceSquaredTo(hqLoc) < 13  && myLoc.distanceSquaredTo(hqLoc) >= 2) {
                 // System.out.println("No design schools yet, gotta build one");
                 if (tryBuild(RobotType.DESIGN_SCHOOL, myLoc.directionTo(hqLoc).opposite())) {
@@ -414,12 +414,10 @@ public class Miner extends Unit {
                     && rc.senseSoup(loc) == 0) {
                 // System.out.println("soup at " + loc + "is gone");
                 soupLocations.remove(loc);
-            } /*else {
-                if (myLoc.distanceSquaredTo(loc) < 20 *//*&& !isSoupAccessible(loc)*//*) {
-                    // System.out.println("soup at " + loc + "is gone");
-                    soupLocations.remove(loc);
-                }
-            }*/
+            } else if (myLoc.distanceSquaredTo(loc) < 20 && !isSoupInMoat(loc)) {
+                System.out.println("soup at " + loc + "is MOAT'D!");
+                soupLocations.remove(loc);
+            }
         }
     }
 
@@ -428,9 +426,9 @@ public class Miner extends Unit {
             if (rc.canSenseLocation(loc)) {
                 RobotInfo refinery = rc.senseRobotAtLocation(loc);
                 // NullPointerException if the only refinery gets destroyed
-                if (refinery != null && !rc.senseRobotAtLocation(loc).type.equals(RobotType.REFINERY)
-                        && !rc.senseRobotAtLocation(loc).type.equals(RobotType.HQ)) {
-                    // System.out.println("refinery at " + loc + "is gone");
+                if (refinery == null || (!rc.senseRobotAtLocation(loc).type.equals(RobotType.REFINERY)
+                        && !rc.senseRobotAtLocation(loc).type.equals(RobotType.HQ))) {
+                     System.out.println("refinery at " + loc + "is gone");
                     refineryLocations.remove(loc);
                 }
             }
