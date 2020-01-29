@@ -5,9 +5,12 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
+import java.util.Map;
+
 public class Navigation {
     RobotController rc;
-
+    MapLocation lastTarget;
+    int closestIveEverBeen = 888888888;
     // state related only to navigation should go here
 
     public Navigation(RobotController r) {
@@ -61,6 +64,60 @@ public class Navigation {
 //                return true;
 //        }
         return false;
+    }
+
+    void bugPath(MapLocation target) throws GameActionException {
+
+        //Specify Long Term Target
+        if (lastTarget == null){
+            lastTarget = target;
+        } else{
+            if (target != lastTarget){
+                closestIveEverBeen = 888888888;
+            }
+        }
+        MapLocation myLoc = rc.getLocation();
+
+        //Remember the closest Ive Ever Been
+        if (closestIveEverBeen == 888888888){
+            closestIveEverBeen = myLoc.distanceSquaredTo(target);
+        }
+
+        int closest = closestIveEverBeen;
+        Direction closestDir = Direction.CENTER;
+
+        for (Direction dis: Util.directions){
+            if (rc.canMove(dis)){
+                MapLocation potentialLoc = myLoc.add(dis);
+                if (closest < potentialLoc.distanceSquaredTo(target)){
+                    closest = potentialLoc.distanceSquaredTo(target);
+                    closestDir = dis;
+                }
+            }
+        }
+        if (closest > closestIveEverBeen){
+            Direction dirToTarget = myLoc.directionTo(target);
+            if (rc.canMove(dirToTarget)){
+                rc.move(dirToTarget);
+            } else {
+                int count = 0;
+                while(!rc.canMove(dirToTarget) && count <= 8){
+                    dirToTarget = dirToTarget.rotateRight();
+                    count++;
+                }
+                if (dirToTarget == myLoc.directionTo(target)){
+                    Direction randomDir = Util.randomDirection();
+                    if (rc.canMove(randomDir)){
+                        rc.move(randomDir);
+                    }
+                } else {
+                    rc.move(dirToTarget);
+                }
+            }
+        } else{
+            if (rc.canMove(closestDir))
+                rc.move(closestDir);
+        }
     }
 
     //Is a copy of goTo that ignores water

@@ -13,6 +13,7 @@ public strictfp class RobotPlayer {
     static RobotController rc;
     static int turnCount; // number of turns since creation
 
+    //TODO: WIN THE TOURNAMENT!!!! It won't happen, we shouldn't even be here, but f--- it, we are here anyways, so lets make it count! ~cam
 
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {

@@ -97,7 +97,7 @@ public class Miner extends Unit {
             //find closest refinery (including hq, should change that tho since HQ will become unreachable)
             if (refineryLocations.size() > 0) {
                 MapLocation closestRefineryLoc = findClosestRefinery();
-                minerGoTo(closestRefineryLoc);
+                nav.bugPath(closestRefineryLoc);
                 rc.setIndicatorLine(rc.getLocation(), closestRefineryLoc, 255, 0, 255);
             } else {
                 // if you can't build a refinery, and there are no refineries, it's because you're too close to HQ
@@ -177,13 +177,13 @@ public class Miner extends Unit {
         System.out.println("Run awayyyyyyyy");
 
         if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top left
-            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y - 4));
+            nav.bugPath(new MapLocation(myLoc.x + 4, myLoc.y - 4));
         } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y > (rc.getMapHeight() / 2)) { // top right
-            minerGoTo(new MapLocation(myLoc.x - 4, myLoc.y - 4));
+            nav.bugPath(new MapLocation(myLoc.x - 4, myLoc.y - 4));
         } else if (hqLoc.x < (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom left
-            minerGoTo(new MapLocation(myLoc.x + 4, myLoc.y + 4));
+            nav.bugPath(new MapLocation(myLoc.x + 4, myLoc.y + 4));
         } else if (hqLoc.x > (rc.getMapWidth() / 2) && hqLoc.y < (rc.getMapHeight() / 2)) { // bottom right
-            minerGoTo(new MapLocation(myLoc.x - 4, myLoc.y + 4));
+            nav.bugPath(new MapLocation(myLoc.x - 4, myLoc.y + 4));
         } // else.. idk?!?!?
     }
 
@@ -306,7 +306,7 @@ public class Miner extends Unit {
         // System.out.println("I'm moving to soupLocation " + nearestSoupLoc);
 
         rc.setIndicatorLine(rc.getLocation(), nearestSoupLoc, 255, 0, 255);
-        minerGoTo(nearestSoupLoc);
+        nav.bugPath(nearestSoupLoc);
 
     }
 
@@ -320,7 +320,7 @@ public class Miner extends Unit {
                     closestSoup = soupLoc;
                 }
             }
-            minerGoTo(closestSoup);
+            nav.bugPath(closestSoup);
         }
 
         // System.out.println("I'm searching for soup, moving away from other miners");
@@ -336,7 +336,7 @@ public class Miner extends Unit {
         }
         // System.out.println("Trying to go: " + rc.getLocation().directionTo(nextPlace));
         if (nextPlace != rc.getLocation()) {
-            minerGoTo(rc.getLocation().directionTo(nextPlace));
+            nav.bugPath(nextPlace);
 
         } else {
             minerGoTo(Util.randomDirection());

@@ -255,9 +255,7 @@ public class Drone extends Unit{
             }
         }
         //Good fuzzy nav
-        if (!nav.tryFly(myLoc.directionTo(hqLoc))){
-            nav.tryFly(Util.randomDirection());
-        }
+        nav.bugPath(hqLoc);
     }
 
     public void pickupTargetLandscaper() throws GameActionException{
