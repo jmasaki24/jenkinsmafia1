@@ -32,8 +32,10 @@ public class Drone extends Unit{
 
     boolean onMission = false;
     boolean onHelpMission = false;
+    boolean onBootMission = false;
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
+    RobotInfo targetBootBot = null;
     //boolean onCowMission = false;
     boolean iBroadcastedWaterLoc = false;
     boolean findANewBot = false;
@@ -209,6 +211,27 @@ public class Drone extends Unit{
         }
         return nearbyLandscapers;
     }
+
+    public void getNearbyBootMiners(){
+        RobotInfo[] nearbyBootMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : nearbyBootMiners) {
+            if (robot.type.equals(RobotType.MINER)){
+                // If its a miner on our team
+                if (hqLoc != null){
+                    // Only go for the robots that are too close to the HQ
+                    if (robot.location.distanceSquaredTo(hqLoc) <= 2){
+                        onBootMission = true;
+                        targetBootBot = robot;
+                    } else{
+                        targetBootBot = null;
+                    }
+                } else{
+                    targetBootBot = null;
+                }
+            }
+        }
+    }
+
 
     public RobotInfo[] getNearbyEnemies(){
         RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
