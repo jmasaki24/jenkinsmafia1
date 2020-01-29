@@ -35,7 +35,7 @@ public class Amazon extends Building {
             }
         }
 
-        if (rc.getTeamSoup() > ARBITRARY_SOUP_NUMBER_LMAO) {
+        if (rc.getTeamSoup() > ARBITRARY_SOUP_NUMBER_LMAO && numDrones < 20) {
             for (Direction dir : Util.directions) {
                 if (tryBuild(RobotType.DELIVERY_DRONE,dir)) {
                     numDrones++;
