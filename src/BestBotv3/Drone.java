@@ -38,6 +38,7 @@ public class Drone extends Unit{
 
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
+    RobotInfo targetCow = null;
     //boolean onCowMission = false;
     boolean iBroadcastedWaterLoc = false;
     boolean findANewBot = false;
@@ -82,10 +83,10 @@ public class Drone extends Unit{
         RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
         //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
-        if(onMission == false && onHelpMission == false){
-            //finding cows near HQ
-            getNearbyCows();
-        }
+//        if(onMission == false && onHelpMission == false){
+//            //finding cows near HQ
+//            getNearbyCows();
+//        }
 
         // Setting Standby Location
         if (standbyLocation == null) {
