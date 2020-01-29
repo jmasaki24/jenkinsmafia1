@@ -25,6 +25,11 @@ public class Communications {
     final int WATERID = 820;
     final int ATTACKERID = 505;
 
+    final int DRONEDUTY = 345;
+    final int DRONEDEFENSE = 12;
+    final int DRONEHELPMINER = 30;
+    final int DRONEATTACK = 450;
+
     int[] lastSpoofedMessage;
 
 //    static final String[] messageType = {
@@ -247,6 +252,43 @@ public class Communications {
             // System.out.println("new building! type: " + SENTID + "Location:" + loc);
         }
     }
+
+    //amazon broadcasts the type of drone it just made in the previous round
+    public void broadcastTypeOfDrone(int numOfDrones, int roundNum) throws GameActionException{
+        int SENTID = 0;
+        switch(numOfDrones){
+            case 1:             SENTID = DRONEDEFENSE; break; //defensive drones
+            case 3:             SENTID = DRONEHELPMINER; break; //transport drone
+            case 5:             SENTID = DRONEATTACK; break; //attacking drones
+        }
+
+        int[] message = new int[7];
+        message[0] = teamSecret;
+        message[1] = DRONEDUTY;
+        message[2] = roundNum;
+        message[3] = SENTID;
+
+        if (rc.canSubmitTransaction(message, 1)) {
+            rc.submitTransaction(message, 1);
+        }
+    }
+
+    //drones that are just created trying to access their role
+    public int getDroneDuty(int roundNum) throws GameActionException{
+        for(Transaction tx: rc.getBlock(roundNum)){
+            int[] mess = tx.getMessage();
+            if(mess[0] == teamSecret && mess[1] == DRONEDUTY && mess[2] == roundNum){
+                switch(mess[3]){
+                    case DRONEDEFENSE: return 1;
+                    case DRONEHELPMINER: return 3;
+                    case DRONEATTACK: return 5;
+                }
+            }
+        }
+        return 0;
+    }
+
+
     // Other for potential enemies/enemy HQ that is team specific
     public void broadcastBuildingCreation(RobotType type, MapLocation loc, Team team) throws GameActionException {
         // System.out.println("broadcast building creation");
