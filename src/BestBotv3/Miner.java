@@ -76,8 +76,6 @@ public class Miner extends Unit {
 
         buildAmazonAndSchoolIfAppropriate();
 
-        System.out.println("I have _ soup" + rc.getSoupCarrying());
-
         tryDepositAndMineAllDirections();
 
         //the following is just for fun :) -jm
@@ -191,7 +189,7 @@ public class Miner extends Unit {
 
     void buildAmazonAndSchoolIfAppropriate() throws GameActionException {
         if (amazonLocations.size() == 0 && rc.getTeamSoup() >= RobotType.FULFILLMENT_CENTER.cost + 5) {
-            if (myLoc.distanceSquaredTo(hqLoc) > 1) {
+            if (myLoc.distanceSquaredTo(hqLoc) > 2) {
                 System.out.println("Trybuild amazon");
                 if (tryBuild(RobotType.FULFILLMENT_CENTER, myLoc.directionTo(hqLoc).opposite())) {
                     comms.broadcastBuildingCreation(RobotType.FULFILLMENT_CENTER, myLoc.add(myLoc.directionTo(hqLoc).opposite()));
@@ -224,7 +222,7 @@ public class Miner extends Unit {
         }
 
         // then, try to mine soup in all directions
-        for (Direction dir : Util.allDirections) {
+        for (Direction dir : Util.directions) {
             if (tryMine(dir)) {
                 // System.out.println("I mined soup! " + rc.getSoupCarrying());
                 MapLocation soupLoc = myLoc.add(dir);
@@ -418,9 +416,6 @@ public class Miner extends Unit {
                 soupLocations.remove(loc);
             } else if (myLoc.distanceSquaredTo(loc) < 20 && !isSoupInMoat(loc)) {
                 System.out.println("soup at " + loc + "is MOAT'D!");
-                soupLocations.remove(loc);
-            } else if (landscapers_ids_us.size() > 2 && hqLoc.distanceSquaredTo(loc) <=2) {
-                System.out.println("soup at " + loc + "is on wall!");
                 soupLocations.remove(loc);
             }
         }
