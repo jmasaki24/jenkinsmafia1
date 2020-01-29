@@ -32,9 +32,12 @@ public class Drone extends Unit{
 
     boolean onMission = false;
     boolean onHelpMission = false;
+    boolean onBootMission = false;
+    boolean onCowMission = false;
     RobotInfo targetEnemy = null;
     RobotInfo targetLandscaper = null;
-    //boolean onCowMission = false;
+    RobotInfo targetBootBot = null;
+    RobotInfo targetCow = null;
     boolean iBroadcastedWaterLoc = false;
     boolean findANewBot = false;
 
@@ -75,11 +78,11 @@ public class Drone extends Unit{
         //Landscaper Detection
         RobotInfo[] nearbyLandscapers = getNearbyLandscapers();
 
-        //wont get cow unless it doesnt have a mission already, makes sure other mission gets priority
-        if(onMission == false && onHelpMission == false){
-            //finding cows near HQ
-            getNearbyCows();
-        }
+        // Boot Detection
+        getNearbyBootMiners();
+
+        //finding cows near HQ
+//        getNearbyCows();
 
         // Setting Standby Location
         if (standbyLocation == null) {
@@ -92,8 +95,14 @@ public class Drone extends Unit{
         if (onMission){
             System.out.println("I am getting rid of the enemy!");
         }
-        if (onHelpMission){
+        else if (onHelpMission){
             System.out.println("I'm helping to build the wall!");
+        }
+        else if (onBootMission){
+            System.out.println("I'm BOOTING");
+        }
+        else if (onCowMission){
+            System.out.println("COW REMOVE");
         }
 
         // If my task is to remove the enemy
@@ -105,7 +114,7 @@ public class Drone extends Unit{
 
                 // If I see an enemy, go pick them up
                 if (targetEnemy != null) {
-                    System.out.println("drone" + targetEnemy.location);
+                    System.out.println("Drone" + targetEnemy.location);
                     pickupEnemy();
                 }
                 // HQ has seen an enemy bot
@@ -135,6 +144,71 @@ public class Drone extends Unit{
                 }
             }
         }
+
+        // If its holding a booted miner, can it get rid of it? If not, go away from HQ.
+        else if (onBootMission){
+            if (rc.isCurrentlyHoldingUnit()) {
+                for (Direction dir : Util.directions) {
+                    if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2 && !rc.senseFlooding(myLoc.add(dir))) {
+                        if (rc.canDropUnit(dir)) {
+                            rc.dropUnit(dir);
+                            targetBootBot = null;
+                            onBootMission = false;
+                            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+                            System.out.println("I dropped the miner on land!");
+                        } else{
+                            System.out.println("I cant boot it on the land");
+                        }
+                    } else if (myLoc.add(dir).distanceSquaredTo(hqLoc) > 2) {
+                        if (rc.canDropUnit(dir)) {
+                            rc.dropUnit(dir);
+                            targetBootBot = null;
+                            onBootMission = false;
+                            nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+                            System.out.println("I dropped the miner in the water!");
+                        } else{
+                            System.out.println("I cant boot it in water");
+                        }
+                    }
+                    else {
+                        nav.flyTo(myLoc.directionTo(hqLoc).opposite());
+                        System.out.println("moving away to boot");
+                    }
+                }
+            }
+            // I see a bot that needs to be BOOTED
+            else if (targetBootBot != null) {
+                // I am there
+                if (myLoc.distanceSquaredTo(targetBootBot.location) <= 2) {
+                    if (rc.canPickUpUnit(targetBootBot.ID)) {
+                        rc.pickUpUnit(targetBootBot.ID);
+                        System.out.println("I picked this unit up: " + targetBootBot.ID);
+                    } else {
+                        System.out.println("I cant pick up unit: " + targetBootBot.ID);
+                    }
+                }
+                // I'm not there yet
+                else {
+                    nav.flyTo(targetBootBot.location);
+                    System.out.println("I'm going to the boot bot");
+                }
+            }
+        }
+
+     /*   else if (onCowMission){
+            if (hqLoc != null){
+                //if I have the scum, look for a place to dispose them
+                disposeOfScumCow();
+
+                // If I see a cow, go pick them up
+                checkIfCowGone(targetCow.location);
+                if (targetCow != null) {
+                    System.out.println("Going to Cow at: " + targetCow.location);
+                    pickupCow();
+                }
+
+            }
+        }*/
         else {
             // Standby if we are not on a mission
             if (standbyLocation != null) {
@@ -209,6 +283,28 @@ public class Drone extends Unit{
         }
         return nearbyLandscapers;
     }
+
+    public void getNearbyBootMiners(){
+        RobotInfo[] nearbyBootMiners = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam());
+        for (RobotInfo robot : nearbyBootMiners) {
+            if (robot.type.equals(RobotType.MINER)){
+                // If its a miner on our team
+                if (hqLoc != null){
+                    // Only go for the robots that are too close to the HQ
+                    if (robot.location.distanceSquaredTo(hqLoc) <= 2){
+                        onBootMission = true;
+                        System.out.println("On boot mission");
+                        targetBootBot = robot;
+                    } else{
+                        targetBootBot = null;
+                    }
+                } else{
+                    targetBootBot = null;
+                }
+            }
+        }
+    }
+
 
     public RobotInfo[] getNearbyEnemies(){
         RobotInfo[] nearbyEnemyRobots = rc.senseNearbyRobots(RobotType.DELIVERY_DRONE.sensorRadiusSquared, rc.getTeam().opponent());
@@ -301,6 +397,42 @@ public class Drone extends Unit{
         }
     }
 
+    public void pickupCow() throws GameActionException{
+        // And I'm there
+        if (myLoc.distanceSquaredTo(targetCow.location) <= 2) {
+            //And the bot is not on the wall
+            if (targetCow.location.distanceSquaredTo(hqLoc) > 3){
+                if (rc.canPickUpUnit(targetCow.ID)) {
+                    rc.pickUpUnit(targetCow.ID);
+                } else {
+                    System.out.println("Can't pickup Cow #" + targetCow.ID);
+                }
+            }
+        }
+        // If I'm not close enough get closer
+        else {
+            nav.flyTo(targetCow.location);
+        }
+    }
+
+    public boolean checkIfCowGone(MapLocation loc) throws GameActionException{
+        if (targetCow != null) {
+            // System.out.println("check soup" + loc);
+//            MapLocation targetSoupLoc = soupLocations.get(0);
+            if (rc.canSenseLocation(loc)
+                    && (rc.senseRobotAtLocation(loc).type != RobotType.COW)) {
+                // System.out.println("soup at " + loc + "is gone");
+                targetCow = null;
+                onCowMission = false;
+                return true;
+            } else{
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public void disposeOfScum() throws GameActionException{
         if (rc.isCurrentlyHoldingUnit()){
             for (Direction dir: Util.directions){
@@ -309,6 +441,23 @@ public class Drone extends Unit{
                     targetEnemy = null;
                     onMission = false;
                     enemyDir = null;
+                } else{
+                    if (waterLocation.size() != 0){
+                        nav.flyTo(waterLocation.get(waterLocation.size()-1));
+                    } else{
+                        nav.flyTo(Util.randomDirection());
+                    }
+                }
+            }
+        }
+    }
+    public void disposeOfScumCow() throws GameActionException{
+        if (rc.isCurrentlyHoldingUnit()){
+            for (Direction dir: Util.directions){
+                if (rc.senseFlooding(myLoc.add(dir))){
+                    rc.dropUnit(dir);
+                    targetCow = null;
+                    onCowMission = false;
                 } else{
                     if (waterLocation.size() != 0){
                         nav.flyTo(waterLocation.get(waterLocation.size()-1));
